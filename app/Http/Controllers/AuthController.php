@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -31,8 +30,8 @@ class AuthController extends Controller
         $password = $request->input('password');
     
         // Regular expressions for email and student number formats
-        $emailRegex = '/^[^\s@]+@[^\s@]+\.[^\s@]+$/'; // Simple email validation regex
-        $studentNumberRegex = '/^[A-Z0-9]{2}-[A-Z0-9]{5}$/'; // Example: XX-XXXXX
+        $emailRegex = '/^[^\s@]+@[^\s@]+\.[^\s@]+$/';
+        $studentNumberRegex = '/^[A-Z0-9]{2}-[A-Z0-9]{5}$/';
     
         // Determine credentials based on input type (email or student number)
         $credentials = preg_match($emailRegex, $input) 
@@ -61,7 +60,6 @@ class AuthController extends Controller
         // Return error for invalid credentials
         return back()->withErrors(['emailOrStudentNumber' => 'Invalid Credentials.']);
     }
-    
     
 
     /**

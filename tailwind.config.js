@@ -9,6 +9,7 @@ export default {
     extend: {},
   },
   plugins: [
+    require('daisyui'),
     function ({addUtilities}){
       const newUtilities = {".no-scrollbar::-webkit-scrollbar":{
         display: "none",
@@ -21,5 +22,8 @@ export default {
     addUtilities(newUtilities);
   },
   ],
+  daisyui:{
+    themes: [],
+  },
 };
 

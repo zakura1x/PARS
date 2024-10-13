@@ -9,6 +9,10 @@ use Inertia\Inertia;
 Route::get('/', [AuthController::class, 'login']);
 Route::post('/login', [AuthController::class, 'signIn'])->name('auth.signin');
 
+Route::get('/test', function(){
+    return inertia('ProgramHead/Sidebar');
+});
+
 
 // Route::resource('auth', AuthController::class)->except('login');
 
