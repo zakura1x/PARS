@@ -34,32 +34,26 @@ class AuthController extends Controller
         $studentNumberRegex = '/^[A-Z0-9]{2}-[A-Z0-9]{5}$/';
     
         // Determine credentials based on input type (email or student number)
-        $credentials = preg_match($emailRegex, $input) 
+        $credentials = preg_match($emailRegex, $input)
             ? ['email' => $input, 'password' => $password]
-            : (preg_match($studentNumberRegex, $input) 
+            : (preg_match($studentNumberRegex, $input)
                 ? ['idNumber' => $input, 'password' => $password]
                 : null);
     
         // If the input format is invalid, return error
         if (!$credentials) {
-            return back()->withErrors(['emailOrStudentNumber' => 'Invalid email or student number format.']);
+            return back()->withErrors(['Email or Student Number' => 'Invalid email or student number format.']);
         }
     
         // Attempt to authenticate with the determined credentials
         if (Auth::attempt($credentials)) {
-            $roleDashboardMap = [
-                'programHead' => 'ProgramHead/Dashboard',
-                'student' => 'Student/Dashboard',
-                'professor' => 'Professor/Dashboard',
-            ];
-    
-            $user = Auth::user();
-            return inertia($roleDashboardMap[$user->role] ?? 'default');
+            return redirect()->route('dashboard');
         }
     
         // Return error for invalid credentials
-        return back()->withErrors(['emailOrStudentNumber' => 'Invalid Credentials.']);
+        return back()->withErrors(['Email or Student Number' => 'Invalid Credentials.']);
     }
+    
     
 
     /**

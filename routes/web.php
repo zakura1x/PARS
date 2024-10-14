@@ -1,17 +1,20 @@
 <?php
 
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\PostController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 
 Route::get('/', [AuthController::class, 'login']);
 Route::post('/login', [AuthController::class, 'signIn'])->name('auth.signin');
 
-Route::get('/test', function(){
-    return inertia('ProgramHead/Sidebar');
+Route::middleware(['auth'])->group(function(){
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
+
+// Route::get('/test', function(){
+//     return inertia('');
+// });
 
 
 // Route::resource('auth', AuthController::class)->except('login');

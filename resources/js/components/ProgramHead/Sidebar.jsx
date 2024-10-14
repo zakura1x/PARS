@@ -11,7 +11,7 @@ const Sidebar = () => {
         <>
             {/* Sidebar */}
             <aside
-                className={`absolute left-0 top-0 h-screen bg-[#D0D9D3] shadow-right flex-col transition-width duration-300 ${
+                className={`absolute left-0 top-0 z-9999 flex h-screen w-72.5 flex-col duration-300 ease-linear lg:static lg:translate-x-0 -translate-x-full bg-gray-300 ${
                     isOpen ? "w-64" : "w-16"
                 } ${isOpen ? "block" : "hidden"} md:block`}
             >
