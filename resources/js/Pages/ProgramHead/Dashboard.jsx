@@ -4,11 +4,9 @@ const Dashboard = () => {
     const { auth } = usePage().props; // Access props here
 
     return (
-        <div>
-            {/* <Head title="Dashboard" />
-            <h1>Welcome, {auth.user.name}</h1>
-            Your dashboard content */}
-        </div>
+        <>
+            <Head title="Dashboard" />
+        </>
     );
 };
 

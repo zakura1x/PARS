@@ -1,33 +1,47 @@
-import React from "react";
+import React, { useState } from "react";
+import { usePage } from "@inertiajs/react";
 
 const Navbar = () => {
+    const { auth } = usePage().props;
+
+    //Create a mapping for user role
+    const roles = {
+        program_head: "Program Head",
+        professor: "Professor",
+        dean: "Dean",
+    };
+    const userRole = auth.user.role;
+    const mappedRole = roles[userRole];
+
     return (
-        <div className="navbar mx-50 bg-[#D0D9D3] transition-all duration-300 ease-in-out w-[100%]">
-            <div className="flex-1">
-                <b>
-                    <a className="ml-4 text-xl">
-                        PARS - Program Head's Workspace
-                    </a>
-                </b>
-            </div>
-            <div className="flex-none gap-2">
-                {/* Avatar and Dropdown */}
+        <div className="navbar py-4 bg-gray-100 transition-all duration-300 ease-in-out w-[100%] shadow-lg justify-between lg:sticky">
+            {/*TITLE  */}
+            <h2 className="font-bold text-lg px-6">{mappedRole} Workspace</h2>
+
+            <div>
+                <div className="flex flex-col space-y-1">
+                    <h2 className="font-medium">{auth.user.name}</h2>
+                    <p className="text-xs text-slate-600">{auth.user.email}</p>
+                </div>
                 <div className="dropdown dropdown-end">
-                    <div
-                        tabIndex={0}
-                        role="button"
-                        className="btn btn-ghost btn-circle avatar"
-                    >
-                        <div className="w-10 rounded-full">
-                            <img
-                                src="https://as2.ftcdn.net/v2/jpg/08/97/97/81/1000_F_897978123_8JIh7WjXzMzgbDEKD9e49fz08TyXvsvs.jpg"
-                                alt="User Avatar"
+                    <button className="btn btn-ghost btn-circle">
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                d="M7 10L12 15L17 10"
+                                stroke="#000000"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
                             />
-                        </div>
-                    </div>
+                        </svg>
+                    </button>
                     <ul
                         tabIndex={0}
-                        className="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52"
+                        className="mt-2 z-[1] p-2 shadow menu menu-sm dropdown-content bg-[#436850] rounded-box w-52 text-white"
                     >
                         <li>
                             <a className="justify-between">Profile</a>
@@ -38,6 +52,8 @@ const Navbar = () => {
                     </ul>
                 </div>
             </div>
+
+            {/* Avatar and Dropdown */}
         </div>
     );
 };

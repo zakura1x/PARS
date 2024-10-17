@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 
+import { TbCloudQuestion } from "react-icons/tb";
+
 const Sidebar = () => {
     const [isOpen, setIsOpen] = useState(false); // Sidebar is hidden by default on mobile
 
@@ -9,10 +11,9 @@ const Sidebar = () => {
 
     return (
         <>
-            {/* Sidebar */}
             <aside
-                className={`absolute left-0 top-0 z-9999 flex h-screen w-72.5 flex-col duration-300 ease-linear lg:static lg:translate-x-0 -translate-x-full bg-gray-300 ${
-                    isOpen ? "w-64" : "w-16"
+                className={`absolute left-0 top-0 flex h-screen flex-col duration-300 ease-linear lg:static lg:translate-x-0 -translate-x-full bg-[#42604C] text-white ${
+                    isOpen ? "w-72" : "w-16"
                 } ${isOpen ? "block" : "hidden"} md:block`}
             >
                 <div
@@ -20,7 +21,6 @@ const Sidebar = () => {
                         isOpen ? "px-4" : "px-2"
                     }`}
                 >
-                    {/* ICON */}
                     {isOpen && <h1 className="font-semibold text-2xl">PARS</h1>}
                     <button
                         className="btn btn-square btn-ghost"
@@ -41,56 +41,36 @@ const Sidebar = () => {
                         </svg>
                     </button>
                 </div>
-                <nav className="flex flex-col gap-4 px-4">
-                    <button className="flex items-center gap-2">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            className="w-6 h-6"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M3 12h18M9 6l-6 6 6 6"
-                            />
-                        </svg>
-                        {isOpen && <span>Dashboard</span>}
-                    </button>
-                    <button className="flex items-center gap-2">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            className="w-6 h-6"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M5 13l4 4L19 7"
-                            />
-                        </svg>
-                        {isOpen && <span>Tasks</span>}
-                    </button>
-                    <button className="flex items-center gap-2">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            className="w-6 h-6"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M15 12H3m12-6l-6 6 6 6"
-                            />
-                        </svg>
-                        {isOpen && <span>Settings</span>}
-                    </button>
-                </nav>
+                {/* ITEMS */}
+                <div
+                    className={`no-scrollbar items-start justify-start overflow-y-auto duration-300 ease-linear ${
+                        isOpen ? "flex" : "hidden"
+                    }`}
+                >
+                    <nav className="py-4 px-4 flex flex-col items-start">
+                        <h3 className="px-5 text-base font-semibold text-slate-400 tracking-wider">
+                            QUESTION BANK
+                        </h3>
+                        <ul className="menu rounded-box w-64 text-lg">
+                            <li>
+                                <details open>
+                                    <summary>
+                                        <TbCloudQuestion size={26} />
+                                        Question
+                                    </summary>
+                                    <ul className="pl-5 text-slate-400">
+                                        <li>
+                                            <a>Add question</a>
+                                        </li>
+                                        <li>
+                                            <a>Submenu 2</a>
+                                        </li>
+                                    </ul>
+                                </details>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
             </aside>
 
             {/* Burger Icon (only visible on mobile) */}

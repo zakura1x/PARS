@@ -16,6 +16,8 @@ class DashboardController extends Controller
             return inertia('Authentication/Login');
         }
 
+        sleep(2);
+
         $roleDashboardMap = [
             'program_head' => 'ProgramHead/Dashboard',
             // 'student' =>'Student/Dashboard',

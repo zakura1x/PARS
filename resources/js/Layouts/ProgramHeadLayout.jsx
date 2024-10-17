@@ -7,9 +7,8 @@ const ProgramHeadLayout = ({ children }) => {
             <Sidebar />
             <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
                 <Navbar />
+                <div className="bg-[#e5e7eb] h-screen">{children}</div>
             </div>
-
-            {children}
         </div>
     );
 };

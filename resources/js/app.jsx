@@ -12,17 +12,11 @@ createInertiaApp({
         const pages = import.meta.glob("./Pages/**/*.jsx", { eager: true });
         let page = pages[`./Pages/${name}.jsx`];
 
-        if (!page) {
-            console.error(`Page not found: ${name}`);
-            return null; // or return a default page
-        }
-
         const isAuthPage = name.startsWith("Authentication/");
 
         // Assign the layout, using a default layout for now
         const LayoutComponent = isAuthPage ? AuthLayout : Layout;
 
-        // Assign layout to the page
         page.default.layout =
             page.default.layout ||
             ((page) => <LayoutComponent>{page}</LayoutComponent>);
@@ -33,7 +27,7 @@ createInertiaApp({
         createRoot(el).render(<App {...props} />);
     },
     progress: {
-        color: "#fff",
-        showSpinner: true,
+        color: "#42604C",
+        showSpinner: false,
     },
 });

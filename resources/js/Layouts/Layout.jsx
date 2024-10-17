@@ -7,13 +7,12 @@ const Layout = ({ children }) => {
     const { auth } = usePage().props;
 
     if (!auth || !auth.user) {
-        return <DefaultLayout>{children}</DefaultLayout>; // If no auth, fall back to default layout
+        return <DefaultLayout>{children}</DefaultLayout>;
     }
 
     // Determine the role-based layout
     const roleBasedLayouts = {
         program_head: ProgramHeadLayout,
-        // Add other roles here...
     };
 
     const UserLayout = roleBasedLayouts[auth.user.role] || DefaultLayout;
