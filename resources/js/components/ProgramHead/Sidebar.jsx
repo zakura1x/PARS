@@ -1,12 +1,19 @@
 import React, { useState } from "react";
-
 import { TbCloudQuestion } from "react-icons/tb";
 
 const Sidebar = () => {
     const [isOpen, setIsOpen] = useState(false); // Sidebar is hidden by default on mobile
+    const [activeSummary, setActiveSummary] = useState(null); // Track active summary
+    const [activeItem, setActiveItem] = useState(null); // Track active list item
 
     const toggleSidebar = () => {
         setIsOpen(!isOpen);
+    };
+
+    // Function to handle clicking an item
+    const handleItemClick = (summaryIndex, itemIndex) => {
+        setActiveSummary(summaryIndex); // Set the parent summary as active
+        setActiveItem(itemIndex); // Set the clicked item as active
     };
 
     return (
@@ -17,7 +24,7 @@ const Sidebar = () => {
                 } ${isOpen ? "block" : "hidden"} md:block`}
             >
                 <div
-                    className={`flex items-center justify-between gap-2  py-6 ${
+                    className={`flex items-center justify-between gap-2 py-6 ${
                         isOpen ? "px-4" : "px-2"
                     }`}
                 >
@@ -48,22 +55,108 @@ const Sidebar = () => {
                     }`}
                 >
                     <nav className="py-4 px-4 flex flex-col items-start">
-                        <h3 className="px-5 text-base font-semibold text-slate-400 tracking-wider">
-                            QUESTION BANK
+                        <h3 className="px-5 text-lg font-semibold text-slate-400 tracking-wider">
+                            Dashboard
                         </h3>
                         <ul className="menu rounded-box w-64 text-lg">
                             <li>
                                 <details open>
-                                    <summary>
+                                    <summary
+                                        className={`hover:bg-green-100 hover:text-black ${
+                                            activeSummary === 1
+                                                ? "bg-green-100 text-black"
+                                                : ""
+                                        }`}
+                                    >
                                         <TbCloudQuestion size={26} />
                                         Question
                                     </summary>
-                                    <ul className="pl-5 text-slate-400">
-                                        <li>
-                                            <a>Add question</a>
+                                    <ul className="pl-5 text-slate-400 py-2">
+                                        <li
+                                            className={`hover:text-white ${
+                                                activeItem === 1
+                                                    ? "text-white"
+                                                    : ""
+                                            }`}
+                                            onClick={() =>
+                                                handleItemClick(1, 1)
+                                            }
+                                        >
+                                            <a>Add Question</a>
                                         </li>
-                                        <li>
-                                            <a>Submenu 2</a>
+                                        <li
+                                            className={`hover:text-white ${
+                                                activeItem === 2
+                                                    ? "text-white"
+                                                    : ""
+                                            }`}
+                                            onClick={() =>
+                                                handleItemClick(1, 2)
+                                            }
+                                        >
+                                            <a>Question List</a>
+                                        </li>
+                                        <li
+                                            className={`hover:text-white ${
+                                                activeItem === 3
+                                                    ? "text-white"
+                                                    : ""
+                                            }`}
+                                            onClick={() =>
+                                                handleItemClick(1, 3)
+                                            }
+                                        >
+                                            <a>Approve Question</a>
+                                        </li>
+                                    </ul>
+                                </details>
+                                <details open>
+                                    <summary
+                                        className={`hover:bg-green-100 hover:text-black ${
+                                            activeSummary === 2
+                                                ? "bg-green-100 text-black"
+                                                : ""
+                                        }`}
+                                    >
+                                        <TbCloudQuestion size={26} />
+                                        Question
+                                    </summary>
+                                    <ul className="pl-5 text-slate-400 py-2">
+                                        <li
+                                            className={`hover:text-white ${
+                                                activeItem === 4
+                                                    ? "text-white"
+                                                    : ""
+                                            }`}
+                                            onClick={() =>
+                                                handleItemClick(2, 4)
+                                            }
+                                        >
+                                            <a>Add Question</a>
+                                        </li>
+                                        <li
+                                            className={`hover:text-white ${
+                                                activeItem === 5
+                                                    ? "text-white"
+                                                    : ""
+                                            }`}
+                                            onClick={() =>
+                                                handleItemClick(2, 5)
+                                            }
+                                        >
+                                            <a>Question List</a>
+                                        </li>
+                                        <li
+                                            className={`hover:text-white ${
+                                                activeItem === 6
+                                                    ? "text-white"
+                                                    : ""
+                                            }`}
+                                            onClick={() =>
+                                                handleItemClick(2, 6)
+                                            }
+                                        >
+                                            <a>Approve Question</a>
                                         </li>
                                     </ul>
                                 </details>

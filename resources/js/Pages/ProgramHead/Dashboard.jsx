@@ -6,6 +6,8 @@ const Dashboard = () => {
     return (
         <>
             <Head title="Dashboard" />
+
+            <div>title</div>
         </>
     );
 };
