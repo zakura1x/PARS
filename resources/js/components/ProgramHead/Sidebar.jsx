@@ -110,7 +110,7 @@ const Sidebar = () => {
                                         </li>
                                     </ul>
                                 </details>
-                                <details open>
+                                <details close>
                                     <summary
                                         className={`hover:bg-green-100 hover:text-black ${
                                             activeSummary === 2
