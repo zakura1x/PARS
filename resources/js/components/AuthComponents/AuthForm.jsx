@@ -70,14 +70,18 @@ const AuthForm = ({
                             value={data[name]}
                             onChange={(e) => setData(name, e.target.value)}
                             className={`input input-bordered bg-white w-full border-[#9BB1AF] ${
-                                errors[name] ? "border-red-500" : ""
+                                errors[name] || serverErrors[name]
+                                    ? "border-red-500"
+                                    : ""
                             }`}
                         />
+                        {/* Client-side validation errors */}
                         {errors[name] && (
                             <span className="text-red-500 text-sm">
                                 {errors[name]}
                             </span>
                         )}
+                        {/* Server-side validation errors */}
                         {serverErrors[name] && (
                             <span className="text-red-500 text-sm">
                                 {serverErrors[name]}
