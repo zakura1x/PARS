@@ -105,6 +105,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                         </li>
                                     </ul>
                                 </details>
+                                <h3 className="text-lg font-semibold text-slate-400 tracking-wider pb-1 pt-0">
+                                    User Management
+                                </h3>
                                 <details>
                                     <summary
                                         className={`hover:bg-green-100 hover:text-black ${
@@ -114,7 +117,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                         }`}
                                     >
                                         <TbCloudQuestion size={26} />
-                                        Question
+                                        User
                                     </summary>
                                     <ul className="pl-5 text-slate-400 py-1">
                                         <li
@@ -127,7 +130,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                                 handleItemClick(2, 4)
                                             }
                                         >
-                                            <a>Add Question</a>
+                                            <a>Add New User</a>
                                         </li>
                                         <li
                                             className={`hover:text-white ${
@@ -139,7 +142,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                                 handleItemClick(2, 5)
                                             }
                                         >
-                                            <a>Question List</a>
+                                            <a>User List</a>
                                         </li>
                                         <li
                                             className={`hover:text-white ${
@@ -151,7 +154,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                                 handleItemClick(2, 6)
                                             }
                                         >
-                                            <a>Approve Question</a>
+                                            <a>Faculty Assignment</a>
                                         </li>
                                     </ul>
                                 </details>
