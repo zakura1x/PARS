@@ -1,42 +1,21 @@
-import React from "react";
-import { Link, usePage } from "@inertiajs/react";
+import React, { useState } from "react";
+import { usePage } from "@inertiajs/react";
 
-const Navbar = ({ toggleSidebar }) => {
+const Navbar = () => {
     const { auth } = usePage().props;
 
-    // Create a mapping for user role
+    //Create a mapping for user role
     const roles = {
         program_head: "Program Head",
         professor: "Professor",
         dean: "Dean",
-        student: "Student",
     };
     const userRole = auth.user.role;
     const mappedRole = roles[userRole];
 
     return (
         <div className="navbar py-4 bg-gray-100 transition-all duration-300 ease-in-out w-[100%] shadow-lg justify-between lg:sticky">
-            {/* Hamburger Button */}
-            <button
-                className="block rounded-sm border border-stroke bg-white p-1.5 shadow-sm lg:hidden"
-                onClick={toggleSidebar}
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    className="inline-block w-5 h-5 stroke-current"
-                >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M4 6h16M4 12h16M4 18h16"
-                    />
-                </svg>
-            </button>
-
-            {/* TITLE */}
+            {/*TITLE  */}
             <h2 className="font-bold text-lg px-6">{mappedRole} Workspace</h2>
 
             <div>
@@ -68,18 +47,13 @@ const Navbar = ({ toggleSidebar }) => {
                             <a className="justify-between">Profile</a>
                         </li>
                         <li>
-                            <Link
-                                href="/logout"
-                                method="post"
-                                as="button"
-                                type="button"
-                            >
-                                Logout
-                            </Link>
+                            <a href="/login">Logout</a>
                         </li>
                     </ul>
                 </div>
             </div>
+
+            {/* Avatar and Dropdown */}
         </div>
     );
 };
