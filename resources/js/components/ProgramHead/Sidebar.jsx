@@ -19,7 +19,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 }`}
             >
                 <div
-                    className={`flex items-center justify-between gap-2 py-6 ${
+                    className={`flex items-center justify-between gap-2 pt-6 ${
                         isOpen ? "px-4" : "px-2"
                     }`}
                 >
@@ -49,12 +49,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                         isOpen ? "flex" : "hidden"
                     }`}
                 >
-                    <nav className="py-4 px-4 flex flex-col items-start">
-                        <h3 className="px-5 text-lg font-semibold text-slate-400 tracking-wider">
-                            Dashboard
-                        </h3>
+                    <nav className="pt-2 px-4 flex flex-col items-start">
                         <ul className="menu rounded-box w-64 text-lg">
-                            <li>
+                            <li className="text-[16px]">
+                                <h3 className="text-lg font-semibold text-slate-400 tracking-wider pb-1 pt-0">
+                                    Dashboard
+                                </h3>
                                 <details open>
                                     <summary
                                         className={`hover:bg-green-100 hover:text-black ${
@@ -66,7 +66,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                         <TbCloudQuestion size={26} />
                                         Question
                                     </summary>
-                                    <ul className="pl-5 text-slate-400 py-2">
+                                    <ul className="pl-5 text-slate-400 py-1">
                                         <li
                                             className={`hover:text-white ${
                                                 activeItem === 1
@@ -116,7 +116,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                         <TbCloudQuestion size={26} />
                                         Question
                                     </summary>
-                                    <ul className="pl-5 text-slate-400 py-2">
+                                    <ul className="pl-5 text-slate-400 py-1">
                                         <li
                                             className={`hover:text-white ${
                                                 activeItem === 4
