@@ -1,14 +1,9 @@
 import React, { useState } from "react";
 import { TbCloudQuestion } from "react-icons/tb";
 
-const Sidebar = () => {
-    const [isOpen, setIsOpen] = useState(false); // Sidebar is hidden by default on mobile
+const Sidebar = ({ isOpen, toggleSidebar }) => {
     const [activeSummary, setActiveSummary] = useState(null); // Track active summary
     const [activeItem, setActiveItem] = useState(null); // Track active list item
-
-    const toggleSidebar = () => {
-        setIsOpen(!isOpen);
-    };
 
     // Function to handle clicking an item
     const handleItemClick = (summaryIndex, itemIndex) => {
@@ -19,9 +14,9 @@ const Sidebar = () => {
     return (
         <>
             <aside
-                className={`absolute left-0 top-0 flex h-screen flex-col duration-300 ease-linear lg:static lg:translate-x-0 -translate-x-full bg-[#42604C] text-white ${
-                    isOpen ? "w-72" : "w-16"
-                } ${isOpen ? "block" : "hidden"} md:block`}
+                className={`fixed left-0 top-0 flex h-screen flex-col duration-300 ease-linear lg:static lg:translate-x-0  bg-[#42604C] text-white z-40 ${
+                    isOpen ? "translate-x-0 w-72" : "-translate-x-full w-16"
+                }`}
             >
                 <div
                     className={`flex items-center justify-between gap-2 pt-6 ${
@@ -110,10 +105,7 @@ const Sidebar = () => {
                                         </li>
                                     </ul>
                                 </details>
-                                <h3 className="text-lg font-semibold text-slate-400 tracking-wider">
-                                    User Management
-                                </h3>
-                                <details className="text-[16px]">
+                                <details>
                                     <summary
                                         className={`hover:bg-green-100 hover:text-black ${
                                             activeSummary === 2
@@ -168,28 +160,6 @@ const Sidebar = () => {
                     </nav>
                 </div>
             </aside>
-
-            {/* Burger Icon (only visible on mobile) */}
-            <button
-                className={`btn btn-square btn-ghost fixed top-4 left-4 z-50 md:hidden ${
-                    isOpen ? "hidden" : "flex"
-                }`}
-                onClick={toggleSidebar}
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    className="inline-block w-6 h-6 stroke-current"
-                >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M4 6h16M4 12h16M4 18h16"
-                    />
-                </svg>
-            </button>
         </>
     );
 };

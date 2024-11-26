@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class AuthController extends Controller
 {
@@ -21,7 +22,7 @@ class AuthController extends Controller
     public function signIn(Request $request)
     {
         // Validate input fields
-        $request->validate([
+        $request->validate(rules: [
             'emailOrStudentNumber' => 'required',
             'password' => 'required',
         ]);
@@ -42,7 +43,7 @@ class AuthController extends Controller
     
         // If the input format is invalid, return error
         if (!$credentials) {
-            return back()->withErrors(['Email or Student Number' => 'Invalid email or student number format.']);
+            return back()->withErrors(['emailOrStudentNumber' => 'Invalid email or student number format.']);
         }
     
         // Attempt to authenticate with the determined credentials
@@ -51,7 +52,7 @@ class AuthController extends Controller
         }
     
         // Return error for invalid credentials
-        return back()->withErrors(['Email or Student Number' => 'Invalid Credentials.']);
+        return back()->withErrors(['emailOrStudentNumber' => 'Invalid Credentials.']);
     }
     
     
@@ -81,7 +82,8 @@ class AuthController extends Controller
     public function logout()
     {
         Auth::logout();
-        return inertia('Authentication/Login');
+        sleep(2);
+        return redirect('/');
     }
 
     /**
