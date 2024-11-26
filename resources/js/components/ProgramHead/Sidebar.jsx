@@ -19,7 +19,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 }`}
             >
                 <div
-                    className={`flex items-center justify-between gap-2 py-6 ${
+                    className={`flex items-center justify-between gap-2 pt-6 ${
                         isOpen ? "px-4" : "px-2"
                     }`}
                 >
@@ -49,13 +49,13 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                         isOpen ? "flex" : "hidden"
                     }`}
                 >
-                    <nav className="py-4 px-4 flex flex-col items-start">
-                        <h3 className="px-5 text-lg font-semibold text-slate-400 tracking-wider">
-                            Dashboard
-                        </h3>
-                        <ul className="menu rounded-box w-64 text-lg">
+                    <nav className="px-4 flex flex-col items-start">
+                        <ul className="menu py-0 rounded-box w-64 text-lg">
                             <li>
-                                <details open>
+                                <h3 className="text-lg font-semibold text-slate-400 tracking-wider">
+                                    Dashboard
+                                </h3>
+                                <details className="text-[16px]" open>
                                     <summary
                                         className={`hover:bg-green-100 hover:text-black ${
                                             activeSummary === 1
@@ -105,7 +105,10 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                         </li>
                                     </ul>
                                 </details>
-                                <details>
+                                <h3 className="text-lg font-semibold text-slate-400 tracking-wider">
+                                    User Management
+                                </h3>
+                                <details className="text-[16px]">
                                     <summary
                                         className={`hover:bg-green-100 hover:text-black ${
                                             activeSummary === 2
@@ -114,7 +117,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                         }`}
                                     >
                                         <TbCloudQuestion size={26} />
-                                        Question
+                                        Users
                                     </summary>
                                     <ul className="pl-5 text-slate-400 py-2">
                                         <li
@@ -127,7 +130,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                                 handleItemClick(2, 4)
                                             }
                                         >
-                                            <a>Add Question</a>
+                                            <a>Add User</a>
                                         </li>
                                         <li
                                             className={`hover:text-white ${
@@ -139,7 +142,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                                 handleItemClick(2, 5)
                                             }
                                         >
-                                            <a>Question List</a>
+                                            <a>Subject Assignment</a>
                                         </li>
                                         <li
                                             className={`hover:text-white ${
@@ -151,7 +154,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                                 handleItemClick(2, 6)
                                             }
                                         >
-                                            <a>Approve Question</a>
+                                            <a>Class Assignment</a>
                                         </li>
                                     </ul>
                                 </details>
