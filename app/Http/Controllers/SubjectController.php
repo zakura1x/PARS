@@ -2,18 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Post;
 use Illuminate\Http\Request;
 
-class PostController extends Controller
+class SubjectController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $posts = Post::latest()->paginate(5);
-        return inertia('Home', ['posts' => $posts]);
+        return inertia('ProgramHead/Subject/SubjectList');
     }
 
     /**
@@ -21,7 +19,7 @@ class PostController extends Controller
      */
     public function create()
     {
-        return inertia('Create');
+        //
     }
 
     /**
@@ -29,30 +27,31 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        sleep(2);
-        $fields = $request->validate([
-            'body' => ['required']
+        //User Registration
+        $Subject = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'role' => 'required|string'
         ]);
 
-        Post::create($fields);
-
+        // Auth::create($credentials);
 
         return redirect('/');
-
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Post $post)
+    public function show(string $id)
     {
-        return inertia('Show', ['post' => $post ]);
+        //
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Post $post)
+    public function edit(string $id)
     {
         //
     }
@@ -60,7 +59,7 @@ class PostController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update( Request $request, Post $post)
+    public function update(Request $request, string $id)
     {
         //
     }
@@ -68,13 +67,8 @@ class PostController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Post $post)
+    public function destroy(string $id)
     {
-        $post->delete();
-
-
-        return redirect('/')->with(
-            'message', 'The post was deleted!'
-        );
+        //
     }
 }

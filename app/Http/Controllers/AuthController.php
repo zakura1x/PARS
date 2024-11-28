@@ -22,7 +22,7 @@ class AuthController extends Controller
     public function signIn(Request $request)
     {
         // Validate input fields
-        $request->validate(rules: [
+        $request->validate([
             'emailOrStudentNumber' => 'required',
             'password' => 'required',
         ]);
@@ -41,19 +41,23 @@ class AuthController extends Controller
                 ? ['idNumber' => $input, 'password' => $password]
                 : null);
     
-        // If the input format is invalid, return error
+        // If the input format is invalid, return an error
         if (!$credentials) {
             return back()->withErrors(['emailOrStudentNumber' => 'Invalid email or student number format.']);
         }
     
-        // Attempt to authenticate with the determined credentials
+        // Attempt to authenticate
         if (Auth::attempt($credentials)) {
+            // Regenerate session to prevent session fixation attacks
+            $request->session()->regenerate();
+    
             return redirect()->route('dashboard');
         }
     
         // Return error for invalid credentials
         return back()->withErrors(['emailOrStudentNumber' => 'Invalid Credentials.']);
     }
+    
     
     
 
