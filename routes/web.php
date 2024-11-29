@@ -24,7 +24,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/UserList', [UserManagementController::class, 'index'])->name('User List');
-
+    
     Route::post('/addSubject',[SubjectController::class,'store'])->name('addSubject');
     Route::get('/subjects/view', [SubjectController::class, 'index'])->name('viewSubject');
     Route::get('/subjects', [SubjectController::class, 'getSubjects'])->name('getSubject');
