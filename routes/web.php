@@ -3,6 +3,8 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\UserManagementController;
+use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Support\Facades\Route;
 
 
@@ -12,13 +14,22 @@ Route::post('/login', [AuthController::class, 'signIn'])->name('auth.signin');
 Route::post('/logout',  [AuthController::class, 'logout'])->name('auth.signout');
 
 //Add, Get, Delete Subject
-Route::get('/subjects/view', [SubjectController::class, 'index'])->name('viewSubject');
-Route::get('/subjects', [SubjectController::class, 'getSubjects'])->name('getSubject');
-Route::post('/subjects', [SubjectController::class, 'store'])->name('addSubject');
-Route::delete('subjects/{id}', [SubjectController::class, 'destroy'])->name('deleteSubject');
 
-Route::middleware(['auth'])->group(function(){
+
+// Route::middleware(['auth'])->group(function(){
+//     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+// });
+
+Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/UserList', [UserManagementController::class, 'index'])->name('User List');
+
+    Route::post('/addSubject',[SubjectController::class,'store'])->name('addSubject');
+    Route::get('/subjects/view', [SubjectController::class, 'index'])->name('viewSubject');
+    Route::get('/subjects', [SubjectController::class, 'getSubjects'])->name('getSubject');
+    Route::post('/subjects', [SubjectController::class, 'store'])->name('addSubject');
+    Route::delete('subjects/{id}', [SubjectController::class, 'destroy'])->name('deleteSubject');
 });
 
 // Route::get('/test', function(){
