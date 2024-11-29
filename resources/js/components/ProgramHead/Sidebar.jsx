@@ -158,6 +158,71 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                         </li>
                                     </ul>
                                 </details>
+                                <h3 className="text-lg font-semibold text-slate-400 tracking-wider pb-1 pt-0">
+                                    Subject Management
+                                </h3>
+                                <details>
+                                    <summary
+                                        className={`hover:bg-green-100 hover:text-black ${
+                                            activeSummary === 3
+                                                ? "bg-green-100 text-black"
+                                                : ""
+                                        }`}
+                                    >
+                                        <TbCloudQuestion size={26} />
+                                        Subject
+                                    </summary>
+                                    <ul className="pl-5 text-slate-400 py-1">
+                                        <li
+                                            className={`hover:text-white ${
+                                                activeItem === 7
+                                                    ? "text-white"
+                                                    : ""
+                                            }`}
+                                            onClick={() =>
+                                                handleItemClick(3, 7)
+                                            }
+                                        >
+                                            <a>Add Subject</a>
+                                        </li>
+                                        <li
+                                            className={`hover:text-white ${
+                                                activeItem === 8
+                                                    ? "text-white"
+                                                    : ""
+                                            }`}
+                                            onClick={() =>
+                                                handleItemClick(3, 8)
+                                            }
+                                        >
+                                            <a>Edit Subject</a>
+                                        </li>
+                                        <li
+                                            className={`hover:text-white ${
+                                                activeItem === 9
+                                                    ? "text-white"
+                                                    : ""
+                                            }`}
+                                            onClick={() =>
+                                                handleItemClick(3, 9)
+                                            }
+                                        >
+                                            <a>Delete Subject</a>
+                                        </li>
+                                        <li
+                                            className={`hover:text-white ${
+                                                activeItem === 10
+                                                    ? "text-white"
+                                                    : ""
+                                            }`}
+                                            onClick={() =>
+                                                handleItemClick(3, 10)
+                                            }
+                                        >
+                                            <a>Subject List</a>
+                                        </li>
+                                    </ul>
+                                </details>
                             </li>
                         </ul>
                     </nav>

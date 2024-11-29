@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Subject;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class SubjectController extends Controller
 {
@@ -12,6 +14,15 @@ class SubjectController extends Controller
     public function index()
     {
         return inertia('ProgramHead/Subject/SubjectList');
+    }
+
+    /**
+     * Fetch all subjects as JSON for the API.
+     */
+    public function getSubjects()
+    {
+        $subjects = Subject::all(); // Get all subjects from the database
+        return response()->json($subjects); // Return as JSON
     }
 
     /**
@@ -27,17 +38,17 @@ class SubjectController extends Controller
      */
     public function store(Request $request)
     {
-        //User Registration
-        $Subject = $request->validate([
+       $validated = $request->validate([
+            'subject_id' => 'required|unique:subjects',
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|string'
         ]);
 
-        // Auth::create($credentials);
+        Subject::create([
+            'subject_id' => $validated['subject_id'],
+            'name' => $validated['name'],
+        ]);
 
-        return redirect('/');
+        // return inertia('Programhead/Subject/SubjectList');
     }
 
     /**
@@ -69,6 +80,15 @@ class SubjectController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $subject = Subject::find($id);
+
+        if (!$subject) {
+            return response()->json(['message' => 'Subject not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        // Delete the subject
+        $subject->delete();
+
+        return response()->json(['message' => 'Subject deleted successfully'], Response::HTTP_OK);
     }
 }
