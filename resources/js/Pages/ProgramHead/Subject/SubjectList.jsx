@@ -1,34 +1,61 @@
 import React, { useState } from "react";
+import { useForm } from "@inertiajs/react";
 
-const SubjectList = ({ subjects: initialSubjects }) => {
+const SubjectList = ({ subjects: initialSubjects, userId }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [search, setSearch] = useState("");
     const [subjects, setSubjects] = useState(initialSubjects);
-    const [data, setData] = useState({
+
+    // Use Inertia form for handling data
+    const { data, setData, post, processing, errors, reset } = useForm({
         subject_id: "",
         name: "",
-        active: "true",
+        active: true,
     });
-    const [errors, setErrors] = useState({});
-    const [processing, setProcessing] = useState(false);
 
     const handleSearch = (e) => setSearch(e.target.value);
 
     const openModal = () => setIsModalOpen(true);
-    const closeModal = () => setIsModalOpen(false);
-
-    const handleSave = async (e) => {
-        e.preventDefault();
-        // logic in storing to db
+    const closeModal = () => {
+        setIsModalOpen(false);
+        reset(); // Reset form data
     };
 
+    const handleSave = (e) => {
+        e.preventDefault();
+
+        const subjectData = {
+            ...data,
+            created_by: userId, // Set the created_by field using the user ID
+        };
+
+        // Submit the form to the Inertia route
+        post(route("subjects.store"), {
+            data: subjectData,
+            onSuccess: () => {
+                fetchSubjects();
+                closeModal();
+            },
+        });
+    };
+
+    const fetchSubjects = async () => {
+        try {
+            const response = await fetch(route('subjects.get'));  // Use the correct route
+            if (response.ok) {
+                const data = await response.json();  // Parse the response body as JSON
+                setSubjects(data.data);  // Update state with the new subjects list
+            } else {
+                throw new Error('Failed to fetch subjects');
+            }
+        } catch (error) {
+            console.error("Error fetching subjects:", error);
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setData({
-            ...data,
-            [name]: value,
-        });
+        setData(name, value); // Update form data using Inertia's setData
     };
 
     return (
@@ -153,15 +180,12 @@ const SubjectList = ({ subjects: initialSubjects }) => {
                                     id="active"
                                     name="active"
                                     value={data.active}
-                                    onChange={handleChange}
+                                    onChange={(e) => setData('active', e.target.value === 'true')}
                                     className="w-full border rounded-lg px-4 py-2"
                                 >
                                     <option value="true">Yes</option>
                                     <option value="false">No</option>
                                 </select>
-                                {errors.active && (
-                                    <span className="text-red-500 text-sm">{errors.active}</span>
-                                )}
                             </div>
                             <div className="flex justify-end space-x-4">
                                 <button
@@ -176,7 +200,7 @@ const SubjectList = ({ subjects: initialSubjects }) => {
                                     className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                                     disabled={processing}
                                 >
-                                    {processing ? 'Saving...' : 'Save'}
+                                    {processing ? "Saving..." : "Save"}
                                 </button>
                             </div>
                         </form>

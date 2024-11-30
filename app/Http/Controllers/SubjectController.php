@@ -15,8 +15,10 @@ class SubjectController extends Controller
     public function index()
     {
         $subjects = Subject::all(); // Retrieve all subjects
+
         return inertia('ProgramHead/Subject/SubjectList', [
             'subjects' => $subjects, // Pass subjects to the view
+            'userId' => Auth::id(),
         ]);
     }
 
@@ -45,24 +47,17 @@ class SubjectController extends Controller
      */
     public function store(Request $request)
     {
-       $validated = $request->validate([
-            'subject_id' => 'required|unique:subjects,subject_id',
-            'name' => 'required|string|max:255',
+        $validated = $request->validate([
+            'subject_id' => 'required|string',
+            'name' => 'required|string',
             'active' => 'required|boolean',
         ]);
 
-        $subject = Subject::create([
-            'subject_id' => $validated['subject_id'],
-            'name' => $validated['name'],
-            'created_by' => Auth::id(), // Use the ID of the currently logged-in user
-            'active' => $validated['active'],
-        ]);
+        // Ensure the 'created_by' field is included in the insert data
+        $validated['created_by'] = Auth::id();  // Get the currently logged-in user's ID
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Subject created successfully',
-            'data' => $subject,
-        ], Response::HTTP_CREATED);
+        // Insert the subject record
+        Subject::create($validated);
     }
 
     /**

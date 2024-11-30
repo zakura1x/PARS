@@ -187,30 +187,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                         </li>
                                         <li
                                             className={`hover:text-white ${
-                                                activeItem === 8
-                                                    ? "text-white"
-                                                    : ""
-                                            }`}
-                                            onClick={() =>
-                                                handleItemClick(3, 8)
-                                            }
-                                        >
-                                            <a>Edit Subject</a>
-                                        </li>
-                                        <li
-                                            className={`hover:text-white ${
-                                                activeItem === 9
-                                                    ? "text-white"
-                                                    : ""
-                                            }`}
-                                            onClick={() =>
-                                                handleItemClick(3, 9)
-                                            }
-                                        >
-                                            <a>Delete Subject</a>
-                                        </li>
-                                        <li
-                                            className={`hover:text-white ${
                                                 activeItem === 10
                                                     ? "text-white"
                                                     : ""
