@@ -13,7 +13,7 @@ class SubjectController extends Controller
      */
     public function index()
     {
-        return inertia('ProgramHead/Subject/SubjectList');
+        return inertia(component: 'ProgramHead/Subject/SubjectList');
     }
 
     /**
