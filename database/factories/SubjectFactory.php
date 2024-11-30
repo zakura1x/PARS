@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -19,6 +20,8 @@ class SubjectFactory extends Factory
         return [
             'subject_id' => $this->faker->unique()->regexify('SUB-[0-9]{4}'),
             'name' => $this->faker->words(3, true),
+            'created_by' => User::factory(), // Creates a related User instance or use an existing User ID
+            'active' => $this->faker->boolean(80), // 80% chance to be true (active)
         ];
     }
 }

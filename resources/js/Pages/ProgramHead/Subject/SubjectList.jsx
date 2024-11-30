@@ -1,52 +1,33 @@
-import React, { useState, useEffect } from "react";
-import { useForm } from "@inertiajs/react";
+import React, { useState } from "react";
 
-const SubjectList = () => {
+const SubjectList = ({ subjects: initialSubjects }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [search, setSearch] = useState("");
-    const [subjects, setSubjects] = useState([]);
-
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const [subjects, setSubjects] = useState(initialSubjects);
+    const [data, setData] = useState({
         subject_id: "",
         name: "",
+        active: "true",
     });
-
-    // Fetch subjects from the database on component mount
-    useEffect(() => {
-        fetch("/subjects") // Replace with your API endpoint
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error("Failed to fetch subjects");
-                }
-                return response.json();
-            })
-            .then((data) => setSubjects(data))
-            .catch((error) => console.error("Error fetching subjects:", error));
-    }, []);
+    const [errors, setErrors] = useState({});
+    const [processing, setProcessing] = useState(false);
 
     const handleSearch = (e) => setSearch(e.target.value);
 
     const openModal = () => setIsModalOpen(true);
-    const closeModal = () => {
-        setIsModalOpen(false);
-        reset();
+    const closeModal = () => setIsModalOpen(false);
+
+    const handleSave = async (e) => {
+        e.preventDefault();
+        // logic in storing to db
     };
 
-    const handleSave = (e) => {
-        e.preventDefault();
 
-        post('/subjects', {
-            data,
-            onSuccess: () => {
-                setSubjects([...subjects, { ...data, dateAdded: new Date().toLocaleDateString() }]);
-                fetch("/api/subjects") // Replace with your API endpoint
-                    .then((response) => response.json())
-                    .then((data) => setSubjects(data));
-                closeModal();
-            },
-            onError: (errors) => {
-                console.log(errors);
-            },
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setData({
+            ...data,
+            [name]: value,
         });
     };
 
@@ -83,6 +64,8 @@ const SubjectList = () => {
                             </th>
                             <th className="border-b px-4 py-2">Subject ID</th>
                             <th className="border-b px-4 py-2">Subject Name</th>
+                            <th className="border-b px-4 py-2">Created By</th>
+                            <th className="border-b px-4 py-2">Active</th>
                             <th className="border-b px-4 py-2">Date Added</th>
                         </tr>
                     </thead>
@@ -98,9 +81,11 @@ const SubjectList = () => {
                                     </td>
                                     <td className="border-b px-4 py-2">{subject.subject_id}</td>
                                     <td className="border-b px-4 py-2">{subject.name}</td>
+                                    <td className="border-b px-4 py-2">{subject.created_by}</td>
                                     <td className="border-b px-4 py-2">
-                                        {new Date(subject.created_at).toLocaleDateString()}
+                                        {subject.active ? "Yes" : "No"}
                                     </td>
+                                    <td className="border-b px-4 py-2">{new Date(subject.created_at).toLocaleDateString()}</td>
                                 </tr>
                             ))}
                     </tbody>
@@ -122,10 +107,9 @@ const SubjectList = () => {
                                 <input
                                     type="text"
                                     id="subjectId"
+                                    name="subject_id"
                                     value={data.subject_id}
-                                    onChange={(e) =>
-                                        setData("subject_id", e.target.value)
-                                    }
+                                    onChange={handleChange}
                                     className={`w-full border rounded-lg px-4 py-2 ${
                                         errors.subject_id ? "border-red-500" : ""
                                     }`}
@@ -147,10 +131,9 @@ const SubjectList = () => {
                                 <input
                                     type="text"
                                     id="subjectName"
+                                    name="name"
                                     value={data.name}
-                                    onChange={(e) =>
-                                        setData("name", e.target.value)
-                                    }
+                                    onChange={handleChange}
                                     className={`w-full border rounded-lg px-4 py-2 ${
                                         errors.name ? "border-red-500" : ""
                                     }`}
@@ -160,6 +143,24 @@ const SubjectList = () => {
                                     <span className="text-red-500 text-sm">
                                         {errors.name}
                                     </span>
+                                )}
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium mb-2" htmlFor="active">
+                                    Active
+                                </label>
+                                <select
+                                    id="active"
+                                    name="active"
+                                    value={data.active}
+                                    onChange={handleChange}
+                                    className="w-full border rounded-lg px-4 py-2"
+                                >
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                                {errors.active && (
+                                    <span className="text-red-500 text-sm">{errors.active}</span>
                                 )}
                             </div>
                             <div className="flex justify-end space-x-4">
@@ -175,7 +176,7 @@ const SubjectList = () => {
                                     className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                                     disabled={processing}
                                 >
-                                    Save
+                                    {processing ? 'Saving...' : 'Save'}
                                 </button>
                             </div>
                         </form>

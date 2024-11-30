@@ -12,6 +12,13 @@ class Subject extends Model
 
     protected $fillable = [
         'subject_id',
-        'name'
+        'name',
+        'created_by',
+        'active',
     ];
+
+    // public function creator()
+    // {
+    //     return $this->belongsTo(User::class, 'created_by');
+    // }
 }

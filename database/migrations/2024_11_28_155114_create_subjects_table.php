@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('subject_id')->unique();
             $table->string('name');
+            $table->unsignedBigInteger('created_by');
+            $table->boolean('active')->default(true);
             $table->timestamps();
         });
     }
