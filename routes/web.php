@@ -12,10 +12,12 @@ Route::post('/login', [AuthController::class, 'signIn'])->name('auth.signin');
 Route::post('/logout',  [AuthController::class, 'logout'])->name('auth.signout');
 
 //Add, Get, Delete Subject
-Route::get('/subjects/view', [SubjectController::class, 'index'])->name('subjects.view');
+Route::get('/subjects/view', [SubjectController::class, 'index'])->name('subjects.index');
 Route::get('/subjects', [SubjectController::class, 'getSubjects'])->name('subjects.get');
 Route::post('/subjects/store', [SubjectController::class, 'store'])->name('subjects.store');
-Route::delete('subjects/{id}', [SubjectController::class, 'destroy']);
+// Route::put('/subjects/update/{id}', [SubjectController::class, 'update'])->name('subjects.update');
+// Route::put('/subjects/{subject}', [SubjectController::class, 'update'])->name('subjects.update');
+Route::post('/subjects/update/{id}', [SubjectController::class, 'update'])->name('subjects.update');
 
 Route::middleware(['auth'])->group(function(){
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

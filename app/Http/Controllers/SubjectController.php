@@ -6,6 +6,7 @@ use App\Models\Subject;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class SubjectController extends Controller
 {
@@ -14,24 +15,12 @@ class SubjectController extends Controller
      */
     public function index()
     {
-        $subjects = Subject::all(); // Retrieve all subjects
+        $subjects = Subject::all();
 
-        return inertia('ProgramHead/Subject/SubjectList', [
-            'subjects' => $subjects, // Pass subjects to the view
-            'userId' => Auth::id(),
+        return Inertia::render('ProgramHead/Subject/SubjectList', [
+            'subjects' => $subjects,
+            'userId' => Auth::id(), // Passing the user ID
         ]);
-    }
-
-    /**
-     * Fetch all subjects as JSON for the API.
-     */
-    public function getSubjects()
-    {
-        $subjects = Subject::all(); // Get all subjects from the database
-        return response()->json([
-            'status' => 'success',
-            'data' => $subjects,
-        ], Response::HTTP_OK);
     }
 
     /**
@@ -47,17 +36,22 @@ class SubjectController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'subject_id' => 'required|string',
-            'name' => 'required|string',
+        $request->validate([
+            'subject_id' => 'required|string|max:255|unique:subjects',
+            'name' => 'required|string|max:255',
             'active' => 'required|boolean',
         ]);
 
-        // Ensure the 'created_by' field is included in the insert data
-        $validated['created_by'] = Auth::id();  // Get the currently logged-in user's ID
+        // Create a new subject
+        Subject::create([
+            'subject_id' => $request->subject_id,
+            'name' => $request->name,
+            'active' => $request->active,
+            'created_by' => Auth::id(),
+        ]);
 
-        // Insert the subject record
-        Subject::create($validated);
+        // Return the updated subject list using Inertia
+        return redirect()->route('subjects.index');
     }
 
     /**
@@ -81,30 +75,28 @@ class SubjectController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // $subject = Subject::find($id);
+        $request->validate([
+            'subject_id' => 'required|string|max:255|unique:subjects,subject_id,' . $id,
+            'name' => 'required|string|max:255',
+            'active' => 'required|boolean',
+        ]);
 
-        // if (!$subject) {
-        //     return response()->json([
-        //         'status' => 'error',
-        //         'message' => 'Subject not found',
-        //     ], Response::HTTP_NOT_FOUND);
-        // }
+        $subject = Subject::findOrFail($id);
 
-        // $validated = $request->validate([
-        //     'name' => 'required|string|max:255',
-        //     'active' => 'required|boolean',
-        // ]);
+        $subject->update([
+            'subject_id' => $request->subject_id,
+            'name' => $request->name,
+            'active' => $request->active,
+        ]);
 
-        // $subject->update([
-        //     'name' => $validated['name'],
-        //     'active' => $validated['active'],
-        // ]);
+        /// Fetch the updated subjects list
+        $subjects = Subject::all();
 
-        // return response()->json([
-        //     'status' => 'success',
-        //     'message' => 'Subject updated successfully',
-        //     'data' => $subject,
-        // ], Response::HTTP_OK);
+        // Return the updated subjects for Inertia
+        return response()->json([
+            'subjects' => $subjects,
+            'message' => 'Subject updated successfully.',
+        ]);
     }
 
     /**
@@ -112,20 +104,6 @@ class SubjectController extends Controller
      */
     public function destroy(string $id)
     {
-        // $subject = Subject::find($id);
 
-        // if (!$subject) {
-        //     return response()->json([
-        //         'status' => 'error',
-        //         'message' => 'Subject not found',
-        //     ], Response::HTTP_NOT_FOUND);
-        // }
-
-        // $subject->delete();
-
-        // return response()->json([
-        //     'status' => 'success',
-        //     'message' => 'Subject deleted successfully',
-        // ], Response::HTTP_OK);
     }
 }

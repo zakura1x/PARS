@@ -1,24 +1,51 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "@inertiajs/react";
 
-const SubjectList = ({ subjects: initialSubjects, userId }) => {
+const SubjectList = ({ subjects, userId }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingSubjectId, setEditingSubjectId] = useState(null);
     const [search, setSearch] = useState("");
-    const [subjects, setSubjects] = useState(initialSubjects);
+    const [filteredSubjects, setFilteredSubjects] = useState(subjects);
 
-    // Use Inertia form for handling data
     const { data, setData, post, processing, errors, reset } = useForm({
         subject_id: "",
         name: "",
         active: true,
     });
 
+    const postForUpdate = (url, options) => {
+        axios.post(url, options.data).then(options.onSuccess).catch(options.onError);
+    };
+
+    useEffect(() => {
+        setFilteredSubjects(
+            subjects.filter((subject) =>
+                subject.name.toLowerCase().includes(search.toLowerCase())
+            )
+        );
+    }, [subjects, search]);
+
     const handleSearch = (e) => setSearch(e.target.value);
 
-    const openModal = () => setIsModalOpen(true);
+    const openModal = (subject = null) => {
+        if (subject) {
+            setEditingSubjectId(subject.id);
+            setData({
+                subject_id: subject.subject_id,
+                name: subject.name,
+                active: subject.active,
+            });
+        } else {
+            setEditingSubjectId(null);
+            reset();
+        }
+        setIsModalOpen(true);
+    };
+
     const closeModal = () => {
         setIsModalOpen(false);
-        reset(); // Reset form data
+        reset();
+        setEditingSubjectId(null);
     };
 
     const handleSave = (e) => {
@@ -26,36 +53,33 @@ const SubjectList = ({ subjects: initialSubjects, userId }) => {
 
         const subjectData = {
             ...data,
-            created_by: userId, // Set the created_by field using the user ID
+            created_by: userId,
         };
 
-        // Submit the form to the Inertia route
-        post(route("subjects.store"), {
-            data: subjectData,
-            onSuccess: () => {
-                fetchSubjects();
-                closeModal();
-            },
-        });
-    };
+        console.log("Subject Data: ", subjectData);
 
-    const fetchSubjects = async () => {
-        try {
-            const response = await fetch(route('subjects.get'));  // Use the correct route
-            if (response.ok) {
-                const data = await response.json();  // Parse the response body as JSON
-                setSubjects(data.data);  // Update state with the new subjects list
-            } else {
-                throw new Error('Failed to fetch subjects');
-            }
-        } catch (error) {
-            console.error("Error fetching subjects:", error);
+        if (editingSubjectId) {
+            postForUpdate(route("subjects.update", editingSubjectId), {
+                data: subjectData,
+                onSuccess: (response) => {
+                    setFilteredSubjects(response.data.subjects); // Update the table with the new list
+                    closeModal();
+                },
+                onError: (errors) => {
+                    console.log("Error updating subject", errors);
+                },
+            });
+        } else {
+            post(route("subjects.store"), {
+                data: subjectData,
+                onSuccess: () => {
+                    closeModal();
+                },
+                onError: (errors) => {
+                    console.log("Error adding subject", errors);
+                },
+            });
         }
-    };
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setData(name, value); // Update form data using Inertia's setData
     };
 
     return (
@@ -71,12 +95,9 @@ const SubjectList = ({ subjects: initialSubjects, userId }) => {
                             onChange={handleSearch}
                             className="border rounded-lg px-4 py-2 w-40"
                         />
-                        <button className="bg-red-400 text-white px-4 py-2 h-9 w-40 rounded hover:bg-red-500">
-                            Delete
-                        </button>
                         <button
-                            className="bg-green-500 text-white px-4 py-2 h-9 w-72 rounded hover:bg-green-600"
-                            onClick={openModal}
+                            className="bg-green-500 text-white px-4 py-2 h-9 w-64 rounded hover:bg-green-600"
+                            onClick={() => openModal()}
                         >
                             + Add Subject
                         </button>
@@ -86,35 +107,34 @@ const SubjectList = ({ subjects: initialSubjects, userId }) => {
                 <table className="table-auto w-full text-left border-collapse">
                     <thead>
                         <tr>
-                            <th className="border-b px-4 py-2">
-                                <input type="checkbox" />
-                            </th>
                             <th className="border-b px-4 py-2">Subject ID</th>
                             <th className="border-b px-4 py-2">Subject Name</th>
                             <th className="border-b px-4 py-2">Created By</th>
                             <th className="border-b px-4 py-2">Active</th>
                             <th className="border-b px-4 py-2">Date Added</th>
+                            <th className="border-b px-4 py-2">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {subjects
-                            .filter((subject) =>
-                                subject.name.toLowerCase().includes(search.toLowerCase())
-                            )
-                            .map((subject, index) => (
-                                <tr key={index}>
-                                    <td className="border-b px-4 py-2">
-                                        <input type="checkbox" />
-                                    </td>
-                                    <td className="border-b px-4 py-2">{subject.subject_id}</td>
-                                    <td className="border-b px-4 py-2">{subject.name}</td>
-                                    <td className="border-b px-4 py-2">{subject.created_by}</td>
-                                    <td className="border-b px-4 py-2">
-                                        {subject.active ? "Yes" : "No"}
-                                    </td>
-                                    <td className="border-b px-4 py-2">{new Date(subject.created_at).toLocaleDateString()}</td>
-                                </tr>
-                            ))}
+                        {filteredSubjects.map((subject, index) => (
+                            <tr key={index}>
+                                <td className="border-b px-4 py-2">{subject.subject_id}</td>
+                                <td className="border-b px-4 py-2">{subject.name}</td>
+                                <td className="border-b px-4 py-2">{subject.created_by}</td>
+                                <td className="border-b px-4 py-2">{subject.active ? "Yes" : "No"}</td>
+                                <td className="border-b px-4 py-2">
+                                    {new Date(subject.created_at).toLocaleDateString()}
+                                </td>
+                                <td className="border-b px-4 py-2">
+                                    <button
+                                        className="text-blue-500 hover:underline"
+                                        onClick={() => openModal(subject)}
+                                    >
+                                        Edit
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
             </div>
@@ -122,7 +142,9 @@ const SubjectList = ({ subjects: initialSubjects, userId }) => {
             {isModalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                     <div className="bg-white rounded-lg p-6 w-1/3">
-                        <h3 className="text-lg font-semibold mb-4">Add New Subject</h3>
+                        <h3 className="text-lg font-semibold mb-4">
+                            {editingSubjectId ? "Edit Subject" : "Add New Subject"}
+                        </h3>
                         <form onSubmit={handleSave}>
                             <div className="mb-4">
                                 <label
@@ -136,16 +158,12 @@ const SubjectList = ({ subjects: initialSubjects, userId }) => {
                                     id="subjectId"
                                     name="subject_id"
                                     value={data.subject_id}
-                                    onChange={handleChange}
-                                    className={`w-full border rounded-lg px-4 py-2 ${
-                                        errors.subject_id ? "border-red-500" : ""
-                                    }`}
+                                    onChange={(e) => setData("subject_id", e.target.value)}
+                                    className={`w-full border rounded-lg px-4 py-2 ${errors.subject_id ? "border-red-500" : ""}`}
                                     placeholder="Enter Subject ID"
                                 />
                                 {errors.subject_id && (
-                                    <span className="text-red-500 text-sm">
-                                        {errors.subject_id}
-                                    </span>
+                                    <span className="text-red-500 text-sm">{errors.subject_id}</span>
                                 )}
                             </div>
                             <div className="mb-4">
@@ -160,16 +178,12 @@ const SubjectList = ({ subjects: initialSubjects, userId }) => {
                                     id="subjectName"
                                     name="name"
                                     value={data.name}
-                                    onChange={handleChange}
-                                    className={`w-full border rounded-lg px-4 py-2 ${
-                                        errors.name ? "border-red-500" : ""
-                                    }`}
+                                    onChange={(e) => setData("name", e.target.value)}
+                                    className={`w-full border rounded-lg px-4 py-2 ${errors.name ? "border-red-500" : ""}`}
                                     placeholder="Enter Subject Name"
                                 />
                                 {errors.name && (
-                                    <span className="text-red-500 text-sm">
-                                        {errors.name}
-                                    </span>
+                                    <span className="text-red-500 text-sm">{errors.name}</span>
                                 )}
                             </div>
                             <div className="mb-4">
@@ -180,7 +194,7 @@ const SubjectList = ({ subjects: initialSubjects, userId }) => {
                                     id="active"
                                     name="active"
                                     value={data.active}
-                                    onChange={(e) => setData('active', e.target.value === 'true')}
+                                    onChange={(e) => setData("active", e.target.value === "true")}
                                     className="w-full border rounded-lg px-4 py-2"
                                 >
                                     <option value="true">Yes</option>
