@@ -57,7 +57,7 @@ const AddUserModal = ({
                             </label>
                             <input
                                 type="text"
-                                value={data?.first_name}
+                                value={data.first_name}
                                 onChange={(e) =>
                                     setData({
                                         ...data,
@@ -82,15 +82,24 @@ const AddUserModal = ({
                             </label>
                             <input
                                 type="text"
-                                value={data?.last_name}
+                                value={data.last_name}
                                 onChange={(e) =>
                                     setData({
                                         ...data,
                                         last_name: e.target.value,
                                     })
                                 }
-                                className="w-full px-4 py-2 border rounded-lg text-sm text-gray-600 focus:outline-none focus:ring focus:ring-blue-300"
+                                className={`${
+                                    errors.last_name
+                                        ? "border-red-500 focus:ring-red-500"
+                                        : "focus:ring-blue-300"
+                                }`}
                             />
+                            {errors.last_name && (
+                                <p className="text-red-500 text-sm mt-1">
+                                    {errors.last_name}
+                                </p>
+                            )}
                         </div>
                     </div>
                     {/* Gender */}
@@ -101,15 +110,24 @@ const AddUserModal = ({
                             </label>
                             <input
                                 type="text"
-                                value={data?.gender}
+                                value={data.gender}
                                 onChange={(e) =>
                                     setData({
                                         ...data,
                                         gender: e.target.value,
                                     })
                                 }
-                                className="w-full px-4 py-2 border rounded-lg text-sm text-gray-600 focus:outline-none focus:ring focus:ring-blue-300"
+                                className={`${
+                                    errors.gender
+                                        ? "border-red-500 focus:ring-red-500"
+                                        : "focus:ring-blue-300"
+                                }`}
                             />
+                            {errors.gender && (
+                                <p className="text-red-500 text-sm mt-1">
+                                    {errors.gender}
+                                </p>
+                            )}
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -117,15 +135,24 @@ const AddUserModal = ({
                             </label>
                             <input
                                 type="date"
-                                value={data?.birthdate}
+                                value={data.birthdate}
                                 onChange={(e) =>
                                     setData({
                                         ...data,
                                         birthdate: e.target.value,
                                     })
                                 }
-                                className="w-full px-4 py-2 border rounded-lg text-sm text-gray-600 focus:outline-none focus:ring focus:ring-blue-300"
+                                className={`block w-full rounded-md border p-2 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm bg-white ${
+                                    errors.birthdate
+                                        ? "border-red-500 focus:ring-red-500"
+                                        : "focus:ring-blue-300"
+                                }`}
                             />
+                            {errors.birthdate && (
+                                <p className="text-red-500 text-sm mt-1">
+                                    {errors.birthdate}
+                                </p>
+                            )}
                         </div>
                     </div>
 
@@ -136,15 +163,24 @@ const AddUserModal = ({
                         </label>
                         <input
                             type="email"
-                            value={data?.email}
+                            value={data.email}
                             onChange={(e) =>
                                 setData({
                                     ...data,
                                     email: e.target.value,
                                 })
                             }
-                            className="w-full px-4 py-2 border rounded-lg text-sm text-gray-600 focus:outline-none focus:ring focus:ring-blue-300"
+                            className={`${
+                                errors.email
+                                    ? "border-red-500 focus:ring-red-500"
+                                    : "focus:ring-blue-300"
+                            }`}
                         />
+                        {errors.email && (
+                            <p className="text-red-500 text-sm mt-1">
+                                {errors.email}
+                            </p>
+                        )}
                     </div>
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -153,15 +189,24 @@ const AddUserModal = ({
                         <input
                             type="text"
                             placeholder="XX-XXXXX"
-                            value={data?.idNumber}
+                            value={data.idNumber}
                             onChange={(e) =>
                                 setData({
                                     ...data,
                                     idNumber: e.target.value,
                                 })
                             }
-                            className="w-full px-4 py-2 border rounded-lg text-sm text-gray-600 focus:outline-none focus:ring focus:ring-blue-300"
+                            className={`${
+                                errors.idNumber
+                                    ? "border-red-500 focus:ring-red-500"
+                                    : "focus:ring-blue-300"
+                            }`}
                         />
+                        {errors.idNumber && (
+                            <p className="text-red-500 text-sm mt-1">
+                                {errors.idNumber}
+                            </p>
+                        )}
                     </div>
                     {/* Role */}
                     <div className="mb-4">
@@ -169,35 +214,43 @@ const AddUserModal = ({
                             Access Role
                         </label>
                         <select
-                            value={data?.role}
+                            value={data.role || "program_head"}
                             onChange={(e) =>
                                 setData({
                                     ...data,
-                                    role: Array.from(
-                                        e.target.selectedOptions
-                                    ).map((option) => option.value),
+                                    role: e.target.value,
                                 })
                             }
-                            className="w-full px-4 py-2 border rounded-lg text-sm text-gray-600 focus:outline-none focus:ring focus:ring-blue-300"
+                            className={`block w-full rounded-md border p-2 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm bg-white ${
+                                errors.role
+                                    ? "border-red-500 focus:ring-red-500"
+                                    : "focus:ring-blue-300"
+                            }`}
                         >
                             <option value="program_head">Program Head</option>
                             <option value="admin">Admin</option>
                             <option value="professor">Professor</option>
                             <option value="dean">Dean</option>
                         </select>
+                        {errors.role && (
+                            <p className="text-red-500 text-sm mt-1">
+                                {errors.role}
+                            </p>
+                        )}
                     </div>
                 </form>
 
                 <div className="flex justify-end space-x-2 mt-6">
                     <button
-                        className="btn bg-gray-200 text-gray-700 hover:bg-gray-300"
+                        className="btn border-none bg-gray-200 text-gray-700 hover:bg-gray-300"
                         onClick={handleCancel}
                     >
                         Cancel
                     </button>
                     <button
-                        className="btn bg-[#42604C] text-white"
+                        className="btn border-none bg-[#303030] text-white hover:bg-green-600"
                         onClick={handleSaveChanges}
+                        disabled={processing}
                     >
                         Save Changes
                     </button>

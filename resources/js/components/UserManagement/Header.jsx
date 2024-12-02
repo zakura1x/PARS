@@ -14,7 +14,7 @@ const Header = ({ searchQuery, setSearchQuery, setShowModal }) => (
                 className="px-4 py-2 border rounded-lg text-sm text-gray-600 focus:outline-none focus:ring focus:ring-blue-300"
             />
             <button
-                className="btn bg-[#42604C] text-white"
+                className="btn border-none bg-[#42604C] text-white hover:bg-gray-600"
                 onClick={() => setShowModal(true)}
             >
                 + Add User

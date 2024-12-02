@@ -23,7 +23,7 @@ Route::post('/register', [UserManagementController::class, 'store']);
 Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::get('/UserList', [UserManagementController::class, 'index'])->name('User List');
+    Route::get('/UserList', [UserManagementController::class, 'index'])->name('userlist');
     
     Route::post('/addSubject',[SubjectController::class,'store'])->name('addSubject');
     Route::get('/subjects/view', [SubjectController::class, 'index'])->name('viewSubject');
