@@ -58,6 +58,9 @@ const UserTable = ({ users, onPageChange }) => (
                                         className="dropdown-content menu bg-[#42604C] rounded-lg z-[1] w-42 p-2 text-white"
                                     >
                                         <li className="hover:bg-white/30">
+                                            <a>View</a>
+                                        </li>
+                                        <li className="hover:bg-white/30">
                                             <a>Edit</a>
                                         </li>
                                         <li className="hover:bg-white/30">

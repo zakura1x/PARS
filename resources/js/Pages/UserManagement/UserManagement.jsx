@@ -23,7 +23,7 @@ const UserManagement = () => {
 
     const filteredUsers = users.data.filter(
         (user) =>
-            user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             user.email.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -52,16 +52,13 @@ const UserManagement = () => {
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen">
-            {flash?.message && <FlashMessage message={flash.message} />}
+            {<FlashMessage message={flash.message} />}
             <Header
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
                 setShowModal={setShowModal}
             />
-            <UserTable
-                users={users} // Pass the full paginated users object to the UserTable
-                onPageChange={handlePageChange}
-            />
+            <UserTable users={users} onPageChange={handlePageChange} />
             <AddUserModal
                 showModal={showModal}
                 setShowModal={setShowModal}
