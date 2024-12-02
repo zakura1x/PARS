@@ -3,10 +3,12 @@ import React from "react";
 const AddUserModal = ({
     showModal,
     setShowModal,
-    newUser,
-    setNewUser,
+    data,
+    setData,
     handleSaveChanges,
     handleCancel,
+    errors,
+    processing,
 }) => {
     if (!showModal) return null;
 
@@ -14,13 +16,13 @@ const AddUserModal = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50">
             <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
                 <h2 className="text-xl font-semibold mb-4">Add New User</h2>
-                <form>
+                <form onSubmit={handleSaveChanges}>
                     {/* Profile Photo */}
                     <div className="flex items-center mb-4">
                         <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400">
-                            {newUser.profilePhoto ? (
+                            {data?.profilePhoto ? (
                                 <img
-                                    src={newUser.profilePhoto}
+                                    src={data.profilePhoto}
                                     alt="Profile"
                                     className="rounded-full w-full h-full"
                                 />
@@ -36,8 +38,8 @@ const AddUserModal = ({
                                 type="file"
                                 accept="image/*"
                                 onChange={(e) =>
-                                    setNewUser({
-                                        ...newUser,
+                                    setData({
+                                        ...data,
                                         profilePhoto: URL.createObjectURL(
                                             e.target.files[0]
                                         ),
@@ -55,15 +57,24 @@ const AddUserModal = ({
                             </label>
                             <input
                                 type="text"
-                                value={newUser.firstName}
+                                value={data?.first_name}
                                 onChange={(e) =>
-                                    setNewUser({
-                                        ...newUser,
-                                        firstName: e.target.value,
+                                    setData({
+                                        ...data,
+                                        first_name: e.target.value,
                                     })
                                 }
-                                className="w-full px-4 py-2 border rounded-lg text-sm text-gray-600 focus:outline-none focus:ring focus:ring-blue-300"
+                                className={`${
+                                    errors.first_name
+                                        ? "border-red-500 focus:ring-red-500"
+                                        : "focus:ring-blue-300"
+                                }`}
                             />
+                            {errors.first_name && (
+                                <p className="text-red-500 text-sm mt-1">
+                                    {errors.first_name}
+                                </p>
+                            )}
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -71,11 +82,11 @@ const AddUserModal = ({
                             </label>
                             <input
                                 type="text"
-                                value={newUser.lastName}
+                                value={data?.last_name}
                                 onChange={(e) =>
-                                    setNewUser({
-                                        ...newUser,
-                                        lastName: e.target.value,
+                                    setData({
+                                        ...data,
+                                        last_name: e.target.value,
                                     })
                                 }
                                 className="w-full px-4 py-2 border rounded-lg text-sm text-gray-600 focus:outline-none focus:ring focus:ring-blue-300"
@@ -90,10 +101,10 @@ const AddUserModal = ({
                             </label>
                             <input
                                 type="text"
-                                value={newUser.gender}
+                                value={data?.gender}
                                 onChange={(e) =>
-                                    setNewUser({
-                                        ...newUser,
+                                    setData({
+                                        ...data,
                                         gender: e.target.value,
                                     })
                                 }
@@ -106,10 +117,10 @@ const AddUserModal = ({
                             </label>
                             <input
                                 type="date"
-                                value={newUser.birthdate}
+                                value={data?.birthdate}
                                 onChange={(e) =>
-                                    setNewUser({
-                                        ...newUser,
+                                    setData({
+                                        ...data,
                                         birthdate: e.target.value,
                                     })
                                 }
@@ -125,10 +136,10 @@ const AddUserModal = ({
                         </label>
                         <input
                             type="email"
-                            value={newUser.email}
+                            value={data?.email}
                             onChange={(e) =>
-                                setNewUser({
-                                    ...newUser,
+                                setData({
+                                    ...data,
                                     email: e.target.value,
                                 })
                             }
@@ -142,10 +153,10 @@ const AddUserModal = ({
                         <input
                             type="text"
                             placeholder="XX-XXXXX"
-                            value={newUser.idNumber}
+                            value={data?.idNumber}
                             onChange={(e) =>
-                                setNewUser({
-                                    ...newUser,
+                                setData({
+                                    ...data,
                                     idNumber: e.target.value,
                                 })
                             }
@@ -158,10 +169,10 @@ const AddUserModal = ({
                             Access Role
                         </label>
                         <select
-                            value={newUser.role}
+                            value={data?.role}
                             onChange={(e) =>
-                                setNewUser({
-                                    ...newUser,
+                                setData({
+                                    ...data,
                                     role: Array.from(
                                         e.target.selectedOptions
                                     ).map((option) => option.value),

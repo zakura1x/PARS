@@ -44,6 +44,7 @@ const AuthForm = ({
 
         // Submit the form
         post(postUrl);
+        //post('/login');
     }
 
     return (

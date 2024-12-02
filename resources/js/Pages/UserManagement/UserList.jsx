@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useForm } from "@inertiajs/react";
 import Header from "../../components/UserManagement/Header";
 import UserTable from "../../components/UserManagement/UserTable";
 import AddUserModal from "../../components/UserManagement/AddUserModal";
@@ -6,9 +7,20 @@ import AddUserModal from "../../components/UserManagement/AddUserModal";
 const UserManagement = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [showModal, setShowModal] = useState(false);
-    const [newUser, setNewUser] = useState({
-        firstName: "",
-        lastName: "",
+    // const [newUser, setNewUser] = useState({
+    //     firstName: "",
+    //     lastName: "",
+    //     email: "",
+    //     idNumber: "",
+    //     profilePhoto: "",
+    //     role: "",
+    //     birthdate: "",
+    //     gender: "",
+    // });
+
+    const { data, setData, post, reset, errors, processing } = useForm({
+        first_name: "",
+        last_name: "",
         email: "",
         idNumber: "",
         profilePhoto: "",
@@ -34,27 +46,21 @@ const UserManagement = () => {
             user.email.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const handleSaveChanges = () => {
-        if (newUser.firstName && newUser.lastName && newUser.email) {
-            console.log("User saved:", newUser);
-            setShowModal(false);
-            handleCancel(); // Clear fields after saving
-        } else {
-            alert("Please fill in all required fields.");
-        }
+    const handleSaveChanges = (e) => {
+        e.preventDefault();
+        post("/register", {
+            onSuccess: () => {
+                setShowModal(false);
+                reset();
+            },
+            onError: () => {
+                console.log(errors);
+            },
+        });
     };
 
     const handleCancel = () => {
-        setNewUser({
-            firstName: "",
-            lastName: "",
-            email: "",
-            idNumber: "",
-            profilePhoto: "",
-            role: "",
-            birthdate: "",
-            gender: "",
-        });
+        reset();
         setShowModal(false);
     };
 
@@ -69,10 +75,12 @@ const UserManagement = () => {
             <AddUserModal
                 showModal={showModal}
                 setShowModal={setShowModal}
-                newUser={newUser}
-                setNewUser={setNewUser}
                 handleSaveChanges={handleSaveChanges}
                 handleCancel={handleCancel}
+                date={data}
+                setData={setData}
+                errors={errors}
+                processing={processing}
             />
         </div>
     );
