@@ -12,10 +12,14 @@ const AddUserModal = ({
 }) => {
     if (!showModal) return null;
 
+    const isEditing = !!data.id;
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50">
             <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
-                <h2 className="text-xl font-semibold mb-4">Add New User</h2>
+                <h2 className="text-xl font-semibold mb-4">
+                    {isEditing ? "Edit User" : "Add New User"}
+                </h2>
                 <form onSubmit={handleSaveChanges}>
                     {/* Profile Photo */}
                     <div className="flex items-center mb-4">
@@ -189,6 +193,7 @@ const AddUserModal = ({
                         <input
                             type="text"
                             placeholder="XX-XXXXX"
+                            disabled={isEditing}
                             value={data.idNumber}
                             onChange={(e) =>
                                 setData({
