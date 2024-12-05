@@ -15,12 +15,16 @@ class SubjectController extends Controller
      */
     public function index()
     {
-        $subjects = Subject::all();
+        return inertia(component: 'ProgramHead/Subject/SubjectList');
+    }
 
-        return Inertia::render('ProgramHead/Subject/SubjectList', [
-            'subjects' => $subjects,
-            'userId' => Auth::id(), // Passing the user ID
-        ]);
+    /**
+     * Fetch all subjects as JSON for the API.
+     */
+    public function getSubjects()
+    {
+        $subjects = Subject::all(); // Get all subjects from the database
+        return response()->json($subjects); // Return as JSON
     }
 
     /**

@@ -12,6 +12,12 @@ createInertiaApp({
         const pages = import.meta.glob("./Pages/**/*.jsx", { eager: true });
         let page = pages[`./Pages/${name}.jsx`];
 
+        // Check if page is undefined
+        if (!page) {
+            console.error(`Page not found: ${name}`);
+            return; // You can choose to return a fallback or handle the error as needed
+        }
+
         const isAuthPage = name.startsWith("Authentication/");
 
         // Assign the layout, using a default layout for now
