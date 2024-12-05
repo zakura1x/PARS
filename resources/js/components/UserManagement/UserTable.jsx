@@ -1,6 +1,7 @@
 import React from "react";
+import { Link } from "@inertiajs/react";
 
-const UserTable = ({ users, onPageChange }) => (
+const UserTable = ({ users, onPageChange, setShowModal, setData }) => (
     <div className="bg-white shadow rounded-lg">
         <table className="w-full border-collapse">
             <thead>
@@ -61,7 +62,28 @@ const UserTable = ({ users, onPageChange }) => (
                                             <a>View</a>
                                         </li>
                                         <li className="hover:bg-white/30">
-                                            <a>Edit</a>
+                                            <a
+                                                onClick={() => {
+                                                    setShowModal(true);
+                                                    setData({
+                                                        id: user.id,
+                                                        first_name:
+                                                            user.first_name,
+                                                        last_name:
+                                                            user.last_name,
+                                                        email: user.email,
+                                                        idNumber: user.idNumber,
+                                                        profilePhoto:
+                                                            user.profile_photo,
+                                                        role: user.role,
+                                                        birthdate:
+                                                            user.birthdate,
+                                                        gender: user.gender,
+                                                    });
+                                                }}
+                                            >
+                                                Edit
+                                            </a>
                                         </li>
                                         <li className="hover:bg-white/30">
                                             <a>Delete</a>
@@ -77,20 +99,20 @@ const UserTable = ({ users, onPageChange }) => (
         {/* Pagination Controls */}
         <div className="flex justify-between mt-4">
             {users.prev_page_url && (
-                <button
-                    onClick={() => onPageChange(users.prev_page_url)}
+                <Link
+                    href={users.prev_page_url}
                     className="px-4 py-2 bg-gray-300 rounded-md text-gray-700 hover:bg-gray-400"
                 >
                     Previous
-                </button>
+                </Link>
             )}
             {users.next_page_url && (
-                <button
-                    onClick={() => onPageChange(users.next_page_url)}
+                <Link
+                    href={users.next_page_url}
                     className="px-4 py-2 bg-gray-300 rounded-md text-gray-700 hover:bg-gray-400"
                 >
                     Next
-                </button>
+                </Link>
             )}
         </div>
     </div>

@@ -14,7 +14,7 @@ Route::post('/login', [AuthController::class, 'signIn'])->name('auth.signin');
 Route::post('/logout',  [AuthController::class, 'logout'])->name('auth.signout');
 
 //TESTING
-Route::post('/register', [UserManagementController::class, 'store']);
+
 
 // Route::middleware(['auth'])->group(function(){
 //     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -24,6 +24,11 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/UserList', [UserManagementController::class, 'index'])->name('userlist');
+
+    //USER MANAGEMENT
+    Route::get('/userList', [UserManagementController::class, 'index'])->name('userlist');
+    Route::post('/register', [UserManagementController::class, 'store'])->name('user-store');
+    Route::put('/users/edit/{id}', [UserManagementController::class,'edit'])->name('user-edit');
 
     Route::post('/addSubject',[SubjectController::class,'store'])->name('addSubject');
     Route::get('/subjects/view', [SubjectController::class, 'index'])->name('viewSubject');

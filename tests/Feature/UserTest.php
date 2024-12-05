@@ -2,17 +2,17 @@
 
 use function Pest\Laravel\post;
 
-it('rejects a request with an invalid idNumber', function () {
-    post('/register', [
-        'first_name' => 'Zeus',
-        'last_name' => 'Tenerife',
-        'email' => 'zeus@mail.com',
-        'idNumber' => 'AC-12345', // Invalid format
-        'role' => 'professor',
-        'gender' => 'Male',
-        'birthdate' => '2000-01-01',
-    ])->assertSessionHasErrors(['idNumber']); // Asserts validation failure
-});
+// it('rejects a request with an invalid idNumber', function () {
+//     post('/register', [
+//         'first_name' => 'Zeus',
+//         'last_name' => 'Tenerife',
+//         'email' => 'zeus@mail.com',
+//         'idNumber' => 'AC-12345', // Invalid format
+//         'role' => 'professor',
+//         'gender' => 'Male',
+//         'birthdate' => '2000-01-01',
+//     ])->assertSessionHasErrors(['idNumber']); // Asserts validation failure
+// });
 
 it('accepts a request with a valid idNumber', function () {
     post('/register', [

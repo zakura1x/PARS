@@ -8,6 +8,7 @@ use Inertia\Inertia;
 use App\Models\User;
 use App\Models\Professor;
 use App\Models\ProgramHead;
+use Illuminate\Validation\Rule;
 
 class UserManagementController extends Controller
 {
@@ -92,7 +93,7 @@ class UserManagementController extends Controller
     }
 
     //Send a message to inertia
-    return redirect('/UserList')->with('message', 'The User was Created');
+    return redirect('/userList')->with('message', 'The User was Created');
 
 }
 
@@ -102,15 +103,44 @@ class UserManagementController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $user = User::findOrFail($id);
+
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Request $request, string $id)
     {
-        //
+        $user = User::findOrFail($id);
+
+        // Validate the user data
+        $validateUser = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($user->id),
+            ],
+            'role' => 'required|string|in:professor,program_head,dean',
+            'gender' => 'required|string|in:Male,Female,Other',
+            'birthdate' => 'required|date|before:today',
+        ]);
+
+        $user->update([
+            'first_name' => $validateUser['first_name'],
+            'last_name' => $validateUser['last_name'],
+            'email'=> $validateUser['email'],
+            'role' => $validateUser['role'],
+            // 'gender' => $validateUser['gender'],
+            // 'birth_date' => $validateUser['birthdate'],
+        ]);
+
+        // Return a response (can be JSON or a redirect based on your app's architecture)
+        return redirect('/UserList')->with('message', 'The User was Edited Successfully');
     }
 
     /**
