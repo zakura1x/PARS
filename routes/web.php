@@ -30,11 +30,13 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::post('/register', [UserManagementController::class, 'store'])->name('user-store');
     Route::put('/users/edit/{id}', [UserManagementController::class,'edit'])->name('user-edit');
 
-    Route::post('/addSubject',[SubjectController::class,'store'])->name('addSubject');
-    Route::get('/subjects/view', [SubjectController::class, 'index'])->name('viewSubject');
-    Route::get('/subjects', [SubjectController::class, 'getSubjects'])->name('getSubject');
-    Route::post('/subjects', [SubjectController::class, 'store'])->name('addSubject');
-    Route::delete('subjects/{id}', [SubjectController::class, 'destroy'])->name('deleteSubject');
+    Route::get('/SubjectList', [SubjectController::class, 'index'])->name('subjectList');
+    
+    //SUBJECT MANAGEMENT
+    Route::get('/subjectList', [SubjectController::class, 'index'])->name('subjectList');
+    Route::post('/addSubject',[SubjectController::class,'store'])->name('subject-store');
+    Route::put('/subjects/edit/{id}', [SubjectController::class, 'edit'])->name('subject-edit');
+
 });
 
 // Route::get('/test', function(){

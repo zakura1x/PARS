@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Subject;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -15,16 +14,10 @@ class SubjectController extends Controller
      */
     public function index()
     {
-        return inertia(component: 'ProgramHead/Subject/SubjectList');
-    }
+        $subjects = Subject::latest() // Orders by created_at in descending order
+        ->paginate(10);
 
-    /**
-     * Fetch all subjects as JSON for the API.
-     */
-    public function getSubjects()
-    {
-        $subjects = Subject::all(); // Get all subjects from the database
-        return response()->json($subjects); // Return as JSON
+        return inertia('ProgramHead/Subject/SubjectList', ['subjects' => $subjects]);
     }
 
     /**
@@ -40,22 +33,23 @@ class SubjectController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'subject_id' => 'required|string|max:255|unique:subjects',
+        // Validate the user data
+        $validateSubject = $request->validate([
+            'subject_id' => 'required|string|max:255|unique:subjects,subject_id',
             'name' => 'required|string|max:255',
-            'active' => 'required|boolean',
+            'status' => 'required|boolean',
         ]);
 
         // Create a new subject
         Subject::create([
-            'subject_id' => $request->subject_id,
-            'name' => $request->name,
-            'active' => $request->active,
+            'subject_id' => $validateSubject['subject_id'],
+            'name' => $validateSubject['name'],
             'created_by' => Auth::id(),
+            'status' =>  $validateSubject['status'],
         ]);
 
-        // Return the updated subject list using Inertia
-        return redirect()->route('subjects.index');
+        //Send a message to inertia
+        return redirect('/subjectList')->with('message', 'The Subject was Created');
     }
 
     /**
@@ -69,9 +63,23 @@ class SubjectController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Request $request, string $id)
     {
-        //
+        $subject = Subject::findOrFail($id);
+
+        $validateSubject = $request->validate([
+            'subject_id' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'status' => 'required|string|in:active,inactive',
+        ]);
+
+        $subject->update([
+            'subject_id' => $validateSubject['subject_id'],
+            'name' => $validateSubject['name'],
+            'status' => $validateSubject['status'],
+        ]);
+
+        return redirect('/subjectList')->with('message', 'The Subject was Edited Successfully');
     }
 
     /**
@@ -79,28 +87,7 @@ class SubjectController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $request->validate([
-            'subject_id' => 'required|string|max:255|unique:subjects,subject_id,' . $id,
-            'name' => 'required|string|max:255',
-            'active' => 'required|boolean',
-        ]);
-
-        $subject = Subject::findOrFail($id);
-
-        $subject->update([
-            'subject_id' => $request->subject_id,
-            'name' => $request->name,
-            'active' => $request->active,
-        ]);
-
-        /// Fetch the updated subjects list
-        $subjects = Subject::all();
-
-        // Return the updated subjects for Inertia
-        return response()->json([
-            'subjects' => $subjects,
-            'message' => 'Subject updated successfully.',
-        ]);
+        //
     }
 
     /**
@@ -108,6 +95,6 @@ class SubjectController extends Controller
      */
     public function destroy(string $id)
     {
-
+        //
     }
 }
