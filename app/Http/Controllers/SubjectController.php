@@ -49,7 +49,7 @@ class SubjectController extends Controller
         ]);
 
         //Send a message to inertia
-        return redirect('/subjectList')->with('message', 'The Subject was Created');
+        return redirect('subjectList')->with('message', 'The Subject was Created Successfully');
     }
 
     /**
@@ -63,32 +63,25 @@ class SubjectController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Request $request, string $id)
+    public function edit(Request $request, $id)
     {
         $subject = Subject::findOrFail($id);
 
-        $validateSubject = $request->validate([
-            'subject_id' => 'required|string|max:255',
-            'name' => 'required|string|max:255',
-            'status' => 'required|string|in:active,inactive',
-        ]);
+        $subject->update($request->all());
 
-        $subject->update([
-            'subject_id' => $validateSubject['subject_id'],
-            'name' => $validateSubject['name'],
-            'status' => $validateSubject['status'],
-        ]);
-
-        return redirect('/subjectList')->with('message', 'The Subject was Edited Successfully');
+        // // Redirect to a backend route, avoiding Inertia rendering
+        // return redirect()->route('subject-list')->with('message', 'The Subject was Edited Successfully');
+        return redirect('subjectList')->with('message', 'The Subject was Edited Successfully');
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
         //
     }
+
 
     /**
      * Remove the specified resource from storage.

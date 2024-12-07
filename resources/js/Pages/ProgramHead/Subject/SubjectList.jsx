@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { usePage, useForm } from "@inertiajs/react";
+import { Inertia } from '@inertiajs/inertia';
 import Header from "../../../components/SubjectManagement/Header";
 import SubjectTable from "../../../components/SubjectManagement/SubjectTable";
 import AddSubjectModal from "../../../components/SubjectManagement/AddSubjectModal";
@@ -33,20 +34,29 @@ const SubjectManagement = ({ userId }) => {
 
         const url = data.id ? `/subjects/edit/${data.id}` : `/addSubject`;
 
+        console.log("DEBUG1");
+
         if (!data.id) {
-            post(url, { ...data, status: data.status},  {
+            console.log("DEBUG2");
+            post(url, { ...data, status: data.status }, {
                 onSuccess: () => {
                     setShowModal(false);
                     reset();
                 },
             });
         } else {
-            put(url, { ...data, status: data.status}, {
+            console.log("DEBUG3");
+            Inertia.post(url, { ...data, status: data.status, _method: 'PUT' }, {
                 onSuccess: () => {
                     setShowModal(false);
                     reset();
                 },
+                onError: (errors) => {
+                    console.error("DEBUG: Error occurred while editing subject:", errors);
+                    alert("An error occurred. Check console for details.");
+                },
             });
+            console.log("DEBUG4");
         }
     };
 
@@ -81,7 +91,7 @@ const SubjectManagement = ({ userId }) => {
             <SubjectTable
                 subjects={subjects}
                 onPageChange={handlePageChange}
-                onEditUser={handleEditSubject}
+                onSubjectUser={handleEditSubject}
                 setShowModal={setShowModal}
                 setData={setData}
             />

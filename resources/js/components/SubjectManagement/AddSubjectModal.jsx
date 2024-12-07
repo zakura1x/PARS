@@ -99,7 +99,7 @@ const AddSubjectModal = ({
                         Cancel
                     </button>
                     <button
-                        className="btn border-none bg-blue-600 text-white hover:bg-blue-700"
+                        className="btn border-none bg-[#303030] text-white hover:bg-green-600"
                         onClick={handleSaveChanges}
                         disabled={processing}
                     >
