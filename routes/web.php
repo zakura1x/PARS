@@ -26,15 +26,15 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::get('/UserList', [UserManagementController::class, 'index'])->name('userlist');
 
     //USER MANAGEMENT
-    Route::get('/userList', [UserManagementController::class, 'index'])->name('userlist');
+    Route::get('/userList', [UserManagementController::class, 'index'])->name('userList');
     Route::post('/register', [UserManagementController::class, 'store'])->name('user-store');
-    Route::put('/users/edit/{id}', [UserManagementController::class,'edit'])->name('user-edit');
+    Route::post('/users/edit/{id}', [UserManagementController::class,'edit'])->name('user-edit');
 
 
     //SUBJECT MANAGEMENT
     Route::get('/subjectList', [SubjectController::class, 'index'])->name('subjectList');
     Route::post('/addSubject',[SubjectController::class,'store'])->name('subject-store');
-    Route::put('/subjects/edit/{id}', [SubjectController::class, 'edit'])->name('subjects-edit');
+    Route::post('/subjects/edit/{id}', [SubjectController::class, 'edit'])->name('subjects-edit');
 
 
 });
