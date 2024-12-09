@@ -65,12 +65,15 @@ class SubjectController extends Controller
      */
     public function edit(Request $request, $id)
     {
+        $validated = $request->validate([
+            'subject_id' => 'required|string|max:255|unique:subjects,subject_id,' . $id,
+            'name' => 'required|string|max:255',
+            'status' => 'required|boolean',
+        ]);
+
         $subject = Subject::findOrFail($id);
+        $subject->update($validated);
 
-        $subject->update($request->all());
-
-        // // Redirect to a backend route, avoiding Inertia rendering
-        // return redirect()->route('subject-list')->with('message', 'The Subject was Edited Successfully');
         return redirect('subjectList')->with('message', 'The Subject was Edited Successfully');
     }
 

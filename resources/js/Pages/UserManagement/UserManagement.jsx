@@ -39,36 +39,21 @@ const UserManagement = () => {
         const url = data.id ? `/users/edit/${data.id}` : `/register`;
         //const method = data.id ? put : post;
 
-        if (!data.id) {
-            post(url, data, {
-                onSuccess: () => {
-                    setShowModal(false);
-                    reset();
-                },
-            });
-        } else {
-            put(url, data, {
-                onSuccess: () => {
-                    setShowModal(false);
-                    reset();
-                },
-            });
-        }
+        post(url, { ...data, status: data.status, _method: 'PUT' }, {
+            onSuccess: () => {
+                setShowModal(false);
+                reset(); // Resets form data
+            },
+            onError: (errors) => {
+                console.error("Error occurred:", errors);
+                alert("An error occurred. Please check the form and try again.");
+            },
+        });
     };
 
     //Reset the form
     const handleCancel = () => {
         reset();
-        setData({
-            // Reset form data, but omit errors
-            first_name: "",
-            last_name: "",
-            email: "",
-            idNumber: "",
-            role: "",
-            birthdate: "",
-            gender: "",
-        });
         setShowModal(false);
     };
 
@@ -106,8 +91,6 @@ const UserManagement = () => {
             />
             <AddUserModal
                 showModal={showModal}
-                setShowModal={setShowModal}
-                handleEditUser={handleEditUser}
                 handleSaveChanges={handleSaveChanges}
                 handleCancel={handleCancel}
                 data={data}

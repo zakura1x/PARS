@@ -13,6 +13,7 @@ const SubjectManagement = ({ userId }) => {
 
     //Initialize data for form
     const { data, setData, post, reset, errors, processing } = useForm({
+        id: null,
         subject_id: "",
         name: "",
         created_by: userId,
@@ -34,39 +35,20 @@ const SubjectManagement = ({ userId }) => {
 
         const url = data.id ? `/subjects/edit/${data.id}` : `/addSubject`;
 
-        console.log("DEBUG1");
-
-        if (!data.id) {
-            console.log("DEBUG2");
-            post(url, { ...data, status: data.status }, {
-                onSuccess: () => {
-                    setShowModal(false);
-                    reset();
-                },
-            });
-        } else {
-            console.log("DEBUG3");
-            Inertia.post(url, { ...data, status: data.status, _method: 'PUT' }, {
-                onSuccess: () => {
-                    setShowModal(false);
-                    reset();
-                },
-                onError: (errors) => {
-                    console.error("DEBUG: Error occurred while editing subject:", errors);
-                    alert("An error occurred. Check console for details.");
-                },
-            });
-            console.log("DEBUG4");
-        }
+        post(url, { ...data, status: data.status, _method: 'PUT' }, {
+            onSuccess: () => {
+                setShowModal(false);
+                reset(); // Resets form data
+            },
+            onError: (errors) => {
+                console.error("Error occurred:", errors);
+                alert("An error occurred. Please check the form and try again.");
+            },
+        });
     };
 
     const handleCancel = () => {
         reset();
-        setData({
-            subject_id: "",
-            name: "",
-            status: "",
-        });
         setShowModal(false);
     }
 
@@ -98,8 +80,6 @@ const SubjectManagement = ({ userId }) => {
 
             <AddSubjectModal
                 showModal={showModal}
-                setShowModal={setShowModal}
-                handleEditSubject={handleEditSubject}
                 handleSaveChanges={handleSave}
                 handleCancel={handleCancel}
                 data={data}

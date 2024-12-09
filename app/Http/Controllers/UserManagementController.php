@@ -26,7 +26,7 @@ class UserManagementController extends Controller
 
         // Return the users to the view with inertia
         return inertia('UserManagement/UserManagement', ['users' => $users]);
-        
+
     }
 
     /**
@@ -34,7 +34,7 @@ class UserManagementController extends Controller
      */
     public function create()
     {
-        
+
     }
 
     /**
@@ -93,8 +93,7 @@ class UserManagementController extends Controller
     }
 
     //Send a message to inertia
-    return redirect('/userList')->with('message', 'The User was Created');
-
+    return redirect('userList')->with('message', 'The User was Created Successfully');
 }
 
 
@@ -139,8 +138,7 @@ class UserManagementController extends Controller
             // 'birth_date' => $validateUser['birthdate'],
         ]);
 
-        // Return a response (can be JSON or a redirect based on your app's architecture)
-        return redirect('/UserList')->with('message', 'The User was Edited Successfully');
+        return redirect('userList')->with('message', 'The User was Edited Successfully');
     }
 
     /**

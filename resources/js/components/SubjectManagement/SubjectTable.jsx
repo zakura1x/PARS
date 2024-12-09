@@ -77,9 +77,6 @@ const SubjectTable = ({ subjects, onPageChange, setShowModal, setData }) => (
                                                 Edit
                                             </a>
                                         </li>
-                                        <li className="hover:bg-white/30">
-                                            <a>Delete</a>
-                                        </li>
                                     </ul>
                                 </div>
                             </div>
