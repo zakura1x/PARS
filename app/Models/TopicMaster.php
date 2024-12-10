@@ -16,10 +16,10 @@ class TopicMaster extends Model
     ];
 
     public function topics(){
-        return $this->hasMany(Topics::class, 'topic_master_topics')->withTimeStamps();
+        return $this->belongsToMany(Topics::class, 'topic_master_topics')->withPivot('order')->withTimestamps();
     }
 
     public function subject(){
-        return $this->belongsTo(Subject::class);
+        return $this->belongsTo(Subject::class, 'subject_id');
     }
 }

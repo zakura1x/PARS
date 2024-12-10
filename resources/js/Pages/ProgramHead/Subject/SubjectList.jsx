@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { usePage, useForm } from "@inertiajs/react";
-import { Inertia } from '@inertiajs/inertia';
+//import { Inertia } from '@inertiajs/inertia';
 import Header from "../../../components/SubjectManagement/Header";
 import SubjectTable from "../../../components/SubjectManagement/SubjectTable";
 import AddSubjectModal from "../../../components/SubjectManagement/AddSubjectModal";
@@ -20,9 +20,8 @@ const SubjectManagement = ({ userId }) => {
         status: true,
     });
 
-    const filteredSubjects = subjects.data.filter(
-        (subject) =>
-            subject.name.toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredSubjects = subjects.data.filter((subject) =>
+        subject.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const handlePageChange = (url) => {
@@ -35,22 +34,28 @@ const SubjectManagement = ({ userId }) => {
 
         const url = data.id ? `/subjects/edit/${data.id}` : `/addSubject`;
 
-        post(url, { ...data, status: data.status, _method: 'PUT' }, {
-            onSuccess: () => {
-                setShowModal(false);
-                reset(); // Resets form data
-            },
-            onError: (errors) => {
-                console.error("Error occurred:", errors);
-                alert("An error occurred. Please check the form and try again.");
-            },
-        });
+        post(
+            url,
+            { ...data, status: data.status, _method: "PUT" },
+            {
+                onSuccess: () => {
+                    setShowModal(false);
+                    reset(); // Resets form data
+                },
+                onError: (errors) => {
+                    console.error("Error occurred:", errors);
+                    alert(
+                        "An error occurred. Please check the form and try again."
+                    );
+                },
+            }
+        );
     };
 
     const handleCancel = () => {
         reset();
         setShowModal(false);
-    }
+    };
 
     const handleEditSubject = (subject) => {
         setData({
@@ -60,7 +65,7 @@ const SubjectManagement = ({ userId }) => {
             status: subject.status,
         });
         setShowModal(true);
-    }
+    };
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen">

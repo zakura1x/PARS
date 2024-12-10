@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('topic_master_topics', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('topic_master_id')->constrained('topic_master')->onDelete('cascade');
+            $table->foreignId('topic_master_id')->constrained('topic_masters')->onDelete('cascade');
             $table->foreignId('topic_id')->constrained('topics')->onDelete('cascade');
             $table->integer('order')->nullable();
             $table->timestamps();
