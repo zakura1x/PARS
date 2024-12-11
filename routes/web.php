@@ -26,7 +26,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::get('/UserList', [UserManagementController::class, 'index'])->name('userlist');
 
     //USER MANAGEMENT
-    Route::get('/userList', [UserManagementController::class, 'index'])->name('userList');
+    Route::get('/userlist', [UserManagementController::class, 'index'])->name('userList');
     Route::post('/register', [UserManagementController::class, 'store'])->name('user-store');
     Route::post('/users/edit/{id}', [UserManagementController::class,'edit'])->name('user-edit');
 

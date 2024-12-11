@@ -10,11 +10,13 @@ use App\Models\Subject;
 class TopicMasterController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display the listing of the topic Master along with its subject
      */
     public function index()
     {
-        //
+        $subjects = Subject::with('topicMasters')->get();
+
+        //return with Subjects
     }
 
     /**

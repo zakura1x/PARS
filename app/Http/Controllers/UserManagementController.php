@@ -8,6 +8,7 @@ use Inertia\Inertia;
 use App\Models\User;
 use App\Models\Professor;
 use App\Models\ProgramHead;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
 class UserManagementController extends Controller
@@ -60,7 +61,7 @@ class UserManagementController extends Controller
         'email' => $validateUser['email'],
         'idNumber' => $validateUser['idNumber'],
         'role' => $validateUser['role'],
-        'password' => $validateUser['birthdate'],
+        'password' => Hash::make($validateUser['birthdate']),
     ]);
 
     // Determine the user's role and create corresponding details for professor, program_head, or dean.
@@ -92,8 +93,9 @@ class UserManagementController extends Controller
         }
     }
 
-    //Send a message to inertia
-    return redirect('userList')->with('message', 'The User was Created Successfully');
+     // Redirect using Inertia
+     return back()->with(['message' =>'The User was Created Successfully']);
+
 }
 
 

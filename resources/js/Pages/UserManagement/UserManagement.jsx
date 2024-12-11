@@ -37,16 +37,15 @@ const UserManagement = () => {
         e.preventDefault();
 
         const url = data.id ? `/users/edit/${data.id}` : `/register`;
-        //const method = data.id ? put : post;
 
-        post(url, { ...data, status: data.status, _method: 'PUT' }, {
+        //post
+        post(url, {
             onSuccess: () => {
+                reset();
                 setShowModal(false);
-                reset(); // Resets form data
             },
-            onError: (errors) => {
-                console.error("Error occurred:", errors);
-                alert("An error occurred. Please check the form and try again.");
+            onError: (e) => {
+                console.log(e);
             },
         });
     };
