@@ -1,7 +1,13 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
 
-const UserTable = ({ users, onPageChange, setShowModal, setData }) => (
+const UserTable = ({
+    users,
+    onPageChange,
+    setShowModal,
+    setData,
+    searchQuery,
+}) => (
     <div className="bg-white shadow rounded-lg">
         <table className="w-full border-collapse">
             <thead>

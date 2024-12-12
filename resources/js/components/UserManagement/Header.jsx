@@ -1,13 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
+import { router } from "@inertiajs/react";
 
-const Header = ({ searchQuery, setSearchQuery, setShowModal }) => {
-    const handleInputChange = (e) => {
-        setSearchQuery(e.target.value);
+const Header = ({ setShowModal }) => {
+    const [searchQuery, setSearchQuery] = useState("");
 
+    const handleSearchChange = (e) => {
+        const value = e.target.value;
+        setSearchQuery(value); // Update state with user input
+
+        // Trigger server-side search request
         router.get(
-            route("user.index"),
-            { search: e.target.value },
-            { preserveScroll: true }
+            "/UserList",
+            { search: value }, // Send search query to backend
+            { preserveState: true, preserveScroll: true }
         );
     };
 
@@ -16,19 +21,20 @@ const Header = ({ searchQuery, setSearchQuery, setShowModal }) => {
             <h1 className="text-2xl font-semibold text-gray-800">
                 User Management
             </h1>
-            <div className="flex space-x-2">
+            <div className="flex space-x-4">
+                {/* Search Bar */}
                 <input
                     type="text"
-                    placeholder="Search for the user..."
                     value={searchQuery}
-                    onChange={handleInputChange}
-                    className="px-4 py-2 border rounded-lg text-sm text-gray-600 focus:outline-none focus:ring focus:ring-blue-300"
+                    onChange={handleSearchChange} // Update search query on input
+                    placeholder="Search for Users"
+                    className="border border-gray-300 rounded px-2 py-1"
                 />
                 <button
                     className="btn border-none bg-[#42604C] text-white hover:bg-gray-600"
-                    onClick={() => setShowModal(true)}
+                    onClick={() => setShowModal(true)} // Call setShowModal when clicked
                 >
-                    + Add User
+                    + Add New User
                 </button>
             </div>
         </div>

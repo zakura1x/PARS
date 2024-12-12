@@ -22,22 +22,21 @@ const UserManagement = () => {
         gender: "",
     });
 
-    //Search Filters
-    // const filteredUsers = users.data.filter(
-    //     (user) =>
-    //         user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    //         user.email.toLowerCase().includes(searchQuery.toLowerCase())
-    // );
     const handleSearchChange = (e) => {
+        if (!e || !e.target) {
+            console.error("Event or event target is undefined", e);
+            return;
+        }
         setSearchQuery(e.target.value);
 
-        //Update the user list page
+        // Update the user list page
         router.get(
-            router("users.index"),
-            { search: e.target.value },
-            { preserveScroll: true }
+            "/UserList",
+            { search: searchQuery },
+            { preserveState: true, preserveScroll: true }
         );
     };
+
     const handlePageChange = (url) => {
         router.get(url, { search: searchQuery }, { preserveScroll: true });
     };
@@ -88,7 +87,7 @@ const UserManagement = () => {
             {<FlashMessage message={flash.message} />}
             <Header
                 searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
+                setSearchQuery={handleSearchChange} // Pass the change handler
                 setShowModal={setShowModal}
             />
             <UserTable
@@ -97,6 +96,7 @@ const UserManagement = () => {
                 onEditUser={handleEditUser}
                 setShowModal={setShowModal}
                 setData={setData}
+                searchQuery={handleSearchChange}
             />
             <AddUserModal
                 showModal={showModal}
