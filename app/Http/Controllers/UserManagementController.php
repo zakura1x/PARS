@@ -16,17 +16,30 @@ class UserManagementController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Get all users with roles of professor, program_head, and dean, and paginate with 10 users per page
+        // // Get all users with roles of professor, program_head, and dean, and paginate with 10 users per page
+        // $users = User::whereIn('role', ['professor', 'program_head', 'dean'])
+        //     ->latest() // Orders by created_at in descending order
+        //     ->paginate(10);
+
+        // // dd($users->toArray());
+
+        // // Return the users to the view with inertia
+        // return inertia('UserManagement/UserManagement', ['users' => $users]);
+
+        $searchQuery = $request->input('search', '');
+
         $users = User::whereIn('role', ['professor', 'program_head', 'dean'])
-            ->latest() // Orders by created_at in descending order
-            ->paginate(10);
+        ->when($searchQuery, function ($query, $searchQuery) {
+            $query->where(function ($q) use ($searchQuery) {
+                $q->where('first_name', 'like', '%' . $searchQuery . '%')
+                  ->orWhere('last_name', 'like', '%' . $searchQuery . '%')
+                  ->orWhere('email', 'like', '%' . $searchQuery . '%');
+            });
+        })->latest()->paginate(10);
 
-        // dd($users->toArray());
-
-        // Return the users to the view with inertia
-        return inertia('UserManagement/UserManagement', ['users' => $users]);
+        return inertia('UserManagement/UserManagement', ['users' => $users, 'searchQuery' => $searchQuery]);
 
     }
 

@@ -23,13 +23,23 @@ const UserManagement = () => {
     });
 
     //Search Filters
-    const filteredUsers = users.data.filter(
-        (user) =>
-            user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // const filteredUsers = users.data.filter(
+    //     (user) =>
+    //         user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    //         user.email.toLowerCase().includes(searchQuery.toLowerCase())
+    // );
+    const handleSearchChange = (e) => {
+        setSearchQuery(e.target.value);
+
+        //Update the user list page
+        router.get(
+            router("users.index"),
+            { search: e.target.value },
+            { preserveScroll: true }
+        );
+    };
     const handlePageChange = (url) => {
-        window.location.href = url;
+        router.get(url, { search: searchQuery }, { preserveScroll: true });
     };
 
     //Save The User
