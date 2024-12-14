@@ -14,8 +14,9 @@ class QuestionController extends Controller
      */
     public function index(Request $request)
     {
+        $questions = Question::all();
 
-        return inertia('QuestionBank/QuestionIndex');
+        return inertia('QuestionBank/QuestionIndex', ['questions' => $questions] );
     }
 
     /**
