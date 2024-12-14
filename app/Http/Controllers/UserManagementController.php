@@ -18,16 +18,6 @@ class UserManagementController extends Controller
      */
     public function index(Request $request)
     {
-        // // Get all users with roles of professor, program_head, and dean, and paginate with 10 users per page
-        // $users = User::whereIn('role', ['professor', 'program_head', 'dean'])
-        //     ->latest() // Orders by created_at in descending order
-        //     ->paginate(10);
-
-        // // dd($users->toArray());
-
-        // // Return the users to the view with inertia
-        // return inertia('UserManagement/UserManagement', ['users' => $users]);
-
         $searchQuery = $request->input('search', '');
 
         $users = User::whereIn('role', ['professor', 'program_head', 'dean'])

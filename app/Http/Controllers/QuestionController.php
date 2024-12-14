@@ -5,15 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Question;
 use App\Http\Requests\StoreQuestionRequest;
 use App\Http\Requests\UpdateQuestionRequest;
+use Illuminate\Support\Facades\Request;
 
 class QuestionController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+
+        return inertia('QuestionBank/QuestionIndex');
     }
 
     /**

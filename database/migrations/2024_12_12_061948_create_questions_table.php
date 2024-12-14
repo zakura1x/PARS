@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('subject_id')->constrained('subjects')->onDelete('cascade');
             $table->foreignId('topic_id')->constrained('topics')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             
             //Question Details
             $table->enum('format_type',['multiple_choice', 'enumeration', 'true_or_false', 'fill_in_the_blank']);

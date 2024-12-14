@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('topics', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->foreignId('parent_id')->nullable()->constrained('topics')->onDelete('cascade');
+            $table->foreignId('parent_id')->nullable()->constrained(table: 'topics')->onDelete('cascade');
+            $table->integer('order')->nullable()->after('parent_id');
             $table->timestamps();
             $table->softDeletes();
 

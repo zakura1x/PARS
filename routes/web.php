@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Middleware\RoleMiddleware;
@@ -23,21 +24,16 @@ Route::post('/logout',  [AuthController::class, 'logout'])->name('auth.signout')
 Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::get('/UserList', [UserManagementController::class, 'index'])->name('userlist');
-
-    //USER MANAGEMENT
-    Route::get('/userlist', [UserManagementController::class, 'index'])->name('userList');
-    Route::post('/register', [UserManagementController::class, 'store'])->name('user-store');
-    Route::post('/users/edit/{id}', [UserManagementController::class,'edit'])->name('user-edit');
-
-
     //SUBJECT MANAGEMENT
     Route::get('/subjectList', [SubjectController::class, 'index'])->name('subjectList');
     Route::post('/addSubject',[SubjectController::class,'store'])->name('subject-store');
     Route::post('/subjects/edit/{id}', [SubjectController::class, 'edit'])->name('subjects-edit');
 
-
+    //QuestionBank
+    Route::get('/questionBank', [QuestionController::class, 'index'])->name('questionIndex');
 });
+
+require_once __DIR__ . '/user_management.php';
 
 // Route::get('/test', function(){
 //     return inertia('');

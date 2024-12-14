@@ -8,7 +8,7 @@ const UserTable = ({
     setData,
     searchQuery,
 }) => (
-    <div className="bg-white shadow rounded-lg">
+    <div className="bg-white shadow rounded-lg overflow-visible">
         <table className="w-full border-collapse">
             <thead>
                 <tr className="bg-gray-200 text-gray-700 text-sm">
@@ -64,7 +64,7 @@ const UserTable = ({
                                 {new Date(user.created_at).toLocaleDateString()}
                             </td>
                             <td className="py-6 px-4">
-                                <div className="dropdown dropdown-end">
+                                <div className="dropdown dropdown-top dropdown-end">
                                     <div tabIndex={0} role={"button"}>
                                         <button className="flex flex-col items-center justify-center space-y-1 hover:text-green-500 text-black">
                                             <span className="w-1 h-1 bg-current rounded-full"></span>
@@ -73,7 +73,7 @@ const UserTable = ({
                                         </button>
                                         <ul
                                             tabIndex={0}
-                                            className="dropdown-content menu bg-[#42604C] rounded-lg z-[1] w-42 p-2 text-white"
+                                            className="dropdown-content menu bg-[#42604C] rounded-box z-[1] w-52 p-2 text-white shadow overflow-visible"
                                         >
                                             <li className="hover:bg-white/30">
                                                 <a>View</a>

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { usePage, useForm, router } from "@inertiajs/react";
+import { usePage, useForm, router, Head } from "@inertiajs/react";
 import Header from "../../components/UserManagement/Header";
 import UserTable from "../../components/UserManagement/UserTable";
 import AddUserModal from "../../components/UserManagement/AddUserModal";
@@ -84,6 +84,7 @@ const UserManagement = () => {
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen">
+            <Head title="User" />
             {<FlashMessage message={flash.message} />}
             <Header
                 searchQuery={searchQuery}
