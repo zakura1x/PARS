@@ -13,10 +13,10 @@ const SubjectManagement = ({ userId }) => {
 
     //Initialize data for form
     const { data, setData, post, reset, errors, processing } = useForm({
-        id: null,
+        // id: null,
         subject_id: "",
         name: "",
-        created_by: userId,
+        // created_by: userId,
         status: true,
     });
 
@@ -33,6 +33,8 @@ const SubjectManagement = ({ userId }) => {
         e.preventDefault();
 
         const url = data.id ? `/subjects/edit/${data.id}` : `/addSubject`;
+
+        console.log(data);
 
         post(
             url,

@@ -1,58 +1,47 @@
 import React, { useState } from "react";
 
-const Header = ({ subjects, onSearch, onFilter }) => {
-    const [searchTerm, setSearchTerm] = useState("");
+const Header = ({ searchQuery, setSearchQuery, setShowModal, subjects = [] }) => {
     const [selectedSubject, setSelectedSubject] = useState("");
 
-    //Search Input
-    const handleSearchChange = (e) => {
-        const value = e.target.value;
-        setSearchTerm(value);
-        onSearch(value);
-    };
-
-    const handleFilterChange = (e) => {
-        const value = e.target.value;
-        setSelectedSubject(value);
-        onFilter(value);
-    };
-
-    <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-gray-800">
-            Topic Management
-        </h1>
-        <div className="flex space-x-4">
-            {/* Select Values for the subject */}
-            <select
-                value={selectedSubject}
-                onChange={handleFilterChange}
-                className="border border-grey-300 rounded px-2 py-1"
-            >
-                <option value="">All Subjects</option>
-                {subjects.map((subject) => (
-                    <option key={subject.id} value={subject.id}>
-                        {subject.name}
+    return (
+        <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-semibold text-gray-800">Topic Management</h1>
+            <div className="flex space-x-2 items-center">
+                {/* Dropdown for subjects */}
+                <select
+                    value={selectedSubject}
+                    onChange={(e) => setSelectedSubject(e.target.value)}
+                    className="w-96 px-4 py-2 border rounded-lg text-sm text-gray-600 focus:outline-none focus:ring focus:ring-blue-300"
+                >
+                    <option value="" disabled>
+                    {subjects.length === 0 ? "No Subjects Available" : "Select Subject"}
                     </option>
-                ))}
-            </select>
+                    {subjects.map((subject) => (
+                        <option key={subject.id} value={subject.id}>
+                            {subject.name}
+                        </option>
+                    ))}
+                </select>
 
-            {/* Search Topic */}
-            <input
-                type="text"
-                value={searchTerm}
-                onChange={handleSearchChange}
-                placeholder="Search for Topics"
-            />
+                {/* Search Input */}
+                <input
+                    type="text"
+                    placeholder="Search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="px-4 py-2 border rounded-lg text-sm text-gray-600 focus:outline-none focus:ring focus:ring-blue-300"
+                />
 
-            {/*  */}
-            <button
-                className="btn border-none bg-[#42604C] text-white hover:bg-gray-600"
-                onClick={() => setShowModal(true)}
-            >
-                + Add New Topic
-            </button>
+                {/* Add Topic Button */}
+                <button
+                    className="btn border-none bg-[#42604C] text-white hover:bg-gray-600"
+                    onClick={() => setShowModal(true)}
+                >
+                    + Add Topic
+                </button>
+            </div>
         </div>
-    </div>;
+    );
 };
 
 export default Header;

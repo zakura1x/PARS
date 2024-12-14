@@ -23,15 +23,19 @@ class QuestionController extends Controller
      */
     public function create()
     {
-        //
+        
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreQuestionRequest $request)
+    public function store(Request $request)
     {
-        //
+        $validate = $request->validate([
+            'subject_id' => 'required|exists:subjects,subject_id',
+            'topic_id' => 'required|exists:topics,topic_id',
+            'type' => 'required|string|max'
+        ]);
     }
 
     /**
