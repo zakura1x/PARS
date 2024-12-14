@@ -14,7 +14,8 @@ class TopicsController extends Controller
      */
     public function index()
     {
-        //
+
+        return inertia('ProgramHead/TopicManagement/TopicDetails');
     }
 
     /**
@@ -53,9 +54,9 @@ class TopicsController extends Controller
             // Attach the topic to the TopicMaster with the calculated order
             $topicMaster->topics()->attach($topic->id, ['order' => $nextOrder]);
         }
-        
+
         //return redirect
-        
+
     }
 
     /**

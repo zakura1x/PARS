@@ -4,7 +4,10 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\TopicMasterController;
+use App\Http\Controllers\TopicsController;
 use App\Http\Middleware\RoleMiddleware;
+use App\Models\TopicMaster;
 use Illuminate\Support\Facades\Route;
 
 
@@ -36,7 +39,11 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::post('/addSubject',[SubjectController::class,'store'])->name('subject-store');
     Route::post('/subjects/edit/{id}', [SubjectController::class, 'edit'])->name('subjects-edit');
 
+    //MASTER TOPIC MANAGEMENT
+    Route::get('/topicList', [TopicMasterController::class, 'index'])->name('topicList');
 
+    //TOPIC/SUBTOPICS MANAGEMENT
+    Route::get('/topicDetails', [TopicsController::class, 'index'])->name('topicDetails');
 });
 
 // Route::get('/test', function(){

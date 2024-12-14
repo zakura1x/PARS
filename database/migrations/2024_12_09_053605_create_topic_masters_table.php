@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('topic_masters', function (Blueprint $table) {
             $table->id();
-            $table->boolean('active')->default(false);
             $table->string('name');
+            $table->unsignedBigInteger('created_by');
+            $table->boolean('status')->default(false);
             $table->timestamps();
 
             //delete
