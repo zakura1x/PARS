@@ -40,6 +40,10 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     //TOPIC/SUBTOPICS MANAGEMENT
     Route::get('/topicDetails', [TopicsController::class, 'index'])->name('topicDetails');
 
+    //Question Management
+    Route::get('/questionBank', [QuestionController::class, 'index'])->name('questionIndex');
+    Route::post('/add/question', [QuestionController::class, 'store'])->name('questionAdd');
+
 });
 
 require_once __DIR__ . '/user_management.php';

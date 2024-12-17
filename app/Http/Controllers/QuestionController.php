@@ -14,9 +14,6 @@ class QuestionController extends Controller
      */
     public function index(Request $request)
     {
-        // $questions = Question::all();
-
-        // return inertia('QuestionBank/QuestionIndex', ['questions' => $questions] );
 
         $query = Question::query();
 
@@ -33,7 +30,7 @@ class QuestionController extends Controller
             $query->where('status', $request->status);
         }
 
-        $question = $query->paginate(10);
+        $question = $query->latest()->paginate(10);
 
         return inertia('QuestionBank/QuestionIndex', ['questions' => $question]);
     }
@@ -52,10 +49,40 @@ class QuestionController extends Controller
     public function store(Request $request)
     {
         $validate = $request->validate([
-            'subject_id' => 'required|exists:subjects,subject_id',
-            'topic_id' => 'required|exists:topics,topic_id',
-            'type' => 'required|string|max'
-        ]);
+            'subject_id' => 'required|exists:subjects,id',
+            'topic_id' => 'required|exists:topics,id',
+            'format_type' => 'required|in:multiple_choice,enumeration,true_or_false,fill_in_the_blank',
+            'purpose_type' => 'required|in:practice,assessment,examination',
+            'difficulty' => 'required|in:remembering,understanding, analyzing, evaluating, create',
+            'question_text' =>'required|string|max:255',
+            'options' => 'required_if:question_type,multiple_choice|array|min:2',
+            'options.*' => 'string|max:255',
+            'correct_answer' => 'required|array|min:1',
+            'correct_answer.*' => 'string|max:255',
+            'weight' => 'required|integer|min:1',
+            'attachment_path' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
+        ]); 
+
+        if($request->hasFile('attachment_path')){
+            $filePath = $request->file('attachment_path')->store('attachment', 'public');
+            $validate['attachment_path'] = $filePath;
+        }
+
+        $question = Question::create([
+            'subject_id' => $validate['subject_id'],
+            'topic_id' => $validate['topic_id'],
+            'format_type' => $validate['format_type'],
+            'purpose_type' => $validate['purpose_type'],
+            'difficulty' => $validate['difficulty'],
+            'question_text' => $validate['question_text'],
+            'options' => $validate['options'],
+            'correct_answer' => $validate['correct_answer'],
+            'weight' => $validate['weight'],
+            'attachment_path' => $validate['attachment_path'],
+            'status' => 'inactive'
+        ]); 
+
+        return redirect()->route('questionIndex')->with('message', 'Question was Created Successfully');
     }
 
     /**
