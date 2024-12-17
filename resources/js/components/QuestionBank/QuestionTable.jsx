@@ -1,6 +1,12 @@
 import React from "react";
+import { router } from "@inertiajs/react";
 
 const QuestionTable = ({ questions }) => {
+    const handlePageChange = (url) => {
+        if (url) {
+            router.get(url);
+        }
+    };
     return (
         <div className="m-4 overflow-x-auto">
             <table className="w-full border-collapse bg-white shadow-md rounded-md">
@@ -14,7 +20,6 @@ const QuestionTable = ({ questions }) => {
                         <th className="py-3 px-4 text-left">Topic</th>
                         <th className="py-3 px-4 text-left">Status</th>
                         <th className="py-3 px-4 text-left">Date Added</th>
-                        <th className="py-3 px-4 text-left">Correct Options</th>
                     </tr>
                 </thead>
 
@@ -100,6 +105,28 @@ const QuestionTable = ({ questions }) => {
                     )}
                 </tbody>
             </table>
+
+            {/* Pagination */}
+            <div className="flex justify-between items-center mt-4">
+                <span>
+                    Showing {questions.from || 0} - {questions.to || 0} of{" "}
+                    {questions.total || 0} entries
+                </span>
+                <div className="flex items-center gap-2">
+                    {questions.links.map((link, index) => (
+                        <button
+                            key={index}
+                            className={`px-3 py-2 text-sm rounded-md border ${
+                                link.active
+                                    ? "bg-green-500 text-white"
+                                    : "bg-white text-gray-600"
+                            } ${!link.url && "cursor-not-allowed opacity-50"}`}
+                            onClick={() => handlePageChange(link.url)}
+                            dangerouslySetInnerHTML={{ __html: link.label }}
+                        ></button>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 };

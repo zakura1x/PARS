@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->foreignId('parent_id')->nullable()->constrained('topics')->onDelete('cascade');
-            $table->integer('order')->nullable(); // Removed ->after('parent_id')
+            $table->integer('order')->nullable();
             $table->timestamps();
             $table->softDeletes();
 

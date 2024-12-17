@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Question;
 use App\Http\Requests\StoreQuestionRequest;
 use App\Http\Requests\UpdateQuestionRequest;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
 
 class QuestionController extends Controller
 {
@@ -14,9 +14,28 @@ class QuestionController extends Controller
      */
     public function index(Request $request)
     {
-        $questions = Question::all();
+        // $questions = Question::all();
 
-        return inertia('QuestionBank/QuestionIndex', ['questions' => $questions] );
+        // return inertia('QuestionBank/QuestionIndex', ['questions' => $questions] );
+
+        $query = Question::query();
+
+        //Filters
+        if ($request->has('searchQuery') && $request->searchQuery) {
+            $query->where('question_text', 'like', '%' . $request->searchQuery . '%');
+        }
+
+        if($request->has('category') && $request->category){
+            $query->where('purpose_type', $request->category);
+        }
+
+        if($request->has('status') && $request->status){
+            $query->where('status', $request->status);
+        }
+
+        $question = $query->paginate(10);
+
+        return inertia('QuestionBank/QuestionIndex', ['questions' => $question]);
     }
 
     /**
