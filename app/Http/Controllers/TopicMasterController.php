@@ -14,9 +14,16 @@ class TopicMasterController extends Controller
      */
     public function index()
     {
-        $subjects = Subject::with('topicMasters')->get();
+        $topicmasters = TopicMaster::latest()
+        ->paginate(10);
 
-        //return with Subjects
+        $subjects = Subject::where('status', 1)->get();
+
+        return inertia('TopicManagement/TopicList', ['topics' => $topicmasters, 'subjects' => $subjects]);
+
+        // $subjects = Subject::with('topicMasters')->get();
+
+        // return with Subjects
     }
 
     /**
@@ -37,16 +44,18 @@ class TopicMasterController extends Controller
         $validate = $request->validate([
             'name' => 'required|string',
             'subject_id' => 'required|exists:subjects,id',
+            'status' => 'required|boolean',
         ]);
 
         //Create a new Topic Master
         $topic = TopicMaster::create([
             'name' => $validate['name'],
             'subject_id' => $validate['subject_id'],
+            'status' =>  $validate['status'],
         ]);
 
-        //return
-
+        //Send a message to inertia
+        return redirect('topicList')->with('message', 'The Master Topic was Created Successfully');
     }
 
     /**
