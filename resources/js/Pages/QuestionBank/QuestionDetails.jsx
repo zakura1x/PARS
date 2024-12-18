@@ -61,35 +61,25 @@ const QuestionDetails = () => {
             <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                     <label>Subject</label>
-                    <select
+                    <input
+                        type="text"
                         name="subject_id"
                         value={formData.subject_id}
                         onChange={handleChange}
+                        placeholder="Enter Subject"
                         className="w-full border rounded px-3 py-2"
-                    >
-                        <option value="">Select Subject</option>
-                        {subjects.map((subject) => (
-                            <option key={subject.id} value={subject.id}>
-                                {subject.name}
-                            </option>
-                        ))}
-                    </select>
+                    />
                 </div>
                 <div>
                     <label>Topic</label>
-                    <select
+                    <input
+                        type="text"
                         name="topic_id"
                         value={formData.topic_id}
                         onChange={handleChange}
+                        placeholder="Enter Topic"
                         className="w-full border rounded px-3 py-2"
-                    >
-                        <option value="">Select Topic</option>
-                        {topics.map((topic) => (
-                            <option key={topic.id} value={topic.id}>
-                                {topic.name}
-                            </option>
-                        ))}
-                    </select>
+                    />
                 </div>
             </div>
 
