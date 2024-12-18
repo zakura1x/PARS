@@ -97,7 +97,7 @@ class UserManagementController extends Controller
     }
 
      // Redirect using Inertia
-     return back()->with(['message' =>'The User was Created Successfully']);
+     return redirect()->route('userlist')->with('message', 'Question was Created Successfully');
 
 }
 
