@@ -16,4 +16,8 @@ class Subject extends Model
         'created_by',
         'status',
     ];
+
+    public function topicMasters(){
+        return $this->hasMany(TopicMaster::class, 'subject_id');
+    }
 }

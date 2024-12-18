@@ -14,8 +14,7 @@ class TopicsController extends Controller
      */
     public function index()
     {
-
-        return inertia('ProgramHead/TopicManagement/TopicDetails');
+        return inertia('TopicManagement/TopicDetails');
     }
 
     /**

@@ -27,7 +27,7 @@ const TopicManagement = ({ userId }) => {
 
         setShowMasterTopicModal(false);
 
-        router.visit(`/topicDetails`);
+        // router.visit(`/topicDetails`);
     };
 
     const handleCancelMasterTopic = () => {

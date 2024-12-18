@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { usePage, useForm, router } from "@inertiajs/react";
+import { usePage, useForm, router, Head } from "@inertiajs/react";
 import Header from "../../components/UserManagement/Header";
 import UserTable from "../../components/UserManagement/UserTable";
 import AddUserModal from "../../components/UserManagement/AddUserModal";
@@ -22,14 +22,23 @@ const UserManagement = () => {
         gender: "",
     });
 
-    //Search Filters
-    const filteredUsers = users.data.filter(
-        (user) =>
-            user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const handleSearchChange = (e) => {
+        if (!e || !e.target) {
+            console.error("Event or event target is undefined", e);
+            return;
+        }
+        setSearchQuery(e.target.value);
+
+        // Update the user list page
+        router.get(
+            "/UserList",
+            { search: searchQuery },
+            { preserveState: true, preserveScroll: true }
+        );
+    };
+
     const handlePageChange = (url) => {
-        window.location.href = url;
+        router.get(url, { search: searchQuery }, { preserveScroll: true });
     };
 
     //Save The User
@@ -37,16 +46,15 @@ const UserManagement = () => {
         e.preventDefault();
 
         const url = data.id ? `/users/edit/${data.id}` : `/register`;
-        //const method = data.id ? put : post;
 
-        post(url, { ...data, status: data.status, _method: 'PUT' }, {
+        //post
+        post(url, {
             onSuccess: () => {
+                reset();
                 setShowModal(false);
-                reset(); // Resets form data
             },
-            onError: (errors) => {
-                console.error("Error occurred:", errors);
-                alert("An error occurred. Please check the form and try again.");
+            onError: (e) => {
+                console.log(e);
             },
         });
     };
@@ -76,10 +84,11 @@ const UserManagement = () => {
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen">
+            <Head title="User" />
             {<FlashMessage message={flash.message} />}
             <Header
                 searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
+                setSearchQuery={handleSearchChange} // Pass the change handler
                 setShowModal={setShowModal}
             />
             <UserTable
@@ -88,6 +97,7 @@ const UserManagement = () => {
                 onEditUser={handleEditUser}
                 setShowModal={setShowModal}
                 setData={setData}
+                searchQuery={handleSearchChange}
             />
             <AddUserModal
                 showModal={showModal}

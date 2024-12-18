@@ -8,6 +8,7 @@ use Inertia\Inertia;
 use App\Models\User;
 use App\Models\Professor;
 use App\Models\ProgramHead;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
 class UserManagementController extends Controller
@@ -15,17 +16,20 @@ class UserManagementController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Get all users with roles of professor, program_head, and dean, and paginate with 10 users per page
+        $searchQuery = $request->input('search', '');
+
         $users = User::whereIn('role', ['professor', 'program_head', 'dean'])
-            ->latest() // Orders by created_at in descending order
-            ->paginate(10);
+        ->when($searchQuery, function ($query, $searchQuery) {
+            $query->where(function ($q) use ($searchQuery) {
+                $q->where('first_name', 'like', '%' . $searchQuery . '%')
+                  ->orWhere('last_name', 'like', '%' . $searchQuery . '%')
+                  ->orWhere('email', 'like', '%' . $searchQuery . '%');
+            });
+        })->latest()->paginate(10);
 
-        // dd($users->toArray());
-
-        // Return the users to the view with inertia
-        return inertia('UserManagement/UserManagement', ['users' => $users]);
+        return inertia('UserManagement/UserManagement', ['users' => $users, 'searchQuery' => $searchQuery]);
 
     }
 
@@ -60,7 +64,7 @@ class UserManagementController extends Controller
         'email' => $validateUser['email'],
         'idNumber' => $validateUser['idNumber'],
         'role' => $validateUser['role'],
-        'password' => $validateUser['birthdate'],
+        'password' => Hash::make($validateUser['birthdate']),
     ]);
 
     // Determine the user's role and create corresponding details for professor, program_head, or dean.
@@ -92,8 +96,9 @@ class UserManagementController extends Controller
         }
     }
 
-    //Send a message to inertia
-    return redirect('userList')->with('message', 'The User was Created Successfully');
+     // Redirect using Inertia
+     return back()->with(['message' =>'The User was Created Successfully']);
+
 }
 
 

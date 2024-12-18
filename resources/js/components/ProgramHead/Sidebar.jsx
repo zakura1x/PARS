@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { TbCloudQuestion } from "react-icons/tb";
+import { Link } from "@inertiajs/react";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
     const [activeSummary, setActiveSummary] = useState(null); // Track active summary
@@ -51,8 +52,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 >
                     <nav className="pt-2 px-4 flex flex-col items-start">
                         <ul className="menu rounded-box w-64 text-lg">
-                            <li className="text-[16px]">
-                                <h3 className="text-lg font-semibold text-slate-400 tracking-wider pb-1 pt-0">
+                            <li className="font-medium text-[1rem]">
+                                {/* DASHBOARD */}
+                                <h3 className="text-[0.875rem] font-semibold text-slate-400 tracking-wider pb-1 pt-0">
                                     Dashboard
                                 </h3>
                                 <details open>
@@ -105,7 +107,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                         </li>
                                     </ul>
                                 </details>
-                                <h3 className="text-lg font-semibold text-slate-400 tracking-wider pb-1 pt-0">
+                                <h3 className="text-[0.875rem] font-semibold text-slate-400 tracking-wider pb-1 pt-0">
                                     User Management
                                 </h3>
                                 <details>
@@ -130,7 +132,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                                 handleItemClick(2, 4)
                                             }
                                         >
-                                            <a>Add New User</a>
+                                            <Link href="/UserList">
+                                                User List
+                                            </Link>
                                         </li>
                                         <li
                                             className={`hover:text-white ${
@@ -142,26 +146,14 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                                 handleItemClick(2, 5)
                                             }
                                         >
-                                            <a>User List</a>
-                                        </li>
-                                        <li
-                                            className={`hover:text-white ${
-                                                activeItem === 6
-                                                    ? "text-white"
-                                                    : ""
-                                            }`}
-                                            onClick={() =>
-                                                handleItemClick(2, 6)
-                                            }
-                                        >
                                             <a>Faculty Assignment</a>
                                         </li>
                                     </ul>
                                 </details>
-                                <h3 className="text-lg font-semibold text-slate-400 tracking-wider pb-1 pt-0">
-                                    Subject Management
+                                <h3 className="text-[0.875rem] font-semibold text-slate-400 tracking-wider pb-1 pt-0">
+                                    Class
                                 </h3>
-                                <details>
+                                <details className="mb-1">
                                     <summary
                                         className={`hover:bg-green-100 hover:text-black ${
                                             activeSummary === 3
@@ -170,7 +162,35 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                         }`}
                                     >
                                         <TbCloudQuestion size={26} />
-                                        Subject
+                                        Subject Manage
+                                    </summary>
+                                    <ul className="pl-5 text-slate-400 py-1">
+                                        <li
+                                            className={`hover:text-white ${
+                                                activeItem === 6
+                                                    ? "text-white"
+                                                    : ""
+                                            }`}
+                                            onClick={() =>
+                                                handleItemClick(3, 6)
+                                            }
+                                        >
+                                            <Link href="/subjectList">
+                                                Subject List
+                                            </Link>
+                                        </li>
+                                    </ul>
+                                </details>
+                                <details>
+                                    <summary
+                                        className={`hover:bg-green-100 hover:text-black ${
+                                            activeSummary === 4
+                                                ? "bg-green-100 text-black"
+                                                : ""
+                                        }`}
+                                    >
+                                        <TbCloudQuestion size={26} />
+                                        Topic Manage
                                     </summary>
                                     <ul className="pl-5 text-slate-400 py-1">
                                         <li
@@ -180,22 +200,10 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                                     : ""
                                             }`}
                                             onClick={() =>
-                                                handleItemClick(3, 7)
+                                                handleItemClick(4, 7)
                                             }
                                         >
-                                            <a>Add Subject</a>
-                                        </li>
-                                        <li
-                                            className={`hover:text-white ${
-                                                activeItem === 10
-                                                    ? "text-white"
-                                                    : ""
-                                            }`}
-                                            onClick={() =>
-                                                handleItemClick(3, 10)
-                                            }
-                                        >
-                                            <a>Subject List</a>
+                                            <Link href="">Topic List</Link>
                                         </li>
                                     </ul>
                                 </details>

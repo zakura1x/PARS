@@ -1,7 +1,12 @@
-import React from 'react'
+import React from "react";
 import { Link } from "@inertiajs/react";
 
-const TopicTable = ({ topicmasters = {}, onPageChange, setShowModal, setData }) => (
+const TopicTable = ({
+    topicmasters = {},
+    onPageChange,
+    setShowModal,
+    setData,
+}) => (
     <div className="bg-white shadow rounded-lg">
         <table className="w-full border-collapse">
             <thead>
@@ -103,4 +108,4 @@ const TopicTable = ({ topicmasters = {}, onPageChange, setShowModal, setData }) 
     </div>
 );
 
-export default TopicTable
+export default TopicTable;

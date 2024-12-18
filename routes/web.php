@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\TopicMasterController;
@@ -26,14 +27,6 @@ Route::post('/logout',  [AuthController::class, 'logout'])->name('auth.signout')
 Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::get('/UserList', [UserManagementController::class, 'index'])->name('userlist');
-
-    //USER MANAGEMENT
-    Route::get('/userList', [UserManagementController::class, 'index'])->name('userList');
-    Route::post('/register', [UserManagementController::class, 'store'])->name('user-store');
-    Route::post('/users/edit/{id}', [UserManagementController::class,'edit'])->name('user-edit');
-
-
     //SUBJECT MANAGEMENT
     Route::get('/subjectList', [SubjectController::class, 'index'])->name('subjectList');
     Route::post('/addSubject',[SubjectController::class,'store'])->name('subject-store');
@@ -41,10 +34,15 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
 
     //MASTER TOPIC MANAGEMENT
     Route::get('/topicList', [TopicMasterController::class, 'index'])->name('topicList');
+    Route::post('/addTopicmasters',[TopicMasterController::class,'store'])->name('topicmaster-store');
+    // Route::post('/topicmasters/edit/{id}', [TopicMasterController::class, 'edit'])->name('topicmaster-edit');
 
     //TOPIC/SUBTOPICS MANAGEMENT
     Route::get('/topicDetails', [TopicsController::class, 'index'])->name('topicDetails');
+
 });
+
+require_once __DIR__ . '/user_management.php';
 
 // Route::get('/test', function(){
 //     return inertia('');

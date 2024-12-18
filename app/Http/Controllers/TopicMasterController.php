@@ -10,11 +10,20 @@ use App\Models\Subject;
 class TopicMasterController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display the listing of the topic Master along with its subject
      */
     public function index()
     {
-        //
+        $topicmasters = TopicMaster::latest()
+        ->paginate(10);
+
+        $subjects = Subject::where('status', 1)->get();
+
+        return inertia('TopicManagement/TopicList', ['topics' => $topicmasters, 'subjects' => $subjects]);
+
+        // $subjects = Subject::with('topicMasters')->get();
+
+        // return with Subjects
     }
 
     /**
@@ -35,16 +44,18 @@ class TopicMasterController extends Controller
         $validate = $request->validate([
             'name' => 'required|string',
             'subject_id' => 'required|exists:subjects,id',
+            'status' => 'required|boolean',
         ]);
 
         //Create a new Topic Master
         $topic = TopicMaster::create([
             'name' => $validate['name'],
             'subject_id' => $validate['subject_id'],
+            'status' =>  $validate['status'],
         ]);
 
-        //return
-
+        //Send a message to inertia
+        return redirect('topicList')->with('message', 'The Master Topic was Created Successfully');
     }
 
     /**
