@@ -79,7 +79,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                                 handleItemClick(1, 1)
                                             }
                                         >
-                                            <a>Add Question</a>
+                                            <Link href="/questionDetails">
+                                                Add Question
+                                            </Link>
                                         </li>
                                         <li
                                             className={`hover:text-white ${
@@ -91,7 +93,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                                 handleItemClick(1, 2)
                                             }
                                         >
-                                            <a>Question List</a>
+                                            <Link href="/questionBank">
+                                                Question List
+                                            </Link>
                                         </li>
                                         <li
                                             className={`hover:text-white ${

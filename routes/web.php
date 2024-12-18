@@ -42,7 +42,8 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
 
     //Question Management
     Route::get('/questionBank', [QuestionController::class, 'index'])->name('questionIndex');
-    Route::post('/add/question', [QuestionController::class, 'store'])->name('questionAdd');
+    Route::get('/questionDetails', [QuestionController::class, 'questionDetails'])->name('questionDetails');
+    Route::post('/addQuestion', [QuestionController::class, 'store'])->name('questionAdd');
 
 });
 
