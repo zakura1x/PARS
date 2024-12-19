@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const AddSubtopicsModal = ({
     showModal,
@@ -6,7 +6,12 @@ const AddSubtopicsModal = ({
     handleSave,
     initialSubtopics,
 }) => {
-    const [subtopics, setSubtopics] = useState(initialSubtopics || [""]);
+    const [subtopics, setSubtopics] = useState([""]);
+
+    // Initialize subtopics with at least one input field
+    useEffect(() => {
+        setSubtopics(initialSubtopics && initialSubtopics.length > 0 ? initialSubtopics : [""]);
+    }, [initialSubtopics]);
 
     // Handle adding a new subtopic
     const handleAddSubtopic = () => {

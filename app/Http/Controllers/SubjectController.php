@@ -17,7 +17,7 @@ class SubjectController extends Controller
         $subjects = Subject::latest() // Orders by created_at in descending order
         ->paginate(10);
 
-        return inertia('ProgramHead/Subject/SubjectList', ['subjects' => $subjects]);
+        return inertia('ProgramHead/SubjectManagement/SubjectList', ['subjects' => $subjects]);
     }
 
     /**

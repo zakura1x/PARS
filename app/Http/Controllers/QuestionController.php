@@ -35,12 +35,17 @@ class QuestionController extends Controller
         return inertia('QuestionBank/QuestionIndex', ['questions' => $question]);
     }
 
+    public function questionDetails(Request $request)
+    {
+        return inertia('QuestionBank/QuestionDetails');
+    }
+
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
-        
+
     }
 
     /**
@@ -61,7 +66,7 @@ class QuestionController extends Controller
             'correct_answer.*' => 'string|max:255',
             'weight' => 'required|integer|min:1',
             'attachment_path' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
-        ]); 
+        ]);
 
         if($request->hasFile('attachment_path')){
             $filePath = $request->file('attachment_path')->store('attachment', 'public');
@@ -80,7 +85,7 @@ class QuestionController extends Controller
             'weight' => $validate['weight'],
             'attachment_path' => $validate['attachment_path'],
             'status' => 'inactive'
-        ]); 
+        ]);
 
         return redirect()->route('questionIndex')->with('message', 'Question was Created Successfully');
     }

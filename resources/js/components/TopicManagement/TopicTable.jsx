@@ -13,6 +13,7 @@ const TopicTable = ({
                 <tr className="bg-gray-200 text-gray-700 text-sm">
                     <th className="py-2 px-4 text-left"></th>
                     <th className="py-2 px-4 text-left">Topic Name</th>
+                    <th className="py-2 px-4 text-left">Subject ID</th>
                     <th className="py-2 px-4 text-left">Created By</th>
                     <th className="py-2 px-4 text-left">Status</th>
                     <th className="py-2 px-4 text-left">Date Added</th>

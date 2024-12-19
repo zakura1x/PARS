@@ -8,6 +8,7 @@ use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\TopicMasterController;
 use App\Http\Controllers\TopicsController;
 use App\Http\Middleware\RoleMiddleware;
+use App\Models\TopicMaster;
 use Illuminate\Support\Facades\Route;
 
 
@@ -31,18 +32,18 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::post('/addSubject',[SubjectController::class,'store'])->name('subject-store');
     Route::post('/subjects/edit/{id}', [SubjectController::class, 'edit'])->name('subjects-edit');
 
-    
     //MASTER TOPIC MANAGEMENT
     Route::get('/topicList', [TopicMasterController::class, 'index'])->name('topicList');
     Route::post('/addTopicmasters',[TopicMasterController::class,'store'])->name('topicmaster-store');
-    Route::post('/topicmasters/edit/{id}', [TopicMasterController::class, 'edit'])->name('topicmaster-edit');
+    // Route::post('/topicmasters/edit/{id}', [TopicMasterController::class, 'edit'])->name('topicmaster-edit');
 
     //TOPIC/SUBTOPICS MANAGEMENT
     Route::get('/topicDetails', [TopicsController::class, 'index'])->name('topicDetails');
 
     //Question Management
     Route::get('/questionBank', [QuestionController::class, 'index'])->name('questionIndex');
-    Route::post('/add/question', [QuestionController::class, 'store'])->name('questionAdd');
+    Route::get('/questionDetails', [QuestionController::class, 'questionDetails'])->name('questionDetails');
+    Route::post('/addQuestion', [QuestionController::class, 'store'])->name('questionAdd');
 
 });
 
