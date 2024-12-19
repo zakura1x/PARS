@@ -109,6 +109,18 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                         >
                                             <a>Approve Question</a>
                                         </li>
+                                        <li
+                                            className={`hover:text-white ${
+                                                activeItem === 4
+                                                    ? "text-white"
+                                                    : ""
+                                            }`}
+                                            onClick={() =>
+                                                handleItemClick(1, 4)
+                                            }
+                                        >
+                                            <a>Import Question</a>
+                                        </li>
                                     </ul>
                                 </details>
                                 <h3 className="text-[0.875rem] font-semibold text-slate-400 tracking-wider pb-1 pt-0">
@@ -207,7 +219,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                                                 handleItemClick(4, 7)
                                             }
                                         >
-                                            <Link href="">Topic List</Link>
+                                            <Link href="/topicList">Topic List</Link>
                                         </li>
                                     </ul>
                                 </details>

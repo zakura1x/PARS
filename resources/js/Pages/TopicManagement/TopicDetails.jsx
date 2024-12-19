@@ -58,9 +58,9 @@ const TableDetails = () => {
             {/* Breadcrumbs */}
             <div className="text-sm breadcrumbs mb-4">
                 <ul>
-                    <li>
-                        <a href="/topicList">Topic List</a>
-                    </li>
+                    <li><a>Class</a></li>
+                    <li><a>Topic Manage</a></li>
+                    <li><a href="/topicList">Topic List</a></li>
                     <li className="text-gray-500">Topic Details</li>
                 </ul>
             </div>
@@ -113,11 +113,7 @@ const TableDetails = () => {
                             className="space-y-4"
                         >
                             {tableData.map((row, index) => (
-                                <Draggable
-                                    key={row.id}
-                                    draggableId={row.id}
-                                    index={index}
-                                >
+                                <Draggable key={row.id} draggableId={row.id} index={index}>
                                     {(provided) => (
                                         <div
                                             ref={provided.innerRef}
@@ -129,19 +125,19 @@ const TableDetails = () => {
                                                 <h2 className="text-lg font-bold">
                                                     {row.topic}
                                                 </h2>
-                                                <p className="text-sm text-gray-500">
-                                                    {row.subtopics.length
-                                                        ? row.subtopics.join(
-                                                              ", "
-                                                          )
-                                                        : "No subtopics yet"}
-                                                </p>
+                                                <div className="text-sm text-gray-500 space-y-1">
+                                                    {row.subtopics.length ? (
+                                                        row.subtopics.map((subtopic, idx) => (
+                                                            <p key={idx}>{subtopic}</p>
+                                                        ))
+                                                    ) : (
+                                                        <p>No subtopics yet</p>
+                                                    )}
+                                                </div>
                                             </div>
                                             <button
                                                 onClick={() =>
-                                                    handleOpenSubtopicModal(
-                                                        index
-                                                    )
+                                                    handleOpenSubtopicModal(index)
                                                 }
                                                 className="text-blue-500 hover:underline"
                                             >
@@ -156,6 +152,7 @@ const TableDetails = () => {
                     )}
                 </Droppable>
             </DragDropContext>
+
 
             {/* AddTopicsModal */}
             <AddTopicsModal

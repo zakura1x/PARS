@@ -51,10 +51,17 @@ const QuestionDetails = () => {
     ];
 
     const purposes = ['Practice', 'Pre-Test', 'Post-Test'];
-    const difficulties = ['Easy', 'Moderate', 'Difficult'];
+    const difficulties = ['Remembering', 'Understanding', 'Analyzing', 'Evaluating', 'Creating'];
 
     return (
         <form className="p-6 bg-gray-100 min-h-screen">
+            <div className="breadcrumbs text-sm">
+                <ul>
+                    <li><a href="/dashboard">Dashboard</a></li>
+                    <li><a href="/questionBank">Question</a></li>
+                    <li className="text-gray-500">Add Question</li>
+                </ul>
+            </div>
             <h2 className="text-xl font-bold mb-4">Add New Question</h2>
 
             {/* Subject, Topic */}

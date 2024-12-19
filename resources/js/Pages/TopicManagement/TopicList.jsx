@@ -24,17 +24,17 @@ const TopicManagement = () => {
 
     // Handle save action
     const handleSaveMasterTopic = (e) => {
-        e.preventDefault();
-        const url = data.id
-            ? `/topicmasters/edit/${data.id}`
-            : `/addTopicmasters`;
+        // e.preventDefault();
+        // const url = data.id
+        //     ? `/topicmasters/edit/${data.id}`
+        //     : `/addTopicmasters`;
 
-        post(url, data, {
-            onSuccess: () => {
-                setShowMasterTopicModal(false);
-                reset();
-            },
-        });
+        // post(url, data, {
+        //     onSuccess: () => {
+        //         setShowMasterTopicModal(false);
+        //         reset();
+        //     },
+        // });
     };
 
     const handleCancelMasterTopic = () => {
