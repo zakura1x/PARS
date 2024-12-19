@@ -1,55 +1,64 @@
 import React, { useState } from "react";
-import { usePage, useForm } from "@inertiajs/react";
+import { usePage, Head, useForm, router } from "@inertiajs/react";
 import Header from "../../../components/SubjectManagement/Header";
 import SubjectTable from "../../../components/SubjectManagement/SubjectTable";
 import AddSubjectModal from "../../../components/SubjectManagement/AddSubjectModal";
 import FlashMessage from "../../../components/Notifications/FlashMessage";
 
-const SubjectManagement = ({ userId }) => {
+const SubjectManagement = () => {
+    const { flash, subjects, auth } = usePage().props;
     const [searchQuery, setSearchQuery] = useState("");
     const [showModal, setShowModal] = useState(false);
-    const { flash, subjects } = usePage().props;
 
-    //Initialize data for form
+    // Form state for adding/editing a subject
     const { data, setData, post, reset, errors, processing } = useForm({
         id: null,
         subject_id: "",
         name: "",
-        created_by: userId,
+        created_by: auth.user.id,
         status: true,
     });
 
-    const filteredSubjects = subjects.data.filter(
-        (subject) =>
-            subject.name.toLowerCase().includes(searchQuery.toLowerCase())
+    // Filtered subjects based on search query
+    const filteredSubjects = subjects.data.filter((subject) =>
+        subject.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const handlePageChange = (url) => {
-        window.location.href = url;
+    const handleSearch = () => {
+        router.get(
+            "/subjects",
+            { searchQuery },
+            { preserveState: true, preserveScroll: true }
+        );
     };
 
-    // Save the subject
+    const handlePageChange = (url) => {
+        if (url) {
+            router.get(url, {}, { preserveState: true, preserveScroll: true });
+        }
+    };
+
     const handleSave = (e) => {
         e.preventDefault();
 
         const url = data.id ? `/subjects/edit/${data.id}` : `/addSubject`;
 
-        post(url, { ...data, status: data.status, _method: 'PUT' }, {
-            onSuccess: () => {
-                setShowModal(false);
-                reset(); // Resets form data
-            },
-            onError: (errors) => {
-                console.error("Error occurred:", errors);
-                alert("An error occurred. Please check the form and try again.");
-            },
-        });
+        post(
+            url,
+            { ...data, _method: data.id ? "PUT" : "POST" },
+            {
+                onSuccess: () => {
+                    setShowModal(false);
+                    reset();
+                },
+            }
+        );
     };
 
     const handleCancel = () => {
         reset();
         setShowModal(false);
-    }
+    };
 
     const handleEditSubject = (subject) => {
         setData({
@@ -59,22 +68,24 @@ const SubjectManagement = ({ userId }) => {
             status: subject.status,
         });
         setShowModal(true);
-    }
+    };
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen">
-            {<FlashMessage message={flash.message} />}
+            <Head title="Subject Management" />
+            {flash.message && <FlashMessage message={flash.message} />}
+
             <Header
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
+                handleSearch={handleSearch}
                 setShowModal={setShowModal}
             />
+
             <SubjectTable
-                subjects={subjects}
+                subjects={{ ...subjects, data: filteredSubjects }}
+                onEditSubject={handleEditSubject}
                 onPageChange={handlePageChange}
-                onSubjectUser={handleEditSubject}
-                setShowModal={setShowModal}
-                setData={setData}
             />
 
             <AddSubjectModal

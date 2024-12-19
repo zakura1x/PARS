@@ -45,11 +45,11 @@ const AddMasterTopicsModal = ({
                         className="border border-gray-300 rounded w-full px-3 py-2"
                     >
                         <option value="">Select a subject</option>
-                        {subjects.map((subject) => (
+                        {/* {subjects.map((subject) => (
                             <option key={subject.id} value={subject.id}>
                                 {subject.name}
                             </option>
-                        ))}
+                        ))} */}
                     </select>
                     {errors.subject_id && (
                         <span className="text-red-500 text-sm">

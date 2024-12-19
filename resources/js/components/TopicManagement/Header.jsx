@@ -24,11 +24,11 @@ const Header = ({ searchQuery, setSearchQuery, setShowModal, subjects = [] }) =>
                         <option value="" disabled>
                         {subjects.length === 0 ? "No Subjects Available" : "Select Subject"}
                         </option>
-                        {subjects.map((subject) => (
+                        {/* {subjects.map((subject) => (
                             <option key={subject.id} value={subject.id}>
                                 {subject.name}
                             </option>
-                        ))}
+                        ))} */}
                     </select>
 
                     {/* Search Input */}

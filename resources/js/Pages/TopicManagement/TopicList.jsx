@@ -19,8 +19,8 @@ const TopicManagement = () => {
         status: true,
     });
 
-    // Filter only active subjects
-    const activeSubjects = subjects.filter((subject) => subject.status === 1);
+    // // Filter only active subjects
+    // const activeSubjects = subjects.filter((subject) => subject.status === 1);
 
     // Handle save action
     const handleSaveMasterTopic = (e) => {
@@ -60,7 +60,6 @@ const TopicManagement = () => {
                 data={data}
                 setData={setData}
                 errors={errors}
-                subjects={activeSubjects}
             />
         </div>
     );
