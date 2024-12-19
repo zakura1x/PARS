@@ -6,6 +6,7 @@ use App\Models\TopicMaster;
 use App\Http\Requests\StoreTopicMasterRequest;
 use App\Http\Requests\UpdateTopicMasterRequest;
 use App\Models\Subject;
+use Illuminate\Support\Facades\Request;
 
 class TopicMasterController extends Controller
 {
@@ -14,16 +15,11 @@ class TopicMasterController extends Controller
      */
     public function index()
     {
-        $topicmasters = TopicMaster::latest()
-        ->paginate(10);
+        $topicMasters = TopicMaster::with('subject:id,name')
+        ->latest()->paginate(10);
 
-        $subjects = Subject::where('status', 1)->get();
-
-        return inertia('TopicManagement/TopicList', ['topics' => $topicmasters, 'subjects' => $subjects]);
-
-        // $subjects = Subject::with('topicMasters')->get();
-
-        // return with Subjects
+        
+        return inertia('TopicManagement/TopicList', ['topics' => $topicMasters]);
     }
 
     /**
@@ -37,7 +33,7 @@ class TopicMasterController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreTopicMasterRequest $request)
+    public function store(Request $request)
     {
 
         //Validate the name

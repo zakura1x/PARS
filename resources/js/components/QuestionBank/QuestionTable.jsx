@@ -1,5 +1,6 @@
 import React from "react";
 import { router } from "@inertiajs/react";
+import Pagination from "../misc/Pagination";
 
 const QuestionTable = ({ questions }) => {
     const handlePageChange = (url) => {
@@ -8,7 +9,7 @@ const QuestionTable = ({ questions }) => {
         }
     };
     return (
-        <div className="m-4 overflow-x-auto">
+        <div className="my-2 overflow-x-auto lg:mx-4">
             <table className="w-full border-collapse bg-white shadow-md rounded-md">
                 {/* Table Header */}
                 <thead>
@@ -107,26 +108,7 @@ const QuestionTable = ({ questions }) => {
             </table>
 
             {/* Pagination */}
-            <div className="flex justify-between items-center mt-4">
-                <span>
-                    Showing {questions.from || 0} - {questions.to || 0} of{" "}
-                    {questions.total || 0} entries
-                </span>
-                <div className="flex items-center gap-2">
-                    {questions.links.map((link, index) => (
-                        <button
-                            key={index}
-                            className={`px-3 py-2 text-sm rounded-md border ${
-                                link.active
-                                    ? "bg-green-500 text-white"
-                                    : "bg-white text-gray-600"
-                            } ${!link.url && "cursor-not-allowed opacity-50"}`}
-                            onClick={() => handlePageChange(link.url)}
-                            dangerouslySetInnerHTML={{ __html: link.label }}
-                        ></button>
-                    ))}
-                </div>
-            </div>
+            <Pagination data={questions} onPageChange={handlePageChange} />
         </div>
     );
 };

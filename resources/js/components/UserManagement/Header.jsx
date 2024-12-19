@@ -17,7 +17,7 @@ const Header = ({ setShowModal }) => {
     };
 
     return (
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between items-start mb-6 space-y-2">
             <h1 className="text-2xl font-semibold text-gray-800">
                 User Management
             </h1>
