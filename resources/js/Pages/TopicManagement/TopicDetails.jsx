@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import AddTopicsModal from "../../components/TopicManagement/AddTopicsModal";
 import AddSubtopicsModal from "../../components/TopicManagement/AddSubtopicsModal";
 
@@ -7,7 +8,6 @@ const TableDetails = () => {
     const [showSubtopicModal, setShowSubtopicModal] = useState(false);
     const [currentSubtopics, setCurrentSubtopics] = useState([]);
     const [selectedTopicIndex, setSelectedTopicIndex] = useState(null);
-    const [draggedIndex, setDraggedIndex] = useState(null);
 
     const [tableData, setTableData] = useState([
         {
@@ -44,23 +44,14 @@ const TableDetails = () => {
         handleCloseSubtopicModal();
     };
 
-    const handleDragStart = (index) => {
-        setDraggedIndex(index);
-    };
+    const onDragEnd = (result) => {
+        if (!result.destination) return;
 
-    const handleDragOver = (event) => {
-        event.preventDefault(); // Allow drop by preventing default
-    };
+        const reorderedData = Array.from(tableData);
+        const [movedItem] = reorderedData.splice(result.source.index, 1);
+        reorderedData.splice(result.destination.index, 0, movedItem);
 
-    const handleDrop = (index) => {
-        if (draggedIndex === null) return;
-
-        const updatedData = [...tableData];
-        const [movedItem] = updatedData.splice(draggedIndex, 1);
-        updatedData.splice(index, 0, movedItem);
-
-        setTableData(updatedData);
-        setDraggedIndex(null); // Reset dragged index
+        setTableData(reorderedData);
     };
 
     return (
@@ -114,37 +105,50 @@ const TableDetails = () => {
             <hr className="my-4 border-t-2 border-gray-400" />
 
             {/* Drag-and-Drop Table */}
-            <div className="space-y-4">
-                {tableData.map((row, index) => (
-                    <div
-                        key={row.id}
-                        draggable
-                        onDragStart={() => handleDragStart(index)}
-                        onDragOver={handleDragOver}
-                        onDrop={() => handleDrop(index)}
-                        className="bg-white p-4 rounded shadow flex justify-between items-center"
-                    >
-                        <div>
-                            <h2 className="text-lg font-bold">{row.topic}</h2>
-                            <div className="text-sm text-gray-500 space-y-1">
-                                {row.subtopics.length ? (
-                                    row.subtopics.map((subtopic, idx) => (
-                                        <p key={idx}>{subtopic}</p>
-                                    ))
-                                ) : (
-                                    <p>No subtopics yet</p>
-                                )}
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => handleOpenSubtopicModal(index)}
-                            className="text-blue-500 hover:underline"
+            <DragDropContext onDragEnd={onDragEnd}>
+                <Droppable droppableId="topics">
+                    {(provided) => (
+                        <div
+                            {...provided.droppableProps}
+                            ref={provided.innerRef}
+                            className="space-y-4"
                         >
-                            + Add Subtopic
-                        </button>
-                    </div>
-                ))}
-            </div>
+                            {tableData.map((row, index) => (
+                                <Draggable key={row.id} draggableId={row.id} index={index}>
+                                    {(provided) => (
+                                        <div
+                                            ref={provided.innerRef}
+                                            {...provided.draggableProps}
+                                            {...provided.dragHandleProps}
+                                            className="bg-white p-4 rounded shadow flex justify-between items-center"
+                                        >
+                                            <div>
+                                                <h2 className="text-lg font-bold">{row.topic}</h2>
+                                                <div className="text-sm text-gray-500 space-y-1">
+                                                    {row.subtopics.length ? (
+                                                        row.subtopics.map((subtopic, idx) => (
+                                                            <p key={idx}>{subtopic}</p>
+                                                        ))
+                                                    ) : (
+                                                        <p>No subtopics yet</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => handleOpenSubtopicModal(index)}
+                                                className="text-blue-500 hover:underline"
+                                            >
+                                                + Add Subtopic
+                                            </button>
+                                        </div>
+                                    )}
+                                </Draggable>
+                            ))}
+                            {provided.placeholder}
+                        </div>
+                    )}
+                </Droppable>
+            </DragDropContext>
 
             {/* AddTopicsModal */}
             <AddTopicsModal
