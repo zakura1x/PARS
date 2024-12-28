@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import AddTopicsModal from "../../components/TopicManagement/AddTopicsModal";
 import AddSubtopicsModal from "../../components/TopicManagement/AddSubtopicsModal";
+import { Link } from "@inertiajs/react";
 
 const TableDetails = () => {
     const [showModal, setShowModal] = useState(false);
@@ -63,12 +64,11 @@ const TableDetails = () => {
                         <a>Class</a>
                     </li>
                     <li>
-                        <a>Topic Manage</a>
+                        <Link href="/topicList">Topic Master</Link>
                     </li>
                     <li>
-                        <a href="/topicList">Topic List</a>
+                        <Link href="/topicList">Topic List</Link>
                     </li>
-                    <li className="text-gray-500">Topic Details</li>
                 </ul>
             </div>
 

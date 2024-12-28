@@ -18,14 +18,6 @@ class TopicsController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a Topic Parent
      */
     public function store(Request $request, string $id)
@@ -45,48 +37,82 @@ class TopicsController extends Controller
             'subject_id' => $validated['subject_id'],
         ]);
 
-        // Check if it's a main topic (no parent_id)
+            // Determine if it's a subtopic or a main topic
         if (is_null($validated['parent_id'])) {
-            // Calculate the next order value (+1 from the current count of topics in the TopicMaster)
-            $nextOrder = $topicMaster->topics()->count() + 1;
+            // Main topic: Calculate the next order value in the pivot table
+            $nextOrder = $topicMaster->topics()->max('pivot_order') + 1;
 
             // Attach the topic to the TopicMaster with the calculated order
             $topicMaster->topics()->attach($topic->id, ['order' => $nextOrder]);
+        } else {
+            // Subtopic: Attach using the parent's order
+            $parentTopic = Topics::findOrFail($validated['parent_id']); // Fetch the parent topic
+
+            // Find the parent's order in the current TopicMaster
+            $parentOrder = $topicMaster
+                ->topics()
+                ->wherePivot('topic_id', $parentTopic->id)
+                ->firstOrFail()
+                ->pivot->order;
+
+            // Attach the subtopic with the parent's order
+            $topicMaster->topics()->attach($topic->id, ['order' => $parentOrder]);
         }
 
         //return redirect
-
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(Topics $topics)
+     * Update the topic order
+    */
+    public function reorder(Request $request, $topicMasterId)
     {
-        //
+        $topicMaster = TopicMaster::findOrFail($topicMasterId);
+    
+        $validated = $request->validate([
+            'topics' => 'required|array',
+            'topics.*.id' => 'required|exists:topics,id',
+            'topics.*.order' => 'required|integer',
+        ]);
+    
+        foreach ($validated['topics'] as $topic) {
+            $topicMaster->topics()->updateExistingPivot($topic['id'], ['order' => $topic['order']]);
+        }
+    
+        return response()->json(['message' => 'Topics reordered successfully']);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Edit/update the topic
      */
-    public function edit(Topics $topics)
+    public function edit(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'topic_id' => 'required|exists:topics,id',
+            'name' => 'required|string',
+        ]);
+
+        //Update the topic name of the topics not the topic master
+        $topic = Topics::findOrFail($validated['topic_id']);
+
+        $topic->update([
+            'name' => $validated['name'],
+        ]);
+
+        return redirect()->back()->with('message', 'Topic was updated successfully');
     }
 
     /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateTopicsRequest $request, Topics $topics)
-    {
-        //
-    }
+     * Delete the topic
+    */
+    public function delete(Request $request){
+        $validated = $request->validate([
+            'topic_id' => 'required|exits:topics,id'
+        ]);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Topics $topics)
-    {
-        //
+        $topic = Topics::findOrFail($validated['topic_id']);
+        
+        //soft delete here
+        $topic->delete();
     }
 }

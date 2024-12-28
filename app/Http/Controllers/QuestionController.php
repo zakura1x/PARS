@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Question;
-use App\Http\Requests\StoreQuestionRequest;
 use App\Http\Requests\UpdateQuestionRequest;
+use App\Models\Subject;
+use App\Models\Topics;
 use Illuminate\Http\Request;
 
 class QuestionController extends Controller
@@ -35,9 +36,29 @@ class QuestionController extends Controller
         return inertia('QuestionBank/QuestionIndex', ['questions' => $question]);
     }
 
-    public function questionDetails(Request $request)
+    /**
+     * 
+     * Question Form Info requirements
+     */
+    public function questionFormRequirements(Request $request)
     {
-        return inertia('QuestionBank/QuestionDetails');
+        $request->validate(['subject_id' => 'required|exists:subjects,id']);
+
+        //fetch topics
+        $topics = Topics::where('subject_id', $request->subject_id)->get();
+
+        return response()->json([
+            'topics' => $topics,
+        ]);
+    }
+
+    public function questionDetails(Request $request){
+        $subjects = Subject::all()->toArray();
+
+        return inertia('QuestionBank/QuestionDetails', [
+            'initialSubjects' => $subjects,
+        ]);
+        
     }
 
     /**
