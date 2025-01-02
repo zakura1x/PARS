@@ -34,7 +34,7 @@ const Login = ({ errors: serverErrors }) => {
 
     return (
         <div className="h-full">
-            <div className="flex flex-col md:flex-row bg-gradient-to-b from-[#FFF] to-[#258245] justify-center items-center h-full w-full">
+            <div className="flex flex-col md:flex-row bg-linear-to-b from-[#FFF] to-[#258245] justify-center items-center h-full w-full">
                 <div className="w-full lg:w-[35%] xl:w-[30%] p-4 mx-auto lg:ml-28 xl:ml-36">
                     {!showForgotPassword ? (
                         <AuthForm

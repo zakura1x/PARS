@@ -30,7 +30,7 @@ const Search = ({
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:border-green-500"
+                        className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-hidden focus:border-green-500"
                     />
                 </div>
 
@@ -42,7 +42,7 @@ const Search = ({
                     <select
                         value={category}
                         onChange={(e) => setCategory(e.target.value)}
-                        className="w-full rounded-md border p-2 text-slate-600 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-green-800 sm:text-sm bg-white"
+                        className="w-full rounded-md border p-2 text-slate-600 shadow-xs ring-1 ring-inset ring-slate-300 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-green-800 sm:text-sm bg-white"
                     >
                         <option value="">All</option>
                         <option value="assessment">Assessment Question</option>
@@ -61,7 +61,7 @@ const Search = ({
                     <select
                         value={status}
                         onChange={(e) => setStatus(e.target.value)}
-                        className="w-full rounded-md border p-2 text-slate-600 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-green-800 sm:text-sm bg-white"
+                        className="w-full rounded-md border p-2 text-slate-600 shadow-xs ring-1 ring-inset ring-slate-300 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-green-800 sm:text-sm bg-white"
                     >
                         <option value="">All</option>
                         <option value="active">Active</option>

@@ -159,7 +159,7 @@ const TableDetails = () => {
                     <label className="block mb-2">Master Topic Name</label>
                     <input
                         type="text"
-                        className="border rounded p-2 w-full bg-gray-200"
+                        className="border rounded-sm p-2 w-full bg-gray-200"
                         disabled
                         value={topicMaster.name}
                     />
@@ -169,7 +169,7 @@ const TableDetails = () => {
                     <label className="block mb-2">Subject</label>
                     <input
                         type="text"
-                        className="border rounded p-2 w-full bg-gray-200"
+                        className="border rounded-sm p-2 w-full bg-gray-200"
                         disabled
                         value={subject.name}
                     />

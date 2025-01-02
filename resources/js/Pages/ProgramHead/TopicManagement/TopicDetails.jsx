@@ -32,7 +32,7 @@ const TableDetails = () => {
                     <input
                         type="text"
                         // value={masterTopicName}
-                        className="border rounded p-2 w-full bg-gray-200"
+                        className="border rounded-sm p-2 w-full bg-gray-200"
                         disabled
                     />
                 </div>
@@ -42,7 +42,7 @@ const TableDetails = () => {
                     <input
                         type="text"
                         // value={subject}
-                        className="border rounded p-2 w-full bg-gray-200"
+                        className="border rounded-sm p-2 w-full bg-gray-200"
                         disabled
                     />
                 </div>

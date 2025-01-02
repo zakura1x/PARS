@@ -19,7 +19,7 @@ const Header = ({ searchQuery, setSearchQuery, setShowModal, subjects = [] }) =>
                     <select
                         value={selectedSubject}
                         onChange={(e) => setSelectedSubject(e.target.value)}
-                        className="w-96 px-4 py-2 border rounded-lg text-sm text-gray-600 focus:outline-none focus:ring focus:ring-blue-300"
+                        className="w-96 px-4 py-2 border rounded-lg text-sm text-gray-600 focus:outline-hidden focus:ring-3 focus:ring-blue-300"
                     >
                         <option value="" disabled>
                         {subjects.length === 0 ? "No Subjects Available" : "Select Subject"}
@@ -37,7 +37,7 @@ const Header = ({ searchQuery, setSearchQuery, setShowModal, subjects = [] }) =>
                         placeholder="Search"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="px-4 py-2 border rounded-lg text-sm text-gray-600 focus:outline-none focus:ring focus:ring-blue-300"
+                        className="px-4 py-2 border rounded-lg text-sm text-gray-600 focus:outline-hidden focus:ring-3 focus:ring-blue-300"
                     />
 
                     {/* Add Topic Button */}

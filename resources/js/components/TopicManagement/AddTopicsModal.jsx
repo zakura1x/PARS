@@ -16,7 +16,7 @@ const AddTopicsModal = ({ showModal, handleCancel, handleSave, data }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50">
-            <div className="bg-white p-6 rounded shadow-lg w-[500px] max-w-full">
+            <div className="bg-white p-6 rounded-sm shadow-lg w-[500px] max-w-full">
                 <h2 className="text-xl font-bold mb-4">Add Topic</h2>
 
                 {/* Input for Topic */}
@@ -28,7 +28,7 @@ const AddTopicsModal = ({ showModal, handleCancel, handleSave, data }) => {
                         type="text"
                         value={topicName}
                         onChange={(e) => setTopicName(e.target.value)}
-                        className="border border-gray-300 rounded w-full px-3 py-2"
+                        className="border border-gray-300 rounded-sm w-full px-3 py-2"
                         placeholder="Enter topic name"
                     />
                 </div>

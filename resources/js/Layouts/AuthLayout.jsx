@@ -6,7 +6,7 @@ const AuthLayout = ({ children }) => {
     return (
         <div className="h-screen flex flex-col">
             <AuthHeader />
-            <div className="flex-grow">{children}</div>
+            <div className="grow">{children}</div>
             <AuthFooter />
         </div>
     );

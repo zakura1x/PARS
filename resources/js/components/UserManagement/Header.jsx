@@ -28,7 +28,7 @@ const Header = ({ setShowModal }) => {
                     value={searchQuery}
                     onChange={handleSearchChange} // Update search query on input
                     placeholder="Search for Users"
-                    className="border border-gray-300 rounded px-2 py-1"
+                    className="border border-gray-300 rounded-sm px-2 py-1"
                 />
                 <button
                     className="btn border-none bg-[#42604C] text-white hover:bg-gray-600"

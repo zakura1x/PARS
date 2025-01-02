@@ -13,7 +13,7 @@ const AddMasterTopicsModal = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50">
-            <div className="bg-white p-6 rounded shadow-lg w-[700px] max-w-full">
+            <div className="bg-white p-6 rounded-sm shadow-lg w-[700px] max-w-full">
                 <h2 className="text-xl font-bold mb-4">Add New Master Topic</h2>
 
                 {/* TOPIC NAME */}
@@ -25,7 +25,7 @@ const AddMasterTopicsModal = ({
                         type="text"
                         value={data.name}
                         onChange={(e) => setData("name", e.target.value)}
-                        className="border border-gray-300 rounded w-full px-3 py-2"
+                        className="border border-gray-300 rounded-sm w-full px-3 py-2"
                     />
                     {errors.name && (
                         <span className="text-red-500 text-sm">
@@ -42,7 +42,7 @@ const AddMasterTopicsModal = ({
                     <select
                         value={data.subject_id}
                         onChange={(e) => setData("subject_id", e.target.value)}
-                        className="border border-gray-300 rounded w-full px-3 py-2"
+                        className="border border-gray-300 rounded-sm w-full px-3 py-2"
                     >
                         <option value="">Select a subject</option>
                         {subjects.map((subject) => (
@@ -68,7 +68,7 @@ const AddMasterTopicsModal = ({
                         onChange={(e) =>
                             setData("status", e.target.value === "true")
                         }
-                        className="border border-gray-300 rounded w-full px-3 py-2"
+                        className="border border-gray-300 rounded-sm w-full px-3 py-2"
                     >
                         <option value="true">Active</option>
                         <option value="false">Inactive</option>

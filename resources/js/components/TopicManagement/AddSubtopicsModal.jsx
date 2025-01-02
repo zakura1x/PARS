@@ -29,7 +29,7 @@ const AddSubtopicsModal = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50">
-            <div className="bg-white p-6 rounded shadow-lg w-[600px] max-w-full">
+            <div className="bg-white p-6 rounded-sm shadow-lg w-[600px] max-w-full">
                 <h2 className="text-xl font-bold mb-4">Add Subtopics</h2>
 
                 <div className="h-[300px] overflow-y-auto pr-2">
@@ -44,7 +44,7 @@ const AddSubtopicsModal = ({
                                 onChange={(e) =>
                                     handleSubtopicChange(index, e.target.value)
                                 }
-                                className="border border-gray-300 rounded w-full px-3 py-2"
+                                className="border border-gray-300 rounded-sm w-full px-3 py-2"
                             />
                         </div>
                     ))}

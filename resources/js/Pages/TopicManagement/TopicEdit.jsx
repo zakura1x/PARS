@@ -61,7 +61,7 @@ const TopicEdit = ({ onSave, onCancel }) => {
     };
 
     return (
-        <div className="p-4 bg-white rounded shadow">
+        <div className="p-4 bg-white rounded-sm shadow-sm">
             {/* Breadcrumbs */}
             <div className="text-sm breadcrumbs mb-4">
                 <ul>
@@ -94,7 +94,7 @@ const TopicEdit = ({ onSave, onCancel }) => {
                 <label className="block font-medium mb-2">Topic Name</label>
                 <input
                     type="text"
-                    className="border rounded p-2 w-full"
+                    className="border rounded-sm p-2 w-full"
                     value={data.name}
                     onChange={(e) => setData("name", e.target.value)}
                 />
@@ -125,11 +125,11 @@ const TopicEdit = ({ onSave, onCancel }) => {
                                                 ref={provided.innerRef}
                                                 {...provided.draggableProps}
                                                 {...provided.dragHandleProps}
-                                                className="flex items-center p-2 bg-gray-100 rounded shadow"
+                                                className="flex items-center p-2 bg-gray-100 rounded-sm shadow-sm"
                                             >
                                                 {/* <input
                                                         type="text"
-                                                        className="border rounded p-2 flex-1"
+                                                        className="border rounded-sm p-2 flex-1"
                                                         value={subtopic.name}
                                                         onChange={(e) =>
                                                             handleSubtopicChange(

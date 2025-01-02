@@ -95,7 +95,7 @@ const QuestionDetails = () => {
                             name="subject_id"
                             value={data.subject_id || ""}
                             onChange={handleChange}
-                            className="w-full border rounded px-3 py-2"
+                            className="w-full border rounded-sm px-3 py-2"
                         >
                             <option value="">Select Subject</option>
                             {initialSubjects.map((subject) => (
@@ -113,7 +113,7 @@ const QuestionDetails = () => {
                             value={data.topic_id}
                             onChange={handleChange}
                             placeholder="Select a Topic"
-                            className="w-full border rounded px-3 py-2"
+                            className="w-full border rounded-sm px-3 py-2"
                         />
                         <datalist id="topics">
                             {topics.map((topic) => (
@@ -133,7 +133,7 @@ const QuestionDetails = () => {
                             name="purpose"
                             value={data.purpose}
                             onChange={handleChange}
-                            className="w-full border rounded px-3 py-2"
+                            className="w-full border rounded-sm px-3 py-2"
                         >
                             <option value="">Select Purpose</option>
                             {purposes.map((purpose, index) => (
@@ -149,7 +149,7 @@ const QuestionDetails = () => {
                             name="difficulty"
                             value={data.difficulty}
                             onChange={handleChange}
-                            className="w-full border rounded px-3 py-2"
+                            className="w-full border rounded-sm px-3 py-2"
                         >
                             <option value="">Select Difficulty</option>
                             {difficulties.map((difficulty, index) => (
@@ -168,7 +168,7 @@ const QuestionDetails = () => {
                         name="question_text"
                         value={data.question_text}
                         onChange={handleChange}
-                        className="w-full border rounded px-3 py-2"
+                        className="w-full border rounded-sm px-3 py-2"
                         rows="3"
                         placeholder="Enter your question here"
                     />
@@ -202,7 +202,7 @@ const QuestionDetails = () => {
                                         e.target.value
                                     )
                                 }
-                                className="w-full border rounded px-3 py-2 ml-2"
+                                className="w-full border rounded-sm px-3 py-2 ml-2"
                             />
                         </div>
                     ))}
@@ -215,7 +215,7 @@ const QuestionDetails = () => {
                         type="file"
                         onChange={handleChange}
                         value={data.attachment}
-                        className="w-full border rounded px-3 py-2"
+                        className="w-full border rounded-sm px-3 py-2"
                     />
                 </div>
 
@@ -229,7 +229,7 @@ const QuestionDetails = () => {
                             value={data.weight}
                             onChange={handleChange}
                             min="1"
-                            className="w-full border rounded px-3 py-2"
+                            className="w-full border rounded-sm px-3 py-2"
                         />
                     </div>
                     <div>
@@ -238,7 +238,7 @@ const QuestionDetails = () => {
                             name="status"
                             value={data.status}
                             onChange={handleChange}
-                            className="w-full border rounded px-3 py-2"
+                            className="w-full border rounded-sm px-3 py-2"
                         >
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
@@ -251,7 +251,7 @@ const QuestionDetails = () => {
                 <div className="flex justify-end space-x-4">
                     {/* <button
                         type="reset"
-                        className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
+                        className="bg-gray-300 text-gray-700 px-4 py-2 rounded-sm hover:bg-gray-400"
                     >
                         Reset
                     </button> */}

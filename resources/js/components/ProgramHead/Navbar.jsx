@@ -18,7 +18,7 @@ const Navbar = ({ toggleSidebar }) => {
         <div className="navbar py-4 bg-gray-100 transition-all duration-300 ease-in-out w-[100%] shadow-lg justify-between lg:sticky">
             {/* Hamburger Button */}
             <button
-                className="block rounded-sm border border-stroke bg-white p-1.5 shadow-sm lg:hidden"
+                className="block rounded-xs border border-stroke bg-white p-1.5 shadow-xs lg:hidden"
                 onClick={toggleSidebar}
             >
                 <svg
@@ -39,7 +39,7 @@ const Navbar = ({ toggleSidebar }) => {
             {/* TITLE */}
             <h2 className="font-bold text-lg px-6">{mappedRole} Workspace</h2>
 
-            <div>
+            <div className="flex flex-row space-x-2 items-center">
                 <div className="flex flex-col space-y-1">
                     <h2 className="font-medium">{auth.user.full_name}</h2>
                     <p className="text-xs text-slate-600">{auth.user.email}</p>
@@ -62,7 +62,7 @@ const Navbar = ({ toggleSidebar }) => {
                     </button>
                     <ul
                         tabIndex={0}
-                        className="mt-2 z-[1] p-2 shadow menu menu-sm dropdown-content bg-[#436850] rounded-box w-52 text-white"
+                        className="mt-2 z-1 p-2 shadow-sm menu menu-sm dropdown-content bg-[#436850] rounded-box w-52 text-white"
                     >
                         <li>
                             <a className="justify-between">Profile</a>
