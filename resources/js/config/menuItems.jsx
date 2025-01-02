@@ -1,4 +1,3 @@
-//Menu Items. Add if needed
 import { TbCloudQuestion } from "react-icons/tb";
 
 const menuItems = [

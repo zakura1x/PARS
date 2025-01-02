@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Dean;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use App\Models\User;
 use App\Models\Professor;
 use App\Models\ProgramHead;

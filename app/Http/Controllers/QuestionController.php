@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Question;
+use App\Http\Requests\StoreQuestionRequest;
 use App\Http\Requests\UpdateQuestionRequest;
 use App\Models\Subject;
 use App\Models\Topics;
@@ -55,14 +56,18 @@ class QuestionController extends Controller
     public function questionDetails(Request $request){
         $subjects = Subject::all()->toArray();
 
-        // return inertia('QuestionBank/QuestionDetails', [
-        //     'initialSubjects' => $subjects,
-        // ]);
-
-        return response()->json([
+        return inertia('QuestionBank/QuestionDetails', [
             'initialSubjects' => $subjects,
         ]);
         
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+
     }
 
     /**

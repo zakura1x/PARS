@@ -136,11 +136,12 @@ const TableDetails = () => {
                         <a>Class</a>
                     </li>
                     <li>
-                        <Link href="/topicList">Topic Master</Link>
+                        <a>Topic Manage</a>
                     </li>
                     <li>
-                        <a className="text-gray-500">Topic Details</a>
+                        <a href="/topicList">Topic List</a>
                     </li>
+                    <li className="text-gray-500">Topic Details</li>
                 </ul>
             </div>
 

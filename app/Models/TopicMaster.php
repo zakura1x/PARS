@@ -17,9 +17,7 @@ class TopicMaster extends Model
     ];
 
     public function topics(){
-        return $this->belongsToMany(Topics::class, 'topic_master_topics')
-                ->withPivot('order')
-                ->orderBy('pivot_order');
+        return $this->belongsToMany(Topics::class, 'topic_master_topics')->withPivot('order')->withTimestamps();
     }
 
     public function subject(){

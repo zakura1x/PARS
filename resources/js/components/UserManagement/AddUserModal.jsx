@@ -112,23 +112,7 @@ const AddUserModal = ({
                             <label className="block text-sm font-medium text-gray-600 mb-1">
                                 Gender
                             </label>
-                            <select
-                                className={`${
-                                    errors.gender
-                                        ? "border-red-500 focus:ring-red-500"
-                                        : "focus:ring-blue-300"
-                                }`}
-                                value={data.gender}
-                                onChange={(e) =>
-                                    setData({ ...data, gender: e.target.value })
-                                }
-                            >
-                                <option value="">Select Gender</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Others">Others</option>
-                            </select>
-                            {/* <input
+                            <input
                                 type="text"
                                 value={data.gender}
                                 onChange={(e) =>
@@ -142,7 +126,7 @@ const AddUserModal = ({
                                         ? "border-red-500 focus:ring-red-500"
                                         : "focus:ring-blue-300"
                                 }`}
-                            /> */}
+                            />
                             {errors.gender && (
                                 <p className="text-red-500 text-sm mt-1">
                                     {errors.gender}
