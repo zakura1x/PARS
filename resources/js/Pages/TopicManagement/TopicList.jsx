@@ -13,28 +13,22 @@ const TopicManagement = () => {
 
     // Form data state
     const { data, setData, post, reset, errors } = useForm({
-        id: null,
         name: "",
         subject_id: "", // Change to match subject selection
         status: true,
     });
 
-    // // Filter only active subjects
-    // const activeSubjects = subjects.filter((subject) => subject.status === 1);
-
     // Handle save action
     const handleSaveMasterTopic = (e) => {
-        // e.preventDefault();
-        // const url = data.id
-        //     ? `/topicmasters/edit/${data.id}`
-        //     : `/addTopicmasters`;
+        e.preventDefault();
+        const url = "/topic-masters/add";
 
-        // post(url, data, {
-        //     onSuccess: () => {
-        //         setShowMasterTopicModal(false);
-        //         reset();
-        //     },
-        // });
+        post(url, data, {
+            onSuccess: () => {
+                setShowMasterTopicModal(false);
+                reset();
+            },
+        });
     };
 
     const handleCancelMasterTopic = () => {
@@ -60,6 +54,7 @@ const TopicManagement = () => {
                 data={data}
                 setData={setData}
                 errors={errors}
+                subjects={subjects}
             />
         </div>
     );

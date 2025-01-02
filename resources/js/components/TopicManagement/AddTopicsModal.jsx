@@ -5,6 +5,15 @@ const AddTopicsModal = ({ showModal, handleCancel, handleSave, data }) => {
 
     if (!showModal) return null;
 
+    const handleSaveTopic = () => {
+        if (!topicName.trim()) {
+            alert("Topic name is required.");
+            return;
+        }
+        handleSave(topicName);
+        //setTopicName(""); // Reset input after saving
+    };
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50">
             <div className="bg-white p-6 rounded shadow-lg w-[500px] max-w-full">
@@ -33,7 +42,7 @@ const AddTopicsModal = ({ showModal, handleCancel, handleSave, data }) => {
                         Cancel
                     </button>
                     <button
-                        onClick={() => handleSave([{ name: topicName }])}
+                        onClick={handleSaveTopic}
                         className="btn border-none bg-[#303030] text-white hover:bg-green-600"
                     >
                         Save

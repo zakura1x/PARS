@@ -6,6 +6,8 @@ use App\Models\Topics;
 use App\Http\Requests\UpdateTopicsRequest;
 use App\Models\TopicMaster;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class TopicsController extends Controller
 {
@@ -17,30 +19,51 @@ class TopicsController extends Controller
         return inertia('TopicManagement/TopicDetails');
     }
 
+    /*
+     * View for editing topic
+     */
+    public function editView($id){
+        //Fetch the topic and its subtopics
+        $topics = Topics::with(['subTopics' , 'subject', 'parent'])->findOrFail($id);
+
+        //debugging
+        //dd($topics);
+
+        return Inertia::render('TopicManagement/TopicEdit', [
+            'topic' => $topics,
+            'subTopics' => $topics->subTopics,
+            'parent' => $topics->parent,
+            'subject' => $topics->subject,
+        ]);
+
+        
+    }
+
     /**
      * Store a Topic Parent
      */
     public function store(Request $request, string $id)
     {
-        $topicMaster  = TopicMaster::findOrFail($id);
+        $topicMaster = TopicMaster::findOrFail($id);
 
+        // Validate the request data
         $validated = $request->validate([
             'name' => 'required|string',
-            'parent_id' => 'integer|nullable|exists:topics,id',
-            'subject_id' => 'integer|exists:subjects,id',
+            'parent_id' => 'nullable|integer|exists:topics,id',
+            'subject_id' => 'required|integer|exists:subjects,id',
         ]);
 
         // Create the topic
         $topic = Topics::create([
             'name' => $validated['name'],
-            'parent_id' => $validated['parent_id'] ?? null, // Use null if no parent_id is provided
+            'parent_id' => $validated['parent_id'] ?? null, // Use null if parent_id is not present
             'subject_id' => $validated['subject_id'],
         ]);
 
-            // Determine if it's a subtopic or a main topic
-        if (is_null($validated['parent_id'])) {
+        // Determine if it's a subtopic or a main topic
+        if (!array_key_exists('parent_id', $validated) || is_null($validated['parent_id'])) {
             // Main topic: Calculate the next order value in the pivot table
-            $nextOrder = $topicMaster->topics()->max('pivot_order') + 1;
+            $nextOrder = $topicMaster->topics()->max('topic_master_topics.order') + 1;
 
             // Attach the topic to the TopicMaster with the calculated order
             $topicMaster->topics()->attach($topic->id, ['order' => $nextOrder]);
@@ -59,8 +82,15 @@ class TopicsController extends Controller
             $topicMaster->topics()->attach($topic->id, ['order' => $parentOrder]);
         }
 
-        //return redirect
+        // Fetch the updated topicMaster with its topics and subject
+        $updatedTopicMaster = TopicMaster::with(['subject', 'topics'])->findOrFail($id);
+        
+        //RETURN TO THE VIEW
+        // return to_route('',)
+
     }
+
+    
 
     /**
      * Update the topic order
@@ -68,18 +98,23 @@ class TopicsController extends Controller
     public function reorder(Request $request, $topicMasterId)
     {
         $topicMaster = TopicMaster::findOrFail($topicMasterId);
-    
+
         $validated = $request->validate([
             'topics' => 'required|array',
             'topics.*.id' => 'required|exists:topics,id',
-            'topics.*.order' => 'required|integer',
+            'topics.*.order' => 'required|integer|min:1',
         ]);
     
-        foreach ($validated['topics'] as $topic) {
-            $topicMaster->topics()->updateExistingPivot($topic['id'], ['order' => $topic['order']]);
-        }
+        DB::transaction(function () use ($topicMaster, $validated) {
+            foreach ($validated['topics'] as $topic) {
+                $topicMaster->topics()->updateExistingPivot($topic['id'], ['order' => $topic['order']]);
+            }
+        });
     
-        return response()->json(['message' => 'Topics reordered successfully']);
+        return response()->json([
+            'message' => 'Topics reordered successfully',
+            'topics' => $topicMaster->topics()->orderBy('pivot_order')->get(),
+        ]);
     }
 
     /**

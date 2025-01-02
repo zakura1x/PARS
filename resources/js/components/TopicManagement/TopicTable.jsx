@@ -1,5 +1,5 @@
 import React from "react";
-import { router } from "@inertiajs/react";
+import { router } from "@inertiajs/react"; // Import router
 import Pagination from "../misc/Pagination";
 
 const TopicTable = ({ topicmasters }) => {
@@ -9,9 +9,14 @@ const TopicTable = ({ topicmasters }) => {
         }
     };
 
+    // Handle row click
+    const handleRowClick = (id) => {
+        router.get(`/topic-masters/${id}/edit`);
+    };
+
     return (
         <div className="my-2 overflow-x-auto lg:mx-4">
-            <table className="w-full border-collapse bg-white shadow-md rounded-md">
+            <table className="table-md bg-white shadow-md rounded-md">
                 {/* Table Header */}
                 <thead>
                     <tr className="bg-gray-200 text-gray-700 text-sm">
@@ -39,7 +44,8 @@ const TopicTable = ({ topicmasters }) => {
                         topicmasters.data.map((topic) => (
                             <tr
                                 key={topic.id}
-                                className="border-b hover:bg-gray-50 text-gray-700"
+                                onClick={() => handleRowClick(topic.id)} // Handle row click
+                                className="border-b text-gray-700 cursor-pointer hover:bg-gray-50" // Add hover effect
                             >
                                 {/* ID */}
                                 <td className="py-3 px-4">{topic.id}</td>
@@ -48,10 +54,14 @@ const TopicTable = ({ topicmasters }) => {
                                 <td className="py-3 px-4">{topic.name}</td>
 
                                 {/* Subject ID */}
-                                <td className="py-3 px-4">{topic.subject_id || "N/A"}</td>
+                                <td className="py-3 px-4">
+                                    {topic.subject_id || "N/A"}
+                                </td>
 
                                 {/* Created By */}
-                                <td className="py-3 px-4">{topic.created_by || "N/A"}</td>
+                                <td className="py-3 px-4">
+                                    {topic.creator?.first_name || "N/A"}
+                                </td>
 
                                 {/* Status with Color-coded Badge */}
                                 <td className="py-3 px-4">
@@ -68,7 +78,9 @@ const TopicTable = ({ topicmasters }) => {
 
                                 {/* Date Added */}
                                 <td className="py-3 px-4">
-                                    {new Date(topic.created_at).toLocaleDateString()}
+                                    {new Date(
+                                        topic.created_at
+                                    ).toLocaleDateString()}
                                 </td>
                             </tr>
                         ))

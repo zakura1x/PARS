@@ -6,7 +6,10 @@ use App\Models\TopicMaster;
 use App\Http\Requests\StoreTopicMasterRequest;
 use App\Http\Requests\UpdateTopicMasterRequest;
 use App\Models\Subject;
-use Illuminate\Support\Facades\Request;
+//use Illuminate\Container\Attributes\Auth;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class TopicMasterController extends Controller
 {
@@ -15,19 +18,14 @@ class TopicMasterController extends Controller
      */
     public function index()
     {
-        $topicMasters = TopicMaster::with('subject:id,name')
-        ->latest()->paginate(10);
+        $topicMasters = TopicMaster::with('subject:id,name', 'creator:id,first_name')
+        ->latest()->paginate(perPage: 10);
 
         
-        return inertia('TopicManagement/TopicList', ['topics' => $topicMasters]);
-    }
+        $subjects = Subject::where('status', true)->get();
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //Create a new Topic
+        
+        return inertia('TopicManagement/TopicList', ['topics' => $topicMasters, 'subjects' => $subjects]);
     }
 
     /**
@@ -35,54 +33,97 @@ class TopicMasterController extends Controller
      */
     public function store(Request $request)
     {
-
-        //Validate the name
-        $validate = $request->validate([
+        // Validate the incoming request data
+        $validated = $request->validate([
             'name' => 'required|string',
-            'subject_id' => 'required|exists:subjects,id',
+            'subject_id' => 'required|exists:subjects,id',  // Ensure the subject exists
             'status' => 'required|boolean',
         ]);
-
-        //Create a new Topic Master
+    
+        // Get the authenticated user's ID
+        $userId = Auth::id();  // Authenticated user's ID
+    
+        // Check if the user is authenticated
+        if (!$userId) {
+            abort(403, 'User not authenticated');
+        }
+    
+        // Create a new TopicMaster record wi
         $topic = TopicMaster::create([
-            'name' => $validate['name'],
-            'subject_id' => $validate['subject_id'],
-            'status' =>  $validate['status'],
+            'name' => $validated['name'],
+            'subject_id' => $validated['subject_id'],
+            'status' => $validated['status'],
+            'created_by' => $userId,  // Ensure this field is passed to the database
         ]);
-
-        //Send a message to inertia
-        return redirect('topicList')->with('message', 'The Master Topic was Created Successfully');
+    
+        // Return a success message and redirect to the topic edit page
+        return to_route('topic-masters.edit', $topic->id)
+            ->with('message', 'The Master Topic was successfully created');
     }
+    
+    
 
     /**
-     * Display the specified resource.
+     * Reorder the order of the topicMaster
      */
-    public function show(TopicMaster $topicMaster)
+    public function reorder()
     {
-        //
+        
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(TopicMaster $topicMaster)
+    public function edit($id)
     {
-        //
+        //Fetch the topicMaster details
+        $topicMaster = TopicMaster::with(['subject', 'topics.subtopics'])->findOrFail($id);
+
+        //dd($topicMaster);
+        //dd($topicMaster->topics);
+
+
+        //Return the view
+        return Inertia::render('TopicManagement/TopicDetails', [
+            'topicMaster' => $topicMaster,
+            'topics' => $topicMaster->topics,  // Include topics and their subtopics
+            'subject' => $topicMaster->subject,
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateTopicMasterRequest $request, TopicMaster $topicMaster)
+    public function update(Request $request, $id)
     {
-        //
+        $topicMaster = TopicMaster::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string',
+            'active' => 'required|boolean',
+        ]);
+
+        $topicMaster->update([
+            'name'=> $validated['name'],
+            'active'=> $validated['active'],
+        ]);
+
+        return redirect()->back()->with('message', 'The Master topic was successfully updated');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(TopicMaster $topicMaster)
+    public function destroy($id)
     {
-        //
+        $topicMaster = TopicMaster::findOrFail($id);
+
+        //Detach all the topics associated with the topicMaster
+        $topicMaster->topics->detach();
+
+        //delete the topicMaster
+        $topicMaster->delete();
+
+        return redirect()->back()->with('message', 'The Master Topic was successfully deleted');
     }
 }

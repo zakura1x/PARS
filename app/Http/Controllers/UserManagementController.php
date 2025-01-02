@@ -96,7 +96,7 @@ class UserManagementController extends Controller
     }
 
      // Redirect using Inertia
-     return redirect()->route('userlist')->with('message', 'Question was Created Successfully');
+     return to_route('userlist')->with('message', 'Question was Created Successfully');
 
 }
 

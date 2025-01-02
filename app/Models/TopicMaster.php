@@ -12,14 +12,22 @@ class TopicMaster extends Model
 
     protected $fillable = [
         'name',
-        'subject_id'
+        'subject_id',
+        'created_by'
     ];
 
     public function topics(){
-        return $this->belongsToMany(Topics::class, 'topic_master_topics')->withPivot('order')->orderBy('pivot_order');
+        return $this->belongsToMany(Topics::class, 'topic_master_topics')
+                ->withPivot('order')
+                ->orderBy('pivot_order');
     }
 
     public function subject(){
         return $this->belongsTo(Subject::class, 'subject_id');
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

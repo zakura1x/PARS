@@ -23,6 +23,7 @@ return new class extends Migration
 
             //foreign
             $table->foreignId('subject_id')->constrained('subjects')->onDelete('cascade');
+            $table->foreign('created_by')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

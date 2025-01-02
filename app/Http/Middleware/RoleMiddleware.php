@@ -9,20 +9,31 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RoleMiddleware
 {
-    // /**
-    //  * Handle an incoming request.
-    //  *
-    //  * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-    //  */
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     * @param  ...$roles
+     * @return \Symfony\Component\HttpFoundation\Response
+    */
     public function handle(Request $request, Closure $next, ...$roles)
     {
+        // Check if the user is authenticated
         $user = $request->user();
 
-        // Check if the user exists and their role matches one of the roles
-        if (!$user || !in_array($user->role, $roles)) {
+        // If the user is not authenticated, abort with a 403 Forbidden response
+        if (!$user) {
             abort(403, 'Unauthorized access');
         }
 
+        // Check if the user's role is one of the allowed roles
+        if (!in_array($user->role, $roles)) {
+            abort(403, 'Unauthorized access');
+        }
+
+        // Proceed with the request if the user is authenticated and has the correct role
         return $next($request);
     }
 }

@@ -55,18 +55,14 @@ class QuestionController extends Controller
     public function questionDetails(Request $request){
         $subjects = Subject::all()->toArray();
 
-        return inertia('QuestionBank/QuestionDetails', [
+        // return inertia('QuestionBank/QuestionDetails', [
+        //     'initialSubjects' => $subjects,
+        // ]);
+
+        return response()->json([
             'initialSubjects' => $subjects,
         ]);
         
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-
     }
 
     /**
@@ -124,7 +120,8 @@ class QuestionController extends Controller
      */
     public function edit(Question $question)
     {
-        //
+        //EDIT QUESTION
+        
     }
 
     /**
@@ -140,6 +137,12 @@ class QuestionController extends Controller
      */
     public function destroy(Question $question)
     {
-        //
+        //Delete the question
+
+        //Find the question
+        $question = Question::findOrFail($question->id);
+
+        //Delete the question
+        $question->delete();
     }
 }
