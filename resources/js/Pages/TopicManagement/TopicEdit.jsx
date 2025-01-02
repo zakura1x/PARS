@@ -77,51 +77,57 @@ const TopicEdit = ({ onSave, onCancel }) => {
                         </Link>
                     </li>
                     <li>
-                        <a className="text-gray-500">Subtopics</a>
+                        <a className="text-gray-500">
+                            Subtopics ({topic.name})
+                        </a>
                     </li>
                 </ul>
             </div>
-            <h2 className="text-lg font-bold mb-4">Edit Topic</h2>
-            <form onSubmit={handleSubmit}>
-                {/* Topic Name */}
-                <div className="mb-4">
-                    <label className="block font-medium mb-2">Topic Name</label>
-                    <input
-                        type="text"
-                        className="border rounded p-2 w-full"
-                        value={data.name}
-                        onChange={(e) => setData("name", e.target.value)}
-                    />
-                    {errors.name && (
-                        <p className="text-red-500 text-sm">{errors.name}</p>
-                    )}
-                </div>
+            <div className="flex flex-row items-center space-x-4">
+                <h2 className="text-lg font-bold">Edit Topics</h2>
 
-                {/* Subtopics (Draggable) */}
-                <div className="mb-4">
-                    <label className="block font-medium mb-2">Subtopics</label>
-                    <DragDropContext onDragEnd={onDragEnd}>
-                        <Droppable droppableId="subtopics">
-                            {(provided) => (
-                                <div
-                                    ref={provided.innerRef}
-                                    {...provided.droppableProps}
-                                    className="space-y-2"
-                                >
-                                    {data.subtopics.map((subtopic, index) => (
-                                        <Draggable
-                                            key={subtopic.id || index}
-                                            draggableId={subtopic.id || index}
-                                            index={index}
-                                        >
-                                            {(provided) => (
-                                                <div
-                                                    ref={provided.innerRef}
-                                                    {...provided.draggableProps}
-                                                    {...provided.dragHandleProps}
-                                                    className="flex items-center p-2 bg-gray-100 rounded shadow"
-                                                >
-                                                    <input
+                <button className="btn">+ Add new subtopic</button>
+            </div>
+
+            {/* Topic Name
+            <div className="mb-4">
+                <label className="block font-medium mb-2">Topic Name</label>
+                <input
+                    type="text"
+                    className="border rounded p-2 w-full"
+                    value={data.name}
+                    onChange={(e) => setData("name", e.target.value)}
+                />
+                <h2>{topic.name}</h2>
+                {errors.name && (
+                    <p className="text-red-500 text-sm">{errors.name}</p>
+                )}
+            </div> */}
+
+            {/* Subtopics (Draggable) */}
+            <div className="mb-4">
+                <DragDropContext onDragEnd={onDragEnd}>
+                    <Droppable droppableId="subtopics">
+                        {(provided) => (
+                            <div
+                                ref={provided.innerRef}
+                                {...provided.droppableProps}
+                                className="space-y-2"
+                            >
+                                {data.subtopics.map((subtopic, index) => (
+                                    <Draggable
+                                        key={subtopic.id || index}
+                                        draggableId={subtopic.id || index}
+                                        index={index}
+                                    >
+                                        {(provided) => (
+                                            <div
+                                                ref={provided.innerRef}
+                                                {...provided.draggableProps}
+                                                {...provided.dragHandleProps}
+                                                className="flex items-center p-2 bg-gray-100 rounded shadow"
+                                            >
+                                                {/* <input
                                                         type="text"
                                                         className="border rounded p-2 flex-1"
                                                         value={subtopic.name}
@@ -131,56 +137,29 @@ const TopicEdit = ({ onSave, onCancel }) => {
                                                                 e.target.value
                                                             )
                                                         }
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        className="ml-2 text-red-500"
-                                                        onClick={() =>
-                                                            handleRemoveSubtopic(
-                                                                index
-                                                            )
-                                                        }
-                                                    >
-                                                        Remove
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </Draggable>
-                                    ))}
-                                    {provided.placeholder}
-                                </div>
-                            )}
-                        </Droppable>
-                    </DragDropContext>
-                    <button
-                        type="button"
-                        className="btn mt-2 bg-blue-500 text-white rounded"
-                        onClick={handleAddSubtopic}
-                    >
-                        + Add Subtopic
-                    </button>
-                </div>
-
-                {/* Actions */}
-                <div className="flex justify-end space-x-4">
-                    <button
-                        type="button"
-                        className="btn bg-gray-300 text-black rounded"
-                        onClick={onCancel}
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="submit"
-                        className={`btn bg-blue-500 text-white rounded ${
-                            isSaving ? "opacity-50" : ""
-                        }`}
-                        disabled={isSaving}
-                    >
-                        {isSaving ? "Saving..." : "Save"}
-                    </button>
-                </div>
-            </form>
+                                                    /> */}
+                                                <h2>{subtopic.name}</h2>
+                                                <button
+                                                    type="button"
+                                                    className="ml-2 text-red-500"
+                                                    onClick={() =>
+                                                        handleRemoveSubtopic(
+                                                            index
+                                                        )
+                                                    }
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        )}
+                                    </Draggable>
+                                ))}
+                                {provided.placeholder}
+                            </div>
+                        )}
+                    </Droppable>
+                </DragDropContext>
+            </div>
         </div>
     );
 };

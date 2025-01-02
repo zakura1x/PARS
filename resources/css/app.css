@@ -5,6 +5,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import "tailwindcss";
+@plugin "daisyui";
 
 @layer base {
     body {
