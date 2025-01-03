@@ -8,7 +8,7 @@ const menuItems = [
                 title: "Question",
                 icon: <TbCloudQuestion size={26} />,
                 items: [
-                    { label: "Add Question", href: "", key: 1 },
+                    { label: "Add Question", href: "/questionDetails", key: 1 },
                     { label: "Question List", href: "/questionBank", key: 2 },
                     { label: "Approve Question", href: "", key: 3 },
                     { label: "Mass Upload Question", href: "", key: 4 },

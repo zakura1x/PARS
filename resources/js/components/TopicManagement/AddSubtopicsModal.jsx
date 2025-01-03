@@ -1,74 +1,78 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useForm } from "@inertiajs/react";
 
 const AddSubtopicsModal = ({
     showModal,
-    handleCancel,
-    handleSave,
-    initialSubtopics,
+    toggleModal,
+    topic,
+    subject,
+    topicMaster,
 }) => {
-    const [subtopics, setSubtopics] = useState([""]);
+    const { data, setData, post, processing, errors } = useForm({
+        name: "", // This should be updated correctly
+        parent_id: topic.id,
+        subject_id: subject.id,
+    });
 
-    // Initialize subtopics with at least one input field
-    useEffect(() => {
-        setSubtopics(initialSubtopics && initialSubtopics.length > 0 ? initialSubtopics : [""]);
-    }, [initialSubtopics]);
+    const isSaving = processing;
 
-    // Handle adding a new subtopic
-    const handleAddSubtopic = () => {
-        setSubtopics([...subtopics, ""]);
+    if (!showModal || typeof showModal !== "boolean") return null;
+
+    const handleSave = () => {
+        if (!data.name.trim()) {
+            alert("Subtopic name is required.");
+            return;
+        }
+
+        console.log(topicMaster.id);
+
+        post(`/topics/${topicMaster.id}/add-topics`, {
+            onSuccess: () => {
+                console.log("Subtopic added successfully");
+                toggleModal(); // Close the modal
+                setData("name", ""); // Reset the name field
+            },
+            onError: (error) => {
+                console.error("Error adding subtopic:", error);
+            },
+        });
     };
-
-    // Handle subtopic input change
-    const handleSubtopicChange = (index, value) => {
-        const updatedSubtopics = [...subtopics];
-        updatedSubtopics[index] = value;
-        setSubtopics(updatedSubtopics);
-    };
-
-    if (!showModal) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50">
-            <div className="bg-white p-6 rounded shadow-lg w-[600px] max-w-full">
-                <h2 className="text-xl font-bold mb-4">Add Subtopics</h2>
-
-                <div className="h-[300px] overflow-y-auto pr-2">
-                    {subtopics.map((subtopic, index) => (
-                        <div key={index} className="mb-2">
-                            <label className="block text-sm font-medium mb-1">
-                                Subtopic {index + 1}
-                            </label>
-                            <input
-                                type="text"
-                                value={subtopic}
-                                onChange={(e) =>
-                                    handleSubtopicChange(index, e.target.value)
-                                }
-                                className="border border-gray-300 rounded w-full px-3 py-2"
-                            />
-                        </div>
-                    ))}
-                    <button
-                        onClick={handleAddSubtopic}
-                        className="text-sm text-blue-500 hover:underline mt-2"
-                    >
-                        + Add Subtopic
-                    </button>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded shadow-md w-96">
+                <h2 className="text-lg font-bold mb-4">Add Subtopic</h2>
+                <div className="mb-4">
+                    <label className="block text-sm font-medium mb-1">
+                        Subtopic Name
+                    </label>
+                    <input
+                        id="name"
+                        type="text"
+                        className="border rounded p-2 w-full"
+                        value={data.name}
+                        onChange={(e) => setData("name", e.target.value)} // Update the form data
+                        placeholder="Enter subtopic name"
+                    />
+                    {errors.name && (
+                        <p className="text-red-500 text-sm mt-1">
+                            {errors.name}
+                        </p>
+                    )}
                 </div>
-
-                {/* Buttons */}
-                <div className="flex justify-end space-x-2 mt-4">
+                <div className="flex justify-end space-x-2">
                     <button
-                        onClick={handleCancel}
-                        className="btn border-none bg-gray-200 text-gray-700 hover:bg-gray-300"
+                        className="btn border bg-gray-300 text-black px-4 py-2 rounded"
+                        onClick={toggleModal}
                     >
                         Cancel
                     </button>
                     <button
-                        onClick={() => handleSave(subtopics)}
-                        className="btn border-none bg-[#303030] text-white hover:bg-green-600"
+                        className="btn border bg-[#42604C] text-white px-4 py-2 rounded"
+                        onClick={handleSave}
+                        disabled={isSaving}
                     >
-                        Save
+                        {isSaving ? "Saving..." : "Add"}
                     </button>
                 </div>
             </div>

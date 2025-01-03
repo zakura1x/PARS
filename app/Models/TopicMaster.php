@@ -16,9 +16,20 @@ class TopicMaster extends Model
         'created_by'
     ];
 
-    public function topics(){
-        return $this->belongsToMany(Topics::class, 'topic_master_topics')->withPivot('order')->withTimestamps();
+    // public function topics(){
+    //     return $this->belongsToMany(Topics::class, 'topic_master_topics' )->withPivot('order')->withTimestamps();
+    // }
+
+    public function topics()
+    {
+        return $this->belongsToMany(Topics::class, 'topic_master_topics', 'topic_master_id', 'topics_id')
+                    ->withPivot('order')
+                    ->withTimestamps();
     }
+    
+    
+
+    
 
     public function subject(){
         return $this->belongsTo(Subject::class, 'subject_id');

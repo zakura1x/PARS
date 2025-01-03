@@ -22,11 +22,12 @@ class TopicsController extends Controller
     /*
      * View for editing topic
      */
-    public function editView($id){
+    public function editView($id, $topicMasterId){
         //Fetch the topic and its subtopics
         $topics = Topics::with(['subTopics' , 'subject', 'parent'])->findOrFail($id);
-
+        $topicMaster = TopicMaster::findOrFail($topicMasterId);
         //debugging
+        //dd($topicMaster);
         //dd($topics);
 
         return Inertia::render('TopicManagement/TopicEdit', [
@@ -34,14 +35,10 @@ class TopicsController extends Controller
             'subTopics' => $topics->subTopics,
             'parent' => $topics->parent,
             'subject' => $topics->subject,
+            'topicMaster' => $topicMaster
         ]);
-
-        
     }
 
-    /**
-     * Store a Topic Parent
-     */
     public function store(Request $request, string $id)
     {
         $topicMaster = TopicMaster::findOrFail($id);
@@ -53,6 +50,13 @@ class TopicsController extends Controller
             'subject_id' => 'required|integer|exists:subjects,id',
         ]);
 
+        //dd($validated);
+
+        // // Ensure parent topic belongs to the same topic master
+        // if ($validated['parent_id'] && !$topicMaster->topics()->where('id', $validated['parent_id'])->exists()) {
+        //     return response()->json(['error' => 'Invalid parent topic'], 422);
+        // }
+
         // Create the topic
         $topic = Topics::create([
             'name' => $validated['name'],
@@ -60,21 +64,18 @@ class TopicsController extends Controller
             'subject_id' => $validated['subject_id'],
         ]);
 
-        // Determine if it's a subtopic or a main topic
         if (!array_key_exists('parent_id', $validated) || is_null($validated['parent_id'])) {
-            // Main topic: Calculate the next order value in the pivot table
+            // Main topic: Calculate the next order value
             $nextOrder = $topicMaster->topics()->max('topic_master_topics.order') + 1;
 
-            // Attach the topic to the TopicMaster with the calculated order
+            // Attach the topic to the TopicMaster
             $topicMaster->topics()->attach($topic->id, ['order' => $nextOrder]);
         } else {
             // Subtopic: Attach using the parent's order
-            $parentTopic = Topics::findOrFail($validated['parent_id']); // Fetch the parent topic
-
-            // Find the parent's order in the current TopicMaster
+            $parentTopic = Topics::findOrFail($validated['parent_id']);
             $parentOrder = $topicMaster
                 ->topics()
-                ->wherePivot('topic_id', $parentTopic->id)
+                ->wherePivot('topics_id', $parentTopic->id)
                 ->firstOrFail()
                 ->pivot->order;
 
@@ -84,11 +85,13 @@ class TopicsController extends Controller
 
         // Fetch the updated topicMaster with its topics and subject
         $updatedTopicMaster = TopicMaster::with(['subject', 'topics'])->findOrFail($id);
-        
-        //RETURN TO THE VIEW
-        // return to_route('',)
 
+        return response()->json([
+            'message' => 'Subtopic added successfully',
+            'topicMaster' => $updatedTopicMaster,
+        ]);
     }
+
 
     
 

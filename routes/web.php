@@ -43,12 +43,13 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::get('/topicDetails', [TopicsController::class, 'index'])->name('topicDetails');
     Route::post('/topics/{id}/add-topics', [TopicsController::class, 'store'])->name('topics.store');
     Route::post('/topics/{topicMasterId}/reorder', [TopicsController::class, 'reorder'])->name('topics.reorder');
-    Route::get('/topics/{id}/edit', [TopicsController::class, 'editView'])->name('topics.edit');
+    Route::get('/topics/{id}/{topicMasterId}/edit', [TopicsController::class, 'editView'])->name('topics.edit');
     
 
     //Question Management
     Route::get('/questionBank', [QuestionController::class, 'index'])->name('questionIndex');
     Route::get('/questionDetails', [QuestionController::class, 'questionDetails'])->name('questionDetails');
+    Route::get('/api/question-form-requirements', [QuestionController::class, 'questionFormRequirements']);
     Route::post('/addQuestion', [QuestionController::class, 'store'])->name('questionAdd');
 
 });

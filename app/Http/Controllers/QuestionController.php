@@ -56,7 +56,7 @@ class QuestionController extends Controller
     public function questionDetails(Request $request){
         $subjects = Subject::all()->toArray();
 
-        return inertia('QuestionBank/QuestionDetails', [
+        return inertia('QuestionBank/QuestionForm', [
             'initialSubjects' => $subjects,
         ]);
         

@@ -1,30 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { useForm, usePage, Link } from "@inertiajs/react";
+import AddSubtopicsModal from "../../components/TopicManagement/AddSubtopicsModal";
 
 const TopicEdit = ({ onSave, onCancel }) => {
-    const { topic, subject } = usePage().props; // Extract `topic` and `subject` from the page props
+    const { topic, subject, topicMaster } = usePage().props; // Extract `topic` and `subject` from the page props
 
-    const { data, setData, put, errors } = useForm({
+    // States for modal visibility
+    const [showSubtopicModal, setShowSubtopicModal] = useState(false);
+    const toggleSubtopicModal = () => setShowSubtopicModal(!showSubtopicModal);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const { data, setData, post, errors } = useForm({
         name: topic.name,
-        subtopics: topic.subTopics || [], // Set subtopics for editing
+        subtopics: topic.sub_topics || [], // Set subtopics for editing
+        subject_id: subject.id,
     });
 
-    const [isSaving, setIsSaving] = useState(false);
-
-    const handleSubtopicChange = (index, newName) => {
-        const updatedSubtopics = [...data.subtopics];
-        updatedSubtopics[index].name = newName;
-        setData("subtopics", updatedSubtopics);
-    };
-
-    const handleAddSubtopic = () => {
-        setData("subtopics", [
-            ...data.subtopics,
-            { id: null, name: "" }, // Add a blank subtopic for editing
-        ]);
-    };
-
+    // Handle the removal of subtopics
     const handleRemoveSubtopic = (index) => {
         const updatedSubtopics = data.subtopics.filter((_, i) => i !== index);
         setData("subtopics", updatedSubtopics);
@@ -34,30 +27,58 @@ const TopicEdit = ({ onSave, onCancel }) => {
     const onDragEnd = (result) => {
         if (!result.destination) return;
 
-        const reorderedSubtopics = Array.from(data.subtopics);
+        // Reorder subtopics
+        const reorderedSubtopics = Array.from(topic.sub_topics);
         const [movedSubtopic] = reorderedSubtopics.splice(
             result.source.index,
             1
         );
         reorderedSubtopics.splice(result.destination.index, 0, movedSubtopic);
 
-        setData("subtopics", reorderedSubtopics);
+        // Update subtopics order in the state
+        const updatedSubtopics = reorderedSubtopics.map((subtopic, index) => ({
+            ...subtopic,
+            order: index + 1,
+        }));
+
+        // Sync with backend
+        setIsLoading(true);
+        router.post(
+            `/topics/${topic.id}/update-subtopics-order`,
+            { subtopics: updatedSubtopics },
+            {
+                onSuccess: () => {
+                    setIsLoading(false);
+                },
+                onError: (errors) => {
+                    console.error(errors);
+                    setIsLoading(false);
+                },
+            }
+        );
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        setIsSaving(true);
+    // Handle subtopic name changes
+    const handleSubtopicChange = (index, newName) => {
+        const updatedSubtopics = [...data.subtopics];
+        updatedSubtopics[index].name = newName;
+        setData("subtopics", updatedSubtopics);
+    };
 
-        put(`/topics/${topic.id}/update`, data, {
-            onSuccess: () => {
-                setIsSaving(false);
-                if (onSave) onSave(); // Notify parent component of successful save
-            },
-            onError: (err) => {
-                console.error(err);
-                setIsSaving(false);
-            },
-        });
+    // Save subtopics to the backend
+    const saveSubtopics = () => {
+        post(
+            `/topics/${topic.id}/update-subtopics`,
+            { subtopics: data.subtopics },
+            {
+                onSuccess: () => {
+                    setShowSubtopicModal(false);
+                },
+                onError: (errors) => {
+                    console.error(errors);
+                },
+            }
+        );
     };
 
     return (
@@ -72,77 +93,76 @@ const TopicEdit = ({ onSave, onCancel }) => {
                         <Link href="/topicList">Topic Master</Link>
                     </li>
                     <li>
-                        <Link href={`/topic-masters/${topic.id}/edit`}>
+                        <Link href={`/topic-masters/${topicMaster.id}/edit`}>
                             Topic Details
                         </Link>
                     </li>
                     <li>
-                        <a className="text-gray-500">Subtopics</a>
+                        <a className="text-gray-500">
+                            Subtopics ({topic.name})
+                        </a>
                     </li>
                 </ul>
             </div>
-            <h2 className="text-lg font-bold mb-4">Edit Topic</h2>
-            <form onSubmit={handleSubmit}>
-                {/* Topic Name */}
-                <div className="mb-4">
-                    <label className="block font-medium mb-2">Topic Name</label>
-                    <input
-                        type="text"
-                        className="border rounded p-2 w-full"
-                        value={data.name}
-                        onChange={(e) => setData("name", e.target.value)}
-                    />
-                    {errors.name && (
-                        <p className="text-red-500 text-sm">{errors.name}</p>
-                    )}
-                </div>
 
-                {/* Subtopics (Draggable) */}
-                <div className="mb-4">
-                    <label className="block font-medium mb-2">Subtopics</label>
+            <div className="flex flex-row items-center space-x-4">
+                <div className="flex flex-col space-y-2">
+                    <h2 className="text-lg font-bold">
+                        Edit Topic Information
+                    </h2>
+                    <h2 className="text-md font-medium">{topic.name}</h2>
+                </div>
+                <div className="flex flex-col items-center space-y-2 lg:flex-row lg:space-x-2 lg:space-y-0">
+                    <button
+                        className="btn border-none bg-[#303030] text-white hover:bg-[#42604C]"
+                        onClick={toggleSubtopicModal}
+                    >
+                        + Add Subtopic
+                    </button>
+                    <button
+                        className="btn border-none bg-[#303030] text-white hover:bg-[#42604C]"
+                        onClick={toggleSubtopicModal}
+                    >
+                        - Edit Topic title
+                    </button>
+                </div>
+            </div>
+            <hr className="my-4 border-t-2 border-gray-400" />
+
+            {/* Subtopics (Draggable) */}
+            <div className="mb-4">
+                {data.subtopics.length > 0 ? (
                     <DragDropContext onDragEnd={onDragEnd}>
                         <Droppable droppableId="subtopics">
                             {(provided) => (
                                 <div
-                                    ref={provided.innerRef}
                                     {...provided.droppableProps}
-                                    className="space-y-2"
+                                    ref={provided.innerRef}
+                                    className="space-y-4"
                                 >
-                                    {data.subtopics.map((subtopic, index) => (
+                                    {topic.sub_topics.map((subtopic, index) => (
                                         <Draggable
-                                            key={subtopic.id || index}
-                                            draggableId={subtopic.id || index}
+                                            key={subtopic.id}
+                                            draggableId={subtopic.id.toString()}
                                             index={index}
+                                            isDragDisabled={isLoading}
                                         >
                                             {(provided) => (
                                                 <div
                                                     ref={provided.innerRef}
                                                     {...provided.draggableProps}
                                                     {...provided.dragHandleProps}
-                                                    className="flex items-center p-2 bg-gray-100 rounded shadow"
+                                                    className={`p-4 rounded shadow ${
+                                                        isLoading
+                                                            ? "opacity-50 cursor-not-allowed"
+                                                            : ""
+                                                    } bg-white`}
                                                 >
-                                                    <input
-                                                        type="text"
-                                                        className="border rounded p-2 flex-1"
-                                                        value={subtopic.name}
-                                                        onChange={(e) =>
-                                                            handleSubtopicChange(
-                                                                index,
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        className="ml-2 text-red-500"
-                                                        onClick={() =>
-                                                            handleRemoveSubtopic(
-                                                                index
-                                                            )
-                                                        }
-                                                    >
-                                                        Remove
-                                                    </button>
+                                                    <div className="flex justify-between items-center">
+                                                        <h2 className="text-lg font-semibold">
+                                                            {subtopic.name}
+                                                        </h2>
+                                                    </div>
                                                 </div>
                                             )}
                                         </Draggable>
@@ -152,35 +172,19 @@ const TopicEdit = ({ onSave, onCancel }) => {
                             )}
                         </Droppable>
                     </DragDropContext>
-                    <button
-                        type="button"
-                        className="btn mt-2 bg-blue-500 text-white rounded"
-                        onClick={handleAddSubtopic}
-                    >
-                        + Add Subtopic
-                    </button>
-                </div>
+                ) : (
+                    <div>No subtopics available</div> // Optional message when no subtopics are found
+                )}
+            </div>
 
-                {/* Actions */}
-                <div className="flex justify-end space-x-4">
-                    <button
-                        type="button"
-                        className="btn bg-gray-300 text-black rounded"
-                        onClick={onCancel}
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="submit"
-                        className={`btn bg-blue-500 text-white rounded ${
-                            isSaving ? "opacity-50" : ""
-                        }`}
-                        disabled={isSaving}
-                    >
-                        {isSaving ? "Saving..." : "Save"}
-                    </button>
-                </div>
-            </form>
+            {/* AddSubtopicsModal */}
+            <AddSubtopicsModal
+                showModal={showSubtopicModal}
+                toggleModal={toggleSubtopicModal}
+                topic={topic}
+                subject={subject}
+                topicMaster={topicMaster}
+            />
         </div>
     );
 };

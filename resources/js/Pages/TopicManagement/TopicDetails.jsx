@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { GiNotebook } from "react-icons/gi";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Link, usePage, useForm, router } from "@inertiajs/react";
 //import { debounce } from "lodash";
@@ -211,30 +212,45 @@ const TableDetails = () => {
                                                     <h2 className="text-lg font-bold">
                                                         {topic.name}
                                                     </h2>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleOpenSubtopicModal(
-                                                                index
-                                                            )
-                                                        }
-                                                        className="btn border-none bg-[#303030] text-white hover:bg-[#42604C] mt-2"
-                                                    >
-                                                        Manage Subtopics
+                                                    <button className="btn border-none bg-[#303030] text-white hover:bg-[#42604C] mt-2">
+                                                        <Link
+                                                            href={`/topics/${topic.id}/${topicMaster.id}/edit`}
+                                                            className="text-white"
+                                                        >
+                                                            Manage Subtopics
+                                                        </Link>
                                                     </button>
                                                 </div>
-                                                <ul className="mt-2 pl-4 list-disc text-gray-600">
-                                                    {topic.subtopics.map(
-                                                        (subtopic) => (
-                                                            <li
-                                                                key={
-                                                                    subtopic.id
-                                                                }
-                                                            >
-                                                                {subtopic.name}
-                                                            </li>
+                                                <hr className="my-4 border-t-2 border-gray-400" />
+                                                <div className="mt-2 pl-6 text-slate-800">
+                                                    {topic.subtopics.length >
+                                                    0 ? (
+                                                        topic.subtopics.map(
+                                                            (subtopic) => (
+                                                                <div
+                                                                    key={
+                                                                        subtopic.id
+                                                                    }
+                                                                    className="flex items-center space-x-2"
+                                                                >
+                                                                    <GiNotebook
+                                                                        className="text-xl"
+                                                                        color="#42604C"
+                                                                    />
+                                                                    <p>
+                                                                        {
+                                                                            subtopic.name
+                                                                        }
+                                                                    </p>
+                                                                </div>
+                                                            )
                                                         )
+                                                    ) : (
+                                                        <div className="text-gray-500 italic">
+                                                            No subtopics found.
+                                                        </div>
                                                     )}
-                                                </ul>
+                                                </div>
                                             </div>
                                         )}
                                     </Draggable>
@@ -255,14 +271,6 @@ const TableDetails = () => {
                 showModal={showModal}
                 handleCancel={handleCloseModal}
                 handleSave={handleSaveTopics}
-            />
-
-            {/* AddSubtopicsModal */}
-            <AddSubtopicsModal
-                showModal={showSubtopicModal}
-                handleCancel={handleCloseSubtopicModal}
-                handleSave={handleSaveSubtopics}
-                initialSubtopics={currentSubtopics}
             />
         </div>
     );
