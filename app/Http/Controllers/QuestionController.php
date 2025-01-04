@@ -9,6 +9,7 @@ use App\Models\Subject;
 use App\Models\Topics;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class QuestionController extends Controller
 {
@@ -123,21 +124,6 @@ class QuestionController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    // public function edit(Question $question)
-    // {
-    //     $subjects = Subject::all();
-    //     $topics = Topics::where('subject_id', $question->subject_id)->get();
-
-    //     return inertia('QuestionBank/QuestionForm', [
-    //         'question' => $question,
-    //         'initialSubjects' => $subjects,
-    //         'topics' => $topics,
-    //     ]);
-    // }
-
-    /**
      * Fetch the question details for editing.
      */
     public function edit(Request $request, $id)
@@ -206,12 +192,14 @@ class QuestionController extends Controller
      */
     public function destroy(Question $question)
     {
-        //Delete the question
-
-        //Find the question
-        $question = Question::findOrFail($question->id);
+        //if question has attachment, delete it
+        if($question->attachment_path){
+            Storage::disk('public')->delete($question->attachment_path);
+        }
 
         //Delete the question
         $question->delete();
+
+        return redirect()->route('questionIndex')->with('message', 'Question was Deleted Successfully');
     }
 }

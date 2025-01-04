@@ -53,6 +53,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::post('/addQuestion', [QuestionController::class, 'store'])->name('questionAdd');
     Route::get('/questions/{id}/edit', [QuestionController::class, 'edit'])->name('questions.edit');
     Route::put('/questions/{id}',[QuestionController::class, 'update'])->name('questions.update');
+    Route::delete('/questions/{question}', [QuestionController::class, 'destroy'])->name('questions.delete');
 
 });
 
