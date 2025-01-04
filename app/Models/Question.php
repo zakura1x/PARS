@@ -11,6 +11,7 @@ class Question extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'user_id',
         'subject_id',
         'topic_id',
         'format_type',

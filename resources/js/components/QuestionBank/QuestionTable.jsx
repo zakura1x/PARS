@@ -8,6 +8,18 @@ const QuestionTable = ({ questions }) => {
             router.get(url);
         }
     };
+
+    const handleEditQuestion = (id) => {
+        // Replace with the actual route to edit the question
+        router.get(`/questions/${id}/edit`);
+    };
+
+    const handleDeleteQuestion = (id) => {
+        if (confirm("Are you sure you want to delete this question?")) {
+            router.delete(`/questions/${id}`);
+        }
+    };
+
     return (
         <div className="my-2 overflow-x-auto lg:mx-4">
             <table className="w-full border-collapse bg-white shadow-md rounded-md">
@@ -21,6 +33,7 @@ const QuestionTable = ({ questions }) => {
                         <th className="py-3 px-4 text-left">Topic</th>
                         <th className="py-3 px-4 text-left">Status</th>
                         <th className="py-3 px-4 text-left">Date Added</th>
+                        <th className="py-3 px-4 text-left">Actions</th>
                     </tr>
                 </thead>
 
@@ -39,7 +52,8 @@ const QuestionTable = ({ questions }) => {
                         questions.data.map((question) => (
                             <tr
                                 key={question.id}
-                                className="border-b hover:bg-gray-50 text-gray-700"
+                                className="border-b hover:bg-gray-50 text-gray-700 cursor-pointer"
+                                onClick={() => handleEditQuestion(question.id)}
                             >
                                 {/* ID */}
                                 <td className="py-3 px-4">{question.id}</td>
@@ -95,11 +109,17 @@ const QuestionTable = ({ questions }) => {
                                     ).toLocaleDateString()}
                                 </td>
 
-                                {/* Correct Options */}
+                                {/* Actions */}
                                 <td className="py-3 px-4">
-                                    {question.correct_answer?.length > 0
-                                        ? question.correct_answer.join(", ")
-                                        : "N/A"}
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteQuestion(question.id);
+                                        }}
+                                        className="text-red-500 hover:text-red-700"
+                                    >
+                                        Delete
+                                    </button>
                                 </td>
                             </tr>
                         ))

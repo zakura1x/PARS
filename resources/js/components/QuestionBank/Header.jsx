@@ -5,8 +5,12 @@ const Header = () => {
         <div>
             <div className="breadcrumbs text-sm">
                 <ul>
-                    <li><a href="/dashboard">Dashboard</a></li>
-                    <li><a href="/questionBank">Question</a></li>
+                    <li>
+                        <a href="/dashboard">Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="/questionBank">Question</a>
+                    </li>
                     <li className="text-gray-500">Question List</li>
                 </ul>
             </div>
@@ -19,9 +23,6 @@ const Header = () => {
                     <button className="btn border-none bg-[#42604C] text-white hover:bg-gray-600 px-4">
                         Import Question/s
                     </button>
-                    <button className="btn border-none bg-[#42604C] text-white hover:bg-gray-600 px-4">
-                        Delete
-                    </button>
                 </div>
             </div>
         </div>
@@ -29,4 +30,3 @@ const Header = () => {
 };
 
 export default Header;
-

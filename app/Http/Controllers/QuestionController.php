@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateQuestionRequest;
 use App\Models\Subject;
 use App\Models\Topics;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class QuestionController extends Controller
 {
@@ -17,7 +18,7 @@ class QuestionController extends Controller
     public function index(Request $request)
     {
 
-        $query = Question::query();
+        $query = Question::with(['subject', 'topic']);
 
         //Filters
         if ($request->has('searchQuery') && $request->searchQuery) {
@@ -32,9 +33,9 @@ class QuestionController extends Controller
             $query->where('status', $request->status);
         }
 
-        $question = $query->latest()->paginate(10);
+        $questions = $query->latest()->paginate(10);
 
-        return inertia('QuestionBank/QuestionIndex', ['questions' => $question]);
+        return inertia('QuestionBank/QuestionIndex', ['questions' => $questions]);
     }
 
     /**
@@ -96,6 +97,7 @@ class QuestionController extends Controller
         }
 
         $question = Question::create([
+            'user_id' => Auth::id(),
             'subject_id' => $validate['subject_id'],
             'topic_id' => $validate['topic_id'],
             'format_type' => $validate['format_type'],
@@ -123,18 +125,80 @@ class QuestionController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Question $question)
+    // public function edit(Question $question)
+    // {
+    //     $subjects = Subject::all();
+    //     $topics = Topics::where('subject_id', $question->subject_id)->get();
+
+    //     return inertia('QuestionBank/QuestionForm', [
+    //         'question' => $question,
+    //         'initialSubjects' => $subjects,
+    //         'topics' => $topics,
+    //     ]);
+    // }
+
+    /**
+     * Fetch the question details for editing.
+     */
+    public function edit(Request $request, $id)
     {
-        //EDIT QUESTION
-        
+        $question = Question::with(['subject', 'topic'])->findOrFail($id);
+        $subjects = Subject::all();
+        $topics = Topics::where('subject_id', $question->subject_id)->get();
+
+        return inertia('QuestionBank/QuestionEdit', [
+            'question' => $question,
+            'subjects' => $subjects,
+            'topics' => $topics,
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateQuestionRequest $request, Question $question)
+    public function update(Request $request, $id)
     {
-        //
+        $validate = $request->validate([
+            'subject_id' => 'required|exists:subjects,id',
+            'topic_id' => 'required|exists:topics,id',
+            'format_type' => 'required|in:multiple_choice,enumeration,true_or_false,fill_in_the_blank',
+            'purpose_type' => 'required|in:practice,assessment,examination',
+            'difficulty' => 'required|in:remembering,understanding, analyzing, evaluating, create',
+            'question_text' =>'required|string|max:255',
+            'options' => 'required_if:question_type,multiple_choice|array|min:2',
+            'options.*' => 'string|max:255',
+            'correct_answer' => 'required|array|min:1',
+            'correct_answer.*' => 'string|max:255',
+            'weight' => 'required|integer|min:1',
+            'attachment_path' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
+        ]);
+
+        $question = Question::findOrFail($id);
+
+        //dd($validate);
+
+        if($request->hasFile('attachment_path')){
+            $filePath = $request->file('attachment_path')->store('attachment', 'public');
+            $validate['attachment_path'] = $filePath;
+        }
+
+        $question->update([
+            'subject_id' => $validate['subject_id'],
+            'topic_id' => $validate['topic_id'],
+            'format_type' => $validate['format_type'],
+            'purpose_type' => $validate['purpose_type'],
+            'difficulty' => $validate['difficulty'],
+            'question_text' => $validate['question_text'],
+            'options' => $validate['options'],
+            'correct_answer' => $validate['correct_answer'],
+            'weight' => $validate['weight'],
+            'attachment_path' => $validate['attachment_path'] ?? $question->attachment_path,
+            'status' => 'inactive'
+        ]);
+
+        //dd($question);
+
+        return redirect()->route('questionIndex')->with('message', 'Question was Updated Successfully');
     }
 
     /**

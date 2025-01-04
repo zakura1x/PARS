@@ -18,7 +18,7 @@ Route::post('/login', [AuthController::class, 'signIn'])->name('auth.signin');
 Route::post('/logout',  [AuthController::class, 'logout'])->name('auth.signout');
 
 //TESTING
-
+// 
 
 // Route::middleware(['auth'])->group(function(){
 //     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -51,6 +51,8 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::get('/questionDetails', [QuestionController::class, 'questionDetails'])->name('questionDetails');
     Route::get('/api/question-form-requirements', [QuestionController::class, 'questionFormRequirements']);
     Route::post('/addQuestion', [QuestionController::class, 'store'])->name('questionAdd');
+    Route::get('/questions/{id}/edit', [QuestionController::class, 'edit'])->name('questions.edit');
+    Route::put('/questions/{id}',[QuestionController::class, 'update'])->name('questions.update');
 
 });
 

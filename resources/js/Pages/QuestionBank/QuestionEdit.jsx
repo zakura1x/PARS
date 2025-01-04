@@ -1,29 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { useForm } from "@inertiajs/react";
-import { Link } from "@inertiajs/react";
-import { ClipLoader } from "react-spinners"; // Import the spinner
+import { useForm, usePage, Link } from "@inertiajs/react";
+import { ClipLoader } from "react-spinners";
 
-const QuestionForm = ({ initialSubjects }) => {
-    const { data, setData, post, processing, errors } = useForm({
-        // user_id: user.id,
-        subject_id: "",
-        topic_id: "",
-        user_id: "",
-        format_type: "",
-        purpose_type: "",
-        difficulty: "",
-        question_text: "",
-        options: [],
-        correct_answer: [],
-        weight: "1",
-        attachment_path: "",
-        status: "inactive",
+const QuestionEdit = () => {
+    const { question, subjects, topics } = usePage().props;
+    const { data, setData, put, processing, errors } = useForm({
+        subject_id: question.subject_id,
+        topic_id: question.topic_id,
+        user_id: question.user_id,
+        format_type: question.format_type,
+        purpose_type: question.purpose_type,
+        difficulty: question.difficulty,
+        question_text: question.question_text,
+        options: question.options,
+        correct_answer: question.correct_answer,
+        weight: question.weight,
+        attachment_path: question.attachment_path,
+        status: question.status,
     });
 
-    const [topics, setTopics] = useState([]);
-    const [isProcessing, setProcessing] = useState(false); // Add this line
+    const [availableTopics, setAvailableTopics] = useState(topics);
 
-    // Fetch topics when the subject changes
     useEffect(() => {
         if (data.subject_id) {
             fetch(
@@ -31,44 +28,41 @@ const QuestionForm = ({ initialSubjects }) => {
             )
                 .then((response) => response.json())
                 .then((result) => {
-                    setTopics(result.topics || []);
+                    setAvailableTopics(result.topics || []);
                 })
                 .catch((error) => {
                     console.error("Error fetching topics:", error);
                 });
         } else {
-            setTopics([]);
+            setAvailableTopics([]);
         }
     }, [data.subject_id]);
 
-    // Handle adding new options
-    const handleAddOption = () => {
-        setData("options", [...data.options, ""]);
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setData(name, value);
     };
 
-    // Handle removing an option
-    const handleRemoveOption = (index) => {
-        const updatedOptions = [...data.options]; // Copy the current options
-        const removedOption = updatedOptions.splice(index, 1)[0]; // Remove the option
-
-        // Update options state
-        setData("options", updatedOptions);
-
-        // Remove the removed option from the correct answers if it exists
-        setData(
-            "correct_answer",
-            data.correct_answer.filter((ans) => ans !== removedOption)
-        );
-    };
-
-    // Handle changing an option's value
     const handleOptionChange = (index, value) => {
         const updatedOptions = [...data.options];
         updatedOptions[index] = value;
         setData("options", updatedOptions);
     };
 
-    // Toggle correct answer
+    const handleAddOption = () => {
+        setData("options", [...data.options, ""]);
+    };
+
+    const handleRemoveOption = (index) => {
+        const updatedOptions = [...data.options];
+        const removedOption = updatedOptions.splice(index, 1)[0];
+        setData("options", updatedOptions);
+        setData(
+            "correct_answer",
+            data.correct_answer.filter((ans) => ans !== removedOption)
+        );
+    };
+
     const toggleCorrectAnswer = (option) => {
         if (data.correct_answer.includes(option)) {
             setData(
@@ -80,20 +74,15 @@ const QuestionForm = ({ initialSubjects }) => {
         }
     };
 
-    // Handle form submission
     const handleSubmit = (e) => {
         e.preventDefault();
-        post("/addQuestion", {
-            onStart: () => setProcessing(true), // Set processing to true when starting
+        put(`/questions/${question.id}`, data, {
             onSuccess: () => {
-                alert("Question successfully added!");
-                setProcessing(false); // Set processing to false when done
+                alert("Question successfully updated!");
             },
-            onError: () => setProcessing(false), // Set processing to false on error
         });
     };
 
-    // Render the appropriate options field based on the format type
     const renderOptionsField = () => {
         switch (data.format_type) {
             case "multiple_choice":
@@ -200,32 +189,29 @@ const QuestionForm = ({ initialSubjects }) => {
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen">
-            {/* Breadcrumbs */}
             <div className="text-sm breadcrumbs mb-4">
                 <ul>
                     <li>
                         <Link href="/questionBank">Question List</Link>
                     </li>
                     <li>
-                        <a>Add a new Question</a>
+                        <a>Edit Question</a>
                     </li>
                 </ul>
             </div>
 
-            {/* Question Form */}
             <form
                 onSubmit={handleSubmit}
-                className="rounded-lg bg-white shadow "
+                className="rounded-lg bg-white shadow"
             >
                 <div className="w-full bg-black text-white rounded-t-lg">
                     <h1 className="text-lg mb-4 ml-2 font-medium p-2">
-                        Add a new Question
+                        Edit Question
                     </h1>
                 </div>
 
                 <div className="px-6 pb-4">
                     <div className="flex flex-col md:flex-row md:justify-between gap-4">
-                        {/* Subject */}
                         <div className="mb-4 w-full">
                             <label className="block text-sm font-medium mb-1">
                                 Subject
@@ -233,13 +219,11 @@ const QuestionForm = ({ initialSubjects }) => {
                             <select
                                 name="subject_id"
                                 value={data.subject_id}
-                                onChange={(e) =>
-                                    setData("subject_id", e.target.value)
-                                }
+                                onChange={handleInputChange}
                                 className="select select-bordered w-full"
                             >
                                 <option value="">Select a subject</option>
-                                {initialSubjects.map((subject) => (
+                                {subjects.map((subject) => (
                                     <option key={subject.id} value={subject.id}>
                                         {subject.name}
                                     </option>
@@ -252,7 +236,6 @@ const QuestionForm = ({ initialSubjects }) => {
                             )}
                         </div>
 
-                        {/* Topic */}
                         <div className="mb-4 w-full">
                             <label className="block text-sm font-medium mb-1">
                                 Topic
@@ -260,13 +243,11 @@ const QuestionForm = ({ initialSubjects }) => {
                             <select
                                 name="topic_id"
                                 value={data.topic_id}
-                                onChange={(e) =>
-                                    setData("topic_id", e.target.value)
-                                }
+                                onChange={handleInputChange}
                                 className="select select-bordered w-full"
                             >
                                 <option value="">Select a topic</option>
-                                {topics.map((topic) => (
+                                {availableTopics.map((topic) => (
                                     <option key={topic.id} value={topic.id}>
                                         {topic.name}
                                     </option>
@@ -279,7 +260,6 @@ const QuestionForm = ({ initialSubjects }) => {
                             )}
                         </div>
 
-                        {/* Purpose Type */}
                         <div className="mb-4 w-full">
                             <label className="block text-sm font-medium mb-1">
                                 Purpose Type
@@ -287,9 +267,7 @@ const QuestionForm = ({ initialSubjects }) => {
                             <select
                                 name="purpose_type"
                                 value={data.purpose_type}
-                                onChange={(e) =>
-                                    setData("purpose_type", e.target.value)
-                                }
+                                onChange={handleInputChange}
                                 className="select select-bordered w-full"
                             >
                                 <option value="">Select the Purpose</option>
@@ -310,7 +288,6 @@ const QuestionForm = ({ initialSubjects }) => {
                     </div>
 
                     <div className="flex flex-col md:flex-row md:justify-between gap-4">
-                        {/* Difficulty */}
                         <div className="mb-4 w-full">
                             <label className="block text-sm font-medium mb-1">
                                 Difficulty
@@ -318,9 +295,7 @@ const QuestionForm = ({ initialSubjects }) => {
                             <select
                                 name="difficulty"
                                 value={data.difficulty}
-                                onChange={(e) =>
-                                    setData("difficulty", e.target.value)
-                                }
+                                onChange={handleInputChange}
                                 className="select select-bordered w-full"
                             >
                                 <option value="">Select Difficulty</option>
@@ -339,7 +314,6 @@ const QuestionForm = ({ initialSubjects }) => {
                             )}
                         </div>
 
-                        {/* Weight */}
                         <div className="mb-4 w-full">
                             <label className="block text-sm font-medium mb-1">
                                 Score
@@ -348,9 +322,7 @@ const QuestionForm = ({ initialSubjects }) => {
                                 type="number"
                                 name="weight"
                                 value={data.weight}
-                                onChange={(e) =>
-                                    setData("weight", e.target.value)
-                                }
+                                onChange={handleInputChange}
                                 className="input input-bordered w-full"
                             />
                             {errors.weight && (
@@ -360,7 +332,6 @@ const QuestionForm = ({ initialSubjects }) => {
                             )}
                         </div>
 
-                        {/* Attachment */}
                         <div className="mb-4 w-full">
                             <label className="block text-sm font-medium mb-1">
                                 Attach Image or File (Optional)
@@ -384,7 +355,6 @@ const QuestionForm = ({ initialSubjects }) => {
                         </div>
                     </div>
 
-                    {/* Question Text */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-1">
                             Question Text
@@ -392,9 +362,7 @@ const QuestionForm = ({ initialSubjects }) => {
                         <textarea
                             name="question_text"
                             value={data.question_text}
-                            onChange={(e) =>
-                                setData("question_text", e.target.value)
-                            }
+                            onChange={handleInputChange}
                             className="textarea textarea-bordered w-full"
                         ></textarea>
                         {errors.question_text && (
@@ -404,7 +372,6 @@ const QuestionForm = ({ initialSubjects }) => {
                         )}
                     </div>
 
-                    {/* Status */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-1">
                             Status
@@ -412,7 +379,7 @@ const QuestionForm = ({ initialSubjects }) => {
                         <select
                             name="status"
                             value={data.status}
-                            onChange={(e) => setData("status", e.target.value)}
+                            onChange={handleInputChange}
                             className="select select-bordered w-full"
                         >
                             <option value="active">Active</option>
@@ -425,7 +392,6 @@ const QuestionForm = ({ initialSubjects }) => {
                         )}
                     </div>
 
-                    {/* Format Type */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-1">
                             Format Type
@@ -433,9 +399,7 @@ const QuestionForm = ({ initialSubjects }) => {
                         <select
                             name="format_type"
                             value={data.format_type}
-                            onChange={(e) =>
-                                setData("format_type", e.target.value)
-                            }
+                            onChange={handleInputChange}
                             className="select select-bordered w-full"
                         >
                             <option value="">Select a format</option>
@@ -452,25 +416,22 @@ const QuestionForm = ({ initialSubjects }) => {
                         )}
                     </div>
 
-                    {/* Options */}
                     <div className="mb-4">{renderOptionsField()}</div>
 
                     <div className="flex flex-col md:flex-row md:justify-between gap-4">
-                        {/* Submit Button */}
                         <div className="mt-4 w-full">
                             <button
                                 type="submit"
-                                disabled={isProcessing} // Use isProcessing here
+                                disabled={processing}
                                 className="btn w-full bg-green-800 border-none text-white hover:bg-black"
                             >
-                                {isProcessing ? (
+                                {processing ? (
                                     <ClipLoader size={20} color={"#fff"} />
                                 ) : (
                                     "Save Question"
                                 )}
                             </button>
                         </div>
-                        {/* Cancel Button */}
                         <div className="mt-4 w-full">
                             <Link href="/questionBank">
                                 <button className="btn btn-error hover:bg-red-500 w-full">
@@ -485,4 +446,4 @@ const QuestionForm = ({ initialSubjects }) => {
     );
 };
 
-export default QuestionForm;
+export default QuestionEdit;

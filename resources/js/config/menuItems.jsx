@@ -37,6 +37,14 @@ const menuItems = [
                     { label: "Faculty Assignment", href: "", key: 9 },
                 ],
             },
+            {
+                title: "Student",
+                icon: <TbCloudQuestion size={26} />,
+                items: [
+                    { label: "Student List", href: "", key: 10 },
+                    { label: "Mass Upload Student", href: "", key: 11 },
+                ],
+            },
         ],
     },
     {
