@@ -55,6 +55,8 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::put('/questions/{id}',[QuestionController::class, 'update'])->name('questions.update');
     Route::delete('/questions/{question}', [QuestionController::class, 'destroy'])->name('questions.delete');
 
+    //
+
 });
 
 require_once __DIR__ . '/user_management.php';

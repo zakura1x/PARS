@@ -1,10 +1,13 @@
 import React, { useState } from "react";
-import { Link } from "@inertiajs/react";
-import menuItems from "../../config/menuItems";
+import { Link, usePage } from "@inertiajs/react";
+import { getMenuByRole } from "../../config/menuConfig";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
+    const { auth } = usePage().props;
     const [activeSummary, setActiveSummary] = useState(null);
     const [activeItem, setActiveItem] = useState(null);
+
+    const menuItems = getMenuByRole(auth.user.role);
 
     const handleSummaryClick = (summaryKey) => {
         setActiveSummary((prev) => (prev === summaryKey ? null : summaryKey)); // Toggle the section

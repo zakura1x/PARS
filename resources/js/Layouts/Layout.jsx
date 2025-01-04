@@ -13,6 +13,9 @@ const Layout = ({ children }) => {
     // Determine the role-based layout
     const roleBasedLayouts = {
         program_head: ProgramHeadLayout,
+        student: ProgramHeadLayout,
+        faculty: ProgramHeadLayout,
+        dean: ProgramHeadLayout,
     };
 
     const UserLayout = roleBasedLayouts[auth.user.role] || DefaultLayout;
