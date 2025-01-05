@@ -26,7 +26,9 @@ return new class extends Migration
             $table->json('correct_answer')->nullable();
             $table->integer('weight')->default(1);
             $table->string('attachment_path')->nullable();
-            $table->enum('status', ['active', 'inactive', 'archived'])->default('active');
+            $table->string('correct_answer')->nullable(); //Correct answer path this can be image or pdf
+            $table->enum('status', ['active', 'inactive', 'archived'])->default('inactive');
+            $table->boolean('is_used')->default(false);
             $table->softDeletes();
             $table->timestamps();
         });

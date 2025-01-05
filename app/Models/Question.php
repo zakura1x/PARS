@@ -14,6 +14,7 @@ class Question extends Model
         'user_id',
         'subject_id',
         'topic_id',
+        //Content
         'format_type',
         'purpose_type',
         'difficulty',
@@ -22,7 +23,9 @@ class Question extends Model
         'correct_answer',
         'weight',
         'attachment_path',
+        'correct_answer',
         'status',
+        'is_used',
     ];
 
     protected $casts =[
@@ -36,6 +39,34 @@ class Question extends Model
 
     public function topic(){
         return $this->belongsTo(Topics::class);
+    }
+
+    public function createdBy(){
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    //Methods
+    public static function resetIsUsed($topicId){
+        return self::where('topic_id', $topicId)->update(['is_used' => false]);
+    }
+
+    //Purpose: Retrieves unused questions from a specific topic
+    // Parameters:
+    // $topicId: Required - the topic to fetch questions from
+    // $difficulty: Optional - filter by difficulty level
+    // $limit: Optional - limit the number of questions returned
+    public static function fetchUnusedQuestion($topicId, $difficulty = null, $limit = null){
+        $query = self::where('topic_id', $topicId)->where('is_used', false);
+
+        if($difficulty){
+            $query->where('difficulty', $difficulty);
+        }
+
+        if($limit){
+            $query->limit($limit);
+        }
+
+        return $query->get();
     }
 
     // Helper method to get correct answers
