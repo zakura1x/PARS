@@ -135,6 +135,7 @@ class TopicsController extends Controller
 
         $topic->update([
             'name' => $validated['name'],
+            
         ]);
 
         return redirect()->back()->with('message', 'Topic was updated successfully');

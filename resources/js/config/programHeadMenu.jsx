@@ -60,7 +60,14 @@ const programHeadMenu = [
             {
                 title: "Topic Manage",
                 icon: <TbCloudQuestion size={26} />,
-                items: [{ label: "Topic List", href: "/topicList", key: 11 }],
+                items: [
+                    { label: "Topic List", href: "/topicList", key: 11 },
+                    {
+                        label: "Topic Grading Criteria",
+                        href: "/topic-grading-criteria/index",
+                        key: 12,
+                    },
+                ],
             },
         ],
     },

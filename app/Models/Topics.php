@@ -13,7 +13,7 @@ class Topics extends Model
     protected $fillable = [
         'name',
         'parent_id',
-        'subject_id'
+        'subject_id',
     ];
 
     public function topicMasters()

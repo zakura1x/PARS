@@ -24,6 +24,7 @@ class Question extends Model
         'weight',
         'attachment_path',
         'correct_answer',
+        'solution',
         'status',
         'is_used',
     ];

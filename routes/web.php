@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\TopicGradingCriteriaController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\TopicMasterController;
 use App\Http\Controllers\TopicsController;
@@ -55,7 +56,9 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::put('/questions/{id}',[QuestionController::class, 'update'])->name('questions.update');
     Route::delete('/questions/{question}', [QuestionController::class, 'destroy'])->name('questions.delete');
 
-    //
+    //TopicGradingCriteria
+    Route::get('/topic-grading-criteria/index', [TopicGradingCriteriaController::class, 'index'])->name('topic-grading-criteria.index');
+    Route::get('/topic-grading-criteria/form/{topicId}{', [TopicGradingCriteriaController::class, 'createOrEdit'])->name('topic-grading-criteria.add.edit');
 
 });
 
