@@ -11,6 +11,8 @@ class TopicGradingCriteria extends Model
     /** @use HasFactory<\Database\Factories\TopicGradingCriteriaFactory> */
     use HasFactory, SoftDeletes;
 
+    protected $table = 'topic_grading_criteria';
+
     protected $fillable = [
         'topic_id',
         'difficulty',

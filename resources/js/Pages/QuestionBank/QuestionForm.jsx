@@ -89,7 +89,9 @@ const QuestionForm = ({ initialSubjects }) => {
                 alert("Question successfully added!");
                 setProcessing(false); // Set processing to false when done
             },
-            onError: () => setProcessing(false), // Set processing to false on error
+            onError: (e) => {
+                setProcessing(false), console.log(e);
+            }, // Set processing to false on error
         });
     };
 

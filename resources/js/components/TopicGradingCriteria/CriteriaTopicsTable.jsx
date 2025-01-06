@@ -4,6 +4,7 @@ import Pagination from "../misc/Pagination"; // Import Pagination
 
 const CriteriaTopicsTable = ({ topics }) => {
     const handleEdit = (topicId) => {
+        console.log(topicId);
         router.get(`/topic-grading-criteria/form/${topicId}`);
     };
 
@@ -37,7 +38,7 @@ const CriteriaTopicsTable = ({ topics }) => {
                             <tr
                                 key={topic.id}
                                 className="border-b text-gray-700 cursor-pointer hover:bg-gray-50"
-                                onClick={handleEdit}
+                                onClick={() => handleEdit(topic.id)}
                             >
                                 <td className="py-3 px-4">{topic.name}</td>
                             </tr>

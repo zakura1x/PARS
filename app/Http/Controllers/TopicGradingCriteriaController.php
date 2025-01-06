@@ -127,23 +127,23 @@ class TopicGradingCriteriaController extends Controller
             'criteria.*.min_questions' => 'required|integer|min:1',
         ]);
 
-        $criteria = TopicGradingCriteria::findOrFail($criterionId);
-
         // Check if the Total Percentage is 100
         $totalPercentage = array_sum(array_column($request->criteria, 'percentage'));
         if ($totalPercentage !== 100) {
             return back()->withErrors(['Total percentage for the topic must equal to 100.']);
         }
 
-        foreach ($request->criteria as $criterion){
-            TopicGradingCriteria::where('id', $criterion['id'])->update([
-                'percentage' => $criterion['percentage'],
-                'min_questions' => $criterion['min_questions']
-            ]);
+        foreach ($request->criteria as $criterion) {
+            TopicGradingCriteria::where('topic_id', $topicId)
+                ->where('difficulty', $criterion['difficulty'])
+                ->update([
+                    'percentage' => $criterion['percentage'],
+                    'min_questions' => $criterion['min_questions']
+                ]);
         }
 
-        return to_route('topic-grading-criteria.index')->with('message', 'Topic Grading Criteria was updated Successfully!');
-
+        return to_route('topic-grading-criteria.index')
+            ->with('message', 'Topic Grading Criteria was updated Successfully!');
     }
 
     /**

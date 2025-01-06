@@ -58,7 +58,9 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
 
     //TopicGradingCriteria
     Route::get('/topic-grading-criteria/index', [TopicGradingCriteriaController::class, 'index'])->name('topic-grading-criteria.index');
-    Route::get('/topic-grading-criteria/form/{topicId}{', [TopicGradingCriteriaController::class, 'createOrEdit'])->name('topic-grading-criteria.add.edit');
+    Route::get('/topic-grading-criteria/form/{topicId}', [TopicGradingCriteriaController::class, 'createOrEdit'])->name('topic-grading-criteria.add.edit');
+    Route::post('/topic-grading-criteria/create/criteria/{topicId}', [TopicGradingCriteriaController::class, 'store'])->name('topic-grading-criteria.store');
+    Route::put('/topic-grading-criteria/update/criteria/{topicId}/{criterionId}', [TopicGradingCriteriaController::class, 'update'])->name('topic-grading-criteria.update');
 
 });
 
