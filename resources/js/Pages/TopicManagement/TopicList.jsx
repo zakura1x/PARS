@@ -48,6 +48,7 @@ const TopicManagement = () => {
 
             {/* Pass activeSubjects to modal */}
             <AddMasterTopicsModal
+                sModal
                 showModal={showMasterTopicModal}
                 handleCancel={handleCancelMasterTopic}
                 handleSaveChanges={handleSaveMasterTopic}
