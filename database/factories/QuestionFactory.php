@@ -17,7 +17,7 @@ class QuestionFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => 2,
+            'user_id' => 1,
             'subject_id' => 1,
             'topic_id' => 1,
             'format_type' => $this->faker->randomElement(['multiple_choice']),
@@ -25,10 +25,7 @@ class QuestionFactory extends Factory
             'difficulty' => $this->faker->randomElement(['remembering', 'understanding', 'analyzing', 'evaluating', 'create']),
             'question_text' => $this->faker->sentence,
             'options' => [
-                ['text' => $this->faker->word, 'is_correct' => false],
-                ['text' => $this->faker->word, 'is_correct' => true],
-                ['text' => $this->faker->word, 'is_correct' => false],
-                ['text' => $this->faker->word, 'is_correct' => false],
+                $this->faker->word,$this->faker->word,$this->faker->word,$this->faker->word,
             ],
             'correct_answer' => [$this->faker->word],
             'weight' => $this->faker->numberBetween(1, 10),

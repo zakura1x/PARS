@@ -67,6 +67,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
 });
 
 Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function () {
+    //Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     //Practice Assessment\
     Route::get('/student-practice-assessments/index', [StudentPracticeAssessmentController::class, 'index'])->name('practice-assessment-generator.index');
     Route::get('/student-practice-assessments/generator/form', [StudentPracticeAssessmentController::class, 'create'])->name('practice-assessment-generator.form');
