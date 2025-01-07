@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('subject_id')->constrained('subjects')->onDelete('cascade');
             $table->enum('difficulty', ['remembering', 'understanding', 'applying', 'analyzing', 'evaluating', 'creating']);
             $table->integer('num_questions');
+            $table->decimal('percentage', 5, 2)->default(0.00);
             $table->timestamps();
 
             //soft deletes

@@ -15,6 +15,7 @@ class TableOfSpecification extends Model
         'topic_id',
         'subject_id',
         'difficulty',
+        'percentage',
         'num_questions',
     ];
 

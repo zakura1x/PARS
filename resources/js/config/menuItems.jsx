@@ -41,7 +41,7 @@ const menuItems = [
                 title: "Student",
                 icon: <TbCloudQuestion size={26} />,
                 items: [
-                    { label: "Student List", href: "", key: 10 },
+                    { label: "Student List", href: "/student/list", key: 10 },
                     { label: "Mass Upload Student", href: "", key: 11 },
                 ],
             },
@@ -54,13 +54,13 @@ const menuItems = [
                 title: "Subject Manage",
                 icon: <TbCloudQuestion size={26} />,
                 items: [
-                    { label: "Subject List", href: "/subjectList", key: 10 },
+                    { label: "Subject List", href: "/subjectList", key: 12 },
                 ],
             },
             {
                 title: "Topic Manage",
                 icon: <TbCloudQuestion size={26} />,
-                items: [{ label: "Topic List", href: "/topicList", key: 11 }],
+                items: [{ label: "Topic List", href: "/topicList", key: 13 }],
             },
         ],
     },

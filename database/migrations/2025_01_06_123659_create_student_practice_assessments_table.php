@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('student_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('subject_id')->constrained('subjects')->onDelete('cascade');
             $table->integer('total_items');
+            $table->enum('type', ['proficiency', 'criteria', 'exam']);
             $table->enum('status', ['active', 'completed']);
             $table->timestamps();
         });

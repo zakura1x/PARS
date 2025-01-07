@@ -13,11 +13,20 @@ return new class extends Migration
     {
         Schema::create('student_practice_assessment_questions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('practice_assessment_id')->constrained('student_practice_assessments')->onDelete('cascade');
-            $table->foreignId('question_id')->constrained('questions')->onDelete('cascade');
-            $table->boolean('answered')->default(false);
-            $table->boolean('is_correct')->nullable();
+            $table->unsignedBigInteger('practice_assessment_id'); // Foreign key column
+            $table->unsignedBigInteger('question_id');
             $table->timestamps();
+
+            // Define foreign key constraint with a custom name
+            $table->foreign('practice_assessment_id', 'spaq_practice_assessment_fk')
+                  ->references('id')
+                  ->on('student_practice_assessments')
+                  ->onDelete('cascade');
+            // Define foreign key constraint for question_id (assuming the `questions` table exists)
+            $table->foreign('question_id', 'spaq_question_fk')
+                  ->references('id')
+                  ->on('questions') // Make sure this references the correct table
+                  ->onDelete('cascade');
         });
     }
 

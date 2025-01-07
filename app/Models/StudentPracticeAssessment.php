@@ -14,6 +14,7 @@ class StudentPracticeAssessment extends Model
         'student_id',
         'subject_id',
         'total_items',
+        'type',
         'status'
     ];
 

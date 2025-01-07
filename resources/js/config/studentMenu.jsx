@@ -16,6 +16,22 @@ const studentMenu = [
                     { label: "Past Results", href: "/student/results", key: 2 },
                 ],
             },
+            {
+                title: "Practice Assessments",
+                icon: <TbCloudQuestion size={26} />,
+                items: [
+                    {
+                        label: "All Practice Assessments",
+                        href: "/student-practice-assessments/index",
+                        key: 2,
+                    },
+                    {
+                        label: "Generate Assessment",
+                        href: "/student-practice-assessments/generator/form",
+                        key: 2,
+                    },
+                ],
+            },
         ],
     },
     {

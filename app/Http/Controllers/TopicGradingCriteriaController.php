@@ -87,7 +87,7 @@ class TopicGradingCriteriaController extends Controller
         $request->validate([
             'criteria' => 'required|array',
             'criteria.*.difficulty' => 'required|in:remembering,understanding,applying,analyzing,evaluating,create',
-            'criteria.*.percentage' => 'required|integer|min:0|max:100',
+            'criteria.*.percentage' => 'required|decimal|min:0|max:100',
             'criteria.*.min_questions' => 'required|integer|min:1'
         ]);
 

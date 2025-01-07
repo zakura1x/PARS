@@ -3,12 +3,14 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\QuestionController;
+use App\Http\Controllers\StudentPracticeAssessmentController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TopicGradingCriteriaController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\TopicMasterController;
 use App\Http\Controllers\TopicsController;
 use App\Http\Middleware\RoleMiddleware;
+use App\Models\Student;
 use App\Models\TopicMaster;
 use Illuminate\Support\Facades\Route;
 
@@ -63,6 +65,18 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::put('/topic-grading-criteria/update/criteria/{topicId}/{criterionId}', [TopicGradingCriteriaController::class, 'update'])->name('topic-grading-criteria.update');
 
 });
+
+Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function () {
+    //Practice Assessment\
+    Route::get('/student-practice-assessments/index', [StudentPracticeAssessmentController::class, 'index'])->name('practice-assessment-generator.index');
+    Route::get('/student-practice-assessments/generator/form', [StudentPracticeAssessmentController::class, 'create'])->name('practice-assessment-generator.form');
+    Route::get('/student-practice-assessments/search-topics', [StudentPracticeAssessmentController::class, 'searchTopics'])->name('practice-assessment-generator.search-topics');
+    Route::post('/student-practice-assessments/generate/assessment', [StudentPracticeAssessmentController::class, 'store'])->name('practice-assessment-generator.store');
+    Route::get('/student-practice-assessments/generate/assessment/{id}', [StudentPracticeAssessmentController::class,'show'])->name('practice-assessment-generator.show');
+});
+
+//TEster
+Route::get('/test-store', [StudentPracticeAssessmentController::class, 'testStore']);
 
 require_once __DIR__ . '/user_management.php';
 

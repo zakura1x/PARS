@@ -46,6 +46,10 @@ class Question extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function studentQuestionUsages(){
+        return $this->hasMany(StudentQuestionUsage::class);
+    }
+
     //Methods
     public static function resetIsUsed($topicId){
         return self::where('topic_id', $topicId)->update(['is_used' => false]);
@@ -53,6 +57,7 @@ class Question extends Model
 
     //Purpose: Retrieves unused questions from a specific topic
     // Parameters:
+
     // $topicId: Required - the topic to fetch questions from
     // $difficulty: Optional - filter by difficulty level
     // $limit: Optional - limit the number of questions returned
