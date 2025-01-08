@@ -41,7 +41,7 @@ const programHeadMenu = [
                 title: "Student",
                 icon: <TbCloudQuestion size={26} />,
                 items: [
-                    { label: "Student List", href: "", key: 10 },
+                    { label: "Student List", href: "/student/list", key: 10 },
                     { label: "Mass Upload Student", href: "", key: 11 },
                 ],
             },

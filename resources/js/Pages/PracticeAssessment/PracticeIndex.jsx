@@ -1,10 +1,12 @@
 import React from "react";
-import { usePage } from "@inertiajs/react";
+import { usePage, router } from "@inertiajs/react";
 
 const PracticeIndex = () => {
     const { assessments } = usePage().props;
 
-    //console.log(assessments);
+    const handleClick = (id) => {
+        router.get(`/student-practice-assessments/generate/assessment/${id}`);
+    };
 
     return (
         <div>
@@ -20,7 +22,11 @@ const PracticeIndex = () => {
                 </thead>
                 <tbody>
                     {assessments.map((assessment) => (
-                        <tr key={assessment.id}>
+                        <tr
+                            key={assessment.id}
+                            onClick={() => handleClick(assessment.id)}
+                            style={{ cursor: "pointer" }}
+                        >
                             <td>{assessment.id}</td>
                             <td>{assessment.subject.name}</td>
                             <td>{assessment.total_items}</td>
