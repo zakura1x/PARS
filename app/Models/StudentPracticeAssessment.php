@@ -15,7 +15,10 @@ class StudentPracticeAssessment extends Model
         'subject_id',
         'total_items',
         'type',
-        'status'
+        'status',
+        'time_limit',       // New column for time limit
+        'started_at',       // New column for start time
+        'submitted_at',
     ];
 
     public function student()

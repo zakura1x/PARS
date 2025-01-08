@@ -17,7 +17,10 @@ return new class extends Migration
             $table->foreignId('subject_id')->constrained('subjects')->onDelete('cascade');
             $table->integer('total_items');
             $table->enum('type', ['proficiency', 'criteria', 'exam']);
-            $table->enum('status', ['active', 'completed']);
+            $table->enum('status', ['active', 'completed', 'on_going'])->default('active');
+            $table->time('time_limit')->nullable(); // Time limit (e.g., 00:30:00 for 30 minutes)
+            $table->timestamp('started_at')->nullable(); // Timestamp when the assessment starts
+            $table->timestamp('submitted_at')->nullable(); // Timestamp when the assessment is submitted
             $table->timestamps();
         });
     }

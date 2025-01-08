@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateStudentPracticeAssessmentRequest;
 use App\Models\Question;
 use App\Models\StudentPracticeAssessment;
 use App\Models\StudentPracticeAssessmentQuestion;
+use App\Models\StudentPracticeResult;
 use App\Models\StudentQuestionUsage;
 use App\Models\StudentTopicProficiency;
 use Illuminate\Support\Facades\Auth;
@@ -15,6 +16,7 @@ use App\Models\TableOfSpecification;
 use App\Models\TopicGradingCriteria;
 use App\Models\Topics;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class StudentPracticeAssessmentController extends Controller
 {
@@ -107,7 +109,9 @@ class StudentPracticeAssessmentController extends Controller
             'subject_id' => 'required|exists:subjects,id',
             'topics' => 'nullable|array',
             'topics.*' => 'exists:topics,id',
-            'total_items' => 'required|integer|min:1'
+            'total_items' => 'required|integer|min:1',
+            'time_limit' => 'nullable',
+
         ]);
 
         $studentId = Auth::id();
@@ -162,6 +166,7 @@ class StudentPracticeAssessmentController extends Controller
             'subject_id' => $subjectId,
             'total_items' => count($questions),
             'type' => $type,
+            'time_limit' => $validated['time_limit'],
         ]);
 
 
@@ -411,10 +416,173 @@ class StudentPracticeAssessmentController extends Controller
         return $questions;
     }
 
+    /**
+     * Taking the Practice assessment
+     */
+
+    public function startAssessment($practiceAssessmentId){
+        $assessment = StudentPracticeAssessment::findOrFail($practiceAssessmentId);
+
+        if($assessment->status !== 'active'){
+            return back()->withErrors(['message' => 'This assessment has already started']);
+        } 
+
+        $assessment->update([
+            'status' => 'on_going',
+            'started_at' => now()
+        ]);
+
+        return redirect()->route('practice-assessments.take', $practiceAssessmentId);
+    }
+
+    public function takePracticeAssessment($practiceAssessmentId){
+        $cacheKey = 'practice_assessment_' . $practiceAssessmentId . '_shuffled';
+        $practiceAssessment = Cache::remember($cacheKey, now()->addMinutes(60), function () use ($practiceAssessmentId) {
+            $assessment = StudentPracticeAssessment::with([
+                'questions' => function ($query) {
+                    $query->with('question:id,text,correct_answer,options,topic_id,difficulty_level')
+                        ->select('id', 'practice_assessment_id', 'question_id', 'answered', 'is_correct');
+                },
+            ])
+            ->where('id', $practiceAssessmentId)
+            ->where('student_id', Auth::id())
+            ->firstOrFail();
+
+            // Shuffle questions
+            $shuffledQuestions = $assessment->questions->shuffle();
+
+            // Shuffle options for each question
+            foreach ($shuffledQuestions as $question) {
+                $question->question->options = collect(json_decode($question->question->options))->shuffle()->toArray();
+            }
+
+            $assessment->setRelation('questions', $shuffledQuestions);
+
+            return $assessment;
+        });
+
+        return inertia('PracticeAssessment/TakeAssessment', [
+            'practiceAssessment' => $practiceAssessment,
+        ]);
+    }
+
+    public function saveAnswer(Request $request, $practiceAssessmentId, $questionId){
+        $practiceAssessmentQuestion = StudentPracticeAssessmentQuestion::where('practice_assessment_id', $practiceAssessmentId)
+        ->where('question_id', $questionId)
+        ->firstOrFail();
+
+        $validated = $request->validate([
+            'selected_option' => 'required|string'
+        ]);
+
+        //Check if the selected option is correct
+        $question = $practiceAssessmentQuestion->question;
+        $isCorrect = $question->correct_answer === $validated['selected_option'];
+        
+        //Update the Student's answer
+        $practiceAssessmentQuestion->update([
+            'answered' => true,
+            'is_correct' => $isCorrect
+        ]);
+
+    }
+
+    public function submitAssessment($practiceAssessmentId)
+    {
+        $assessment = StudentPracticeAssessment::with('questions.question')->findOrFail($practiceAssessmentId);
+
+        // Calculate elapsed time
+        $elapsedTime = now()->diffInSeconds($assessment->started_at);
+        $timeLimit = strtotime($assessment->time_limit) - strtotime('TODAY');
+
+        // Check if the time limit has been exceeded
+        if ($elapsedTime > $timeLimit) {
+            $assessment->update([
+                'status' => 'timed_out',
+                'submitted_at' => now(),
+            ]);
+        } else {
+            $assessment->update([
+                'status' => 'completed',
+                'submitted_at' => now(),
+            ]);
+        }
+
+        // Grade the assessment (regardless of whether time expired or student submitted manually)
+        return $this->gradeAssessment($practiceAssessmentId);
+    }
+
+    public function gradeAssessment($practiceAssessmentId)
+    {
+        $assessment = StudentPracticeAssessment::findOrFail($practiceAssessmentId);
+
+        $questions = $assessment->questions()->with('question')->get();
+    
+        // Initialize grading variables
+        $correctAnswers = 0;
+        $incorrectAnswers = 0;
+    
+        // Variables for proficiency calculation
+        $numerator = [];
+        $denominator = [];
+    
+        foreach ($questions as $question) {
+            $isCorrect = $question->is_correct; // Check if the question was answered correctly
+    
+            if ($isCorrect) {
+                $correctAnswers++;
+            } else {
+                $incorrectAnswers++;
+            }
+    
+            // Proficiency calculation logic
+            $attemptWeight = 1 / $assessment->attempts; // A = 1 / attempts
+            $difficultyWeight = $this->getDifficultyWeight($question->question); // Get D (default = 1)
+            $score = $isCorrect ? 1 : 0; // Score is 1 for correct, 0 for incorrect
+    
+            $numerator[] = $attemptWeight * $score * $difficultyWeight;
+            $denominator[] = $difficultyWeight;
+        }
+    
+        // Calculate the final score for the assessment
+        $totalQuestions = $questions->count();
+        $scorePercentage = ($totalQuestions > 0) ? ($correctAnswers / $totalQuestions) * 100 : 0;
+    
+        // Save the results to the database
+        $assessment->results()->create([
+            'student_id' => $assessment->student_id,
+            'correct_answers' => $correctAnswers,
+            'incorrect_answers' => $incorrectAnswers,
+            'score_percentage' => $scorePercentage,
+        ]);
+    
+        // Update proficiency for each topic
+        foreach ($questions as $question) {
+            $this->updateTopicProficiency($assessment->student_id, $question->question->topic_id, $numerator, $denominator);
+        }
+    
+        return $assessment;
+    }
+
+    /**
+     * Get Difficulty Weight for a Question
+     */
+    private function getDifficultyWeight($question)
+    {
+        // Assign default difficulty weights (adjust as needed)
+        return match ($question->difficulty_level) {
+            'easy' => 1,
+            'moderate' => 2,
+            'advanced' => 3,
+            default => 1, // Default to easy if difficulty is missing
+        };
+    }
+    
 
 
     /**
      * Display the specified resource.
+     * To be remove/ change
      */
     public function show($id)
     {
@@ -430,6 +598,47 @@ class StudentPracticeAssessmentController extends Controller
         
         //dd($assessment->toArray());
         return inertia('PracticeAssessment/PracticeQuestionList', ['assessment' => $assessment]);
+    }
+
+    /**
+     * Update Topic Proficiency
+     */
+    private function updateTopicProficiency($studentId, $topicId, $numerator, $denominator)
+    {
+        $totalNumerator = array_sum($numerator);
+        $totalDenominator = array_sum($denominator);
+
+        $proficiencyScore = $totalDenominator > 0 ? $totalNumerator / $totalDenominator : 0;
+
+        // Update or create StudentTopicProficiency record
+        $proficiency = StudentTopicProficiency::firstOrCreate(
+            [
+                'student_id' => $studentId,
+                'topic_id' => $topicId,
+            ],
+            [
+                'proficiency_level' => 'beginner',
+                'grade' => 0.00,
+            ]
+        );
+
+        $proficiency->grade = $proficiencyScore * 100; // Convert to percentage
+        $proficiency->proficiency_level = $this->determineProficiencyLevel($proficiencyScore);
+        $proficiency->save();
+    }
+
+    /**
+     * Determine proficiency level based on score
+     */
+    private function determineProficiencyLevel($score)
+    {
+        if ($score >= 0.85) {
+            return 'advanced';
+        } elseif ($score >= 0.70) {
+            return 'intermediate';
+        } else {
+            return 'beginner';
+        }
     }
 
     /**
@@ -454,23 +663,5 @@ class StudentPracticeAssessmentController extends Controller
     public function destroy(StudentPracticeAssessment $studentPracticeAssessment)
     {
         //
-    }
-
-    /**
-     * Test the store method.
-     */
-    public function testStore()
-    {
-        $request = new Request([
-            'type' => 'proficiency',
-            
-            'subject_id' => 1,
-            'topics' => 1,
-            'total_items' => 10
-        ]);
-
-        $response = $this->store($request);
-
-        return $response;
     }
 }

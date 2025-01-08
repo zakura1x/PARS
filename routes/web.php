@@ -70,7 +70,6 @@ Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function 
     //Practice Assessment\
     Route::get('/student-practice-assessments/index', [StudentPracticeAssessmentController::class, 'index'])->name('practice-assessment-generator.index');
     Route::get('/student-practice-assessments/generator/form', [StudentPracticeAssessmentController::class, 'create'])->name('practice-assessment-generator.form');
-    Route::get('/student-practice-assessments/search-topics', [StudentPracticeAssessmentController::class, 'searchTopics'])->name('practice-assessment-generator.search-topics');
     Route::post('/student-practice-assessments/generate/assessment', [StudentPracticeAssessmentController::class, 'store'])->name('practice-assessment-generator.store');
     Route::get('/student-practice-assessments/generate/assessment/{id}', [StudentPracticeAssessmentController::class,'show'])->name('practice-assessment-generator.show');
 });
