@@ -6,7 +6,7 @@ use App\Models\TopicMaster;
 use App\Http\Requests\StoreTopicMasterRequest;
 use App\Http\Requests\UpdateTopicMasterRequest;
 use App\Models\Subject;
-use Illuminate\Http\Request;
+    use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 

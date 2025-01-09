@@ -7,6 +7,7 @@ const AddSubtopicsModal = ({
     topic,
     subject,
     topicMaster,
+    onSubtopicAdded, // Add this prop
 }) => {
     const { data, setData, post, processing, errors } = useForm({
         name: "", // This should be updated correctly
@@ -25,10 +26,10 @@ const AddSubtopicsModal = ({
         }
 
         post(`/topics/${subject.id}/store`, {
-            onSuccess: () => {
+            onSuccess: (response) => {
                 console.log("Subtopic added successfully");
                 toggleModal(); // Close the modal
-                router.reload();
+                onSubtopicAdded(response.subtopic); // Pass the new subtopic to the parent component
                 setData("name", ""); // Reset the name field
             },
             onError: (error) => {

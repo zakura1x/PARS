@@ -68,7 +68,7 @@ const TopicEdit = () => {
                         <a>Class</a>
                     </li>
                     <li>
-                        <Link href="/topicList">Topic Master</Link>
+                        <Link href="/topic/lists">Topic List</Link>
                     </li>
                     <li>
                         <Link href={`/topics/view/details/${subject.id}`}>

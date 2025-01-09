@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import { useForm } from "@inertiajs/react";
 
-const AddTopicsModal = ({ showModal, handleCancel, subjectId }) => {
+const AddTopicsModal = ({
+    showModal,
+    handleCancel,
+    subjectId,
+    onParentTopicAdded,
+}) => {
     const { post, errors, data, processing, reset, setData } = useForm({
         name: "",
         subject_id: subjectId,
@@ -12,8 +17,9 @@ const AddTopicsModal = ({ showModal, handleCancel, subjectId }) => {
 
     const handleSaveTopic = () => {
         post(`/topics/${subjectId}/store`, {
-            onSuccess: () => {
+            onSuccess: (response) => {
                 reset();
+                onParentTopicAdded(response.parentTopic);
                 handleCancel();
             },
         });

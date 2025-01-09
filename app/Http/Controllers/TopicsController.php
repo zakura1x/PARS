@@ -59,7 +59,7 @@ class TopicsController extends Controller
         return Inertia::render('TopicManagement/TopicEdit', [
             'topic' => $topics,
             'subTopics' => $topics->subTopics,
-            'parent' => $topics->parent,
+            'parentTopics' => $topics->parent,
             'subject' => $topics->subject,
         ]);
     }

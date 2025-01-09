@@ -10,30 +10,50 @@ import FlashMessage from "../../components/Notifications/FlashMessage";
 const TopicDetails = () => {
     const {
         subject,
-        topics = [],
+        topics,
         parentTopics = [],
-        subTopics = [],
+        subTopics,
         flash,
     } = usePage().props;
+
+    const { data, setData, post, errors } = useForm({
+        name: topics.name,
+        parentTopics: Array.isArray(parentTopics)
+            ? parentTopics
+            : Object.values(parentTopics),
+        subject_id: subject.id,
+    });
+
+    //console.log(parentTopics);
+    //console.log(subTopics);
+
+    // Sort topics based on the `order` field
+    const sortedTopics = Array.isArray(data.parentTopics)
+        ? data.parentTopics.sort((a, b) => a.order - b.order)
+        : [];
+
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false); // Add loading state
     const handleModal = () => setShowModal(!showModal);
 
     const onDragEnd = (result) => {
-        if (!result.destination) return; // Exit if there's no destination
+        if (!result.destination) return;
 
-        // Reorder parentTopics array in local state
-        const reorderedTopics = Array.from(parentTopics);
+        // Reorder the parent topics
+        const reorderedTopics = Array.from(sortedTopics);
         const [movedTopic] = reorderedTopics.splice(result.source.index, 1);
         reorderedTopics.splice(result.destination.index, 0, movedTopic);
 
-        // Update the order field in the reordered array
+        // Update the order in the local state (which will trigger a re-render)
         const updatedTopics = reorderedTopics.map((topic, index) => ({
-            id: topic.id,
-            order: index + 1, // Ensure sequential ordering (1-based index)
+            ...topic,
+            order: index + 1,
         }));
 
-        // Send reordered data to the backend
+        // Update the local state with the new order
+        setData("parentTopics", updatedTopics);
+
+        // Optionally, send the updated order to the backend
         setIsLoading(true);
         router.post(
             `/topics/reorder/${subject.id}`, // Backend route for reordering
@@ -48,6 +68,10 @@ const TopicDetails = () => {
                 },
             }
         );
+    };
+
+    const handleParentTopicAdded = (newParentTopic) => {
+        setData("parentTopics", [...data.parentTopics, newParentTopic]);
     };
 
     return (
@@ -72,17 +96,18 @@ const TopicDetails = () => {
                 handleModal={handleModal} // Pass the handleModal function
             ></DetailsHeader>
             <DetailsTable
-                parentTopics={parentTopics}
+                parentTopics={data.parentTopics} // Pass the updated parentTopics
                 subTopics={subTopics}
-                subject={subject}
                 isLoading={isLoading}
                 onDragEnd={onDragEnd}
             />
+
             {/* AddTopicsModal */}
             <AddTopicsModal
                 showModal={showModal}
                 handleCancel={handleModal}
                 subjectId={subject.id}
+                onParentTopicAdded={handleParentTopicAdded}
             />
         </div>
     );

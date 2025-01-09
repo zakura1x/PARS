@@ -9,13 +9,17 @@ const DetailsTable = ({
     isLoading,
     subTopics = [],
 }) => {
-    // Safely sort parent topics and subtopics (if not empty)
     const sortedParentTopics = Array.isArray(parentTopics)
-        ? [...parentTopics].sort((a, b) => (a.order || 0) - (b.order || 0))
-        : [];
-    const sortedSubTopics = Array.isArray(subTopics)
-        ? [...subTopics].sort((a, b) => (a.order || 0) - (b.order || 0))
-        : [];
+        ? parentTopics.sort((a, b) => a.order - b.order)
+        : Object.values(parentTopics).sort((a, b) => a.order - b.order);
+
+    const subTopicsArray = Array.isArray(subTopics)
+        ? subTopics
+        : Object.values(subTopics);
+
+    // console.log("Rendering DetailsTable");
+    // console.log("Parent Topics:", sortedParentTopics);
+    // console.log("Sub Topics:", subTopicsArray);
 
     return (
         <DragDropContext onDragEnd={!isLoading ? onDragEnd : () => {}}>
@@ -30,10 +34,8 @@ const DetailsTable = ({
                         {sortedParentTopics.length > 0 ? (
                             sortedParentTopics.map((topic, index) => (
                                 <Draggable
-                                    key={(topic.order ?? topic.id).toString()} // Use topic.id as a fallback if topic.order is null
-                                    draggableId={(
-                                        topic.order ?? topic.id
-                                    ).toString()} // Same here
+                                    key={topic.id} // Use topic.id as a fallback if topic.order is null
+                                    draggableId={topic.id.toString()} // Same here
                                     index={index}
                                     isDragDisabled={isLoading}
                                 >
@@ -65,18 +67,26 @@ const DetailsTable = ({
                                             <hr className="my-4 border-t-2 border-gray-400" />
                                             <div className="mt-2 pl-6 text-slate-800">
                                                 {/* Check if subtopics exist for the current parent topic */}
-                                                {sortedSubTopics.length > 0 &&
-                                                sortedSubTopics.some(
-                                                    (st) =>
+                                                {subTopicsArray.length > 0 &&
+                                                subTopicsArray.some((st) => {
+                                                    // console.log(
+                                                    //     `Checking subtopic ${st.id} with parent_id ${st.parent_id} against topic ${topic.id}`
+                                                    // );
+                                                    return (
                                                         st.parent_id ===
                                                         topic.id
-                                                ) ? (
-                                                    sortedSubTopics
-                                                        .filter(
-                                                            (st) =>
+                                                    );
+                                                }) ? (
+                                                    subTopicsArray
+                                                        .filter((st) => {
+                                                            const match =
                                                                 st.parent_id ===
-                                                                topic.id
-                                                        )
+                                                                topic.id;
+                                                            // console.log(
+                                                            //     `Subtopic ${st.id} with parent_id ${st.parent_id} matches topic ${topic.id}: ${match}`
+                                                            // );
+                                                            return match;
+                                                        })
                                                         .map((subtopic) => (
                                                             <div
                                                                 key={
