@@ -74,6 +74,10 @@ Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function 
     Route::get('/student-practice-assessments/generator/form', [StudentPracticeAssessmentController::class, 'create'])->name('practice-assessment-generator.form');
     Route::post('/student-practice-assessments/generate/assessment', [StudentPracticeAssessmentController::class, 'store'])->name('practice-assessment-generator.store');
     Route::get('/student-practice-assessments/generate/assessment/{id}', [StudentPracticeAssessmentController::class,'show'])->name('practice-assessment-generator.show');
+    Route::get('/student-practice-assessments/start/{id}', [StudentPracticeAssessmentController::class, 'startIndex'])->name('practice-assessment.start');
+    Route::post('/student-practice-assessments/answer/{id}', [StudentPracticeAssessmentController::class, 'startAssessment'])->name('practice-assessment.start-post');
+    Route::get('/student-practice-assessments/take/{id}', [StudentPracticeAssessmentController::class, 'takePracticeAssessment'])->name('practice-assessment.take');
+    Route::post('/student-practice-assessments/{practiceAssessmentId}/questions/{questionId}/save', [StudentPracticeAssessmentController::class,'saveAnswer'])->name('practice-assessment.save');
 });
 
 //TEster

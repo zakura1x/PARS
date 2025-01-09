@@ -149,7 +149,7 @@ class QuestionController extends Controller
             'topic_id' => 'required|exists:topics,id',
             'format_type' => 'required|in:multiple_choice,enumeration,true_or_false,fill_in_the_blank',
             'purpose_type' => 'required|in:practice,assessment,examination',
-            'difficulty' => 'required|in:remembering,understanding, analyzing, evaluating, create',
+            'difficulty' => 'required|in:remembering,understanding,analyzing,evaluating,create',
             'question_text' =>'required|string|max:255',
             'options' => 'required_if:question_type,multiple_choice|array|min:2',
             'options.*' => 'string|max:255',

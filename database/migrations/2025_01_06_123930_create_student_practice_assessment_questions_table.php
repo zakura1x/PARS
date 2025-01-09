@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('practice_assessment_id'); // Foreign key column
             $table->unsignedBigInteger('question_id');
+            $table->boolean('answered')->default(false); // New column
+            $table->boolean('is_correct')->default(false); // New column
             $table->timestamps();
 
             // Define foreign key constraint with a custom name

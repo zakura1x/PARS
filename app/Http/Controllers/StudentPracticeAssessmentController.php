@@ -18,6 +18,7 @@ use App\Models\TopicGradingCriteria;
 use App\Models\Topics;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class StudentPracticeAssessmentController extends Controller
 {
@@ -62,7 +63,7 @@ class StudentPracticeAssessmentController extends Controller
             return $query->where('name', 'like', "%{$search}%");
         })
         ->latest() // Orders by created_at in descending order
-        ->paginate(10);
+        ->get(); // Remove pagination
 
         // Return the inertia view with subjects
         return inertia('PracticeAssessment/PracticeGeneratorForm', [
@@ -108,11 +109,10 @@ class StudentPracticeAssessmentController extends Controller
         $validated = $request->validate([
             'type' => 'required|in:proficiency,criteria,exam',
             'subject_id' => 'required|exists:subjects,id',
-            'topics' => 'nullable|array',
+            'topics' => 'required|array',
             'topics.*' => 'exists:topics,id',
             'total_items' => 'required|integer|min:1',
-            'time_limit' => 'nullable',
-
+            'time_limit' => 'required|integer',
         ]);
 
         $studentId = Auth::id();
@@ -120,6 +120,13 @@ class StudentPracticeAssessmentController extends Controller
         $subjectId = $validated['subject_id'];
         $topics = $validated['topics'] ?: Subject::find($subjectId)->topics->pluck('id')->toArray();
         $totalItems = $validated['total_items'];
+
+        // Convert time_limit from minutes to HH:MM:SS format
+        $timeLimitInSeconds = $validated['time_limit'] * 60;
+        $hours = floor($timeLimitInSeconds / 3600);
+        $minutes = floor(($timeLimitInSeconds % 3600) / 60);
+        $seconds = $timeLimitInSeconds % 60;
+        $timeLimitFormatted = sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
 
         // Check if TopicGradingCriteria is available for the selected topics
         if ($type === 'criteria') {
@@ -156,6 +163,9 @@ class StudentPracticeAssessmentController extends Controller
             $questions = $this->generateExamQuestions($studentId, $subjectId);
         }
 
+        // Debugging: Log the generated questions
+        Log::info('Generated Questions:', $questions->toArray());
+
         // Check if questions are empty
         if (empty($questions) || $questions->isEmpty()) {
             return response()->json(['message' => 'No questions available for this assessment.'], 422);
@@ -167,7 +177,7 @@ class StudentPracticeAssessmentController extends Controller
             'subject_id' => $subjectId,
             'total_items' => count($questions),
             'type' => $type,
-            'time_limit' => $validated['time_limit'],
+            'time_limit' => $timeLimitFormatted,
         ]);
 
 
@@ -209,6 +219,9 @@ class StudentPracticeAssessmentController extends Controller
                 ->where('topic_id', $topicId)
                 ->first();
 
+            // Log proficiency
+            Log::info("Proficiency for student $studentId and topic $topicId:", ['proficiency' => $proficiency]);
+
             // Bloom levels weighting based on proficiency
             $proficiencyWeighting = [
                 'beginner' => ['Remembering' => 0.7, 'Understanding' => 0.3],
@@ -225,6 +238,9 @@ class StudentPracticeAssessmentController extends Controller
                 $questionsPerLevel[$level] = (int) ceil(($weight / $totalWeight) * $questionsPerTopic);
             }
 
+            // Log questions per level
+            Log::info("Questions per level for topic $topicId:", ['questionsPerLevel' => $questionsPerLevel]);
+
             // Retrieve questions per Bloom level
             $topicQuestions = collect();
             foreach ($bloomWeights as $level => $weight) {
@@ -238,6 +254,9 @@ class StudentPracticeAssessmentController extends Controller
                     ->inRandomOrder()
                     ->take($questionsPerLevel[$level])
                     ->get();
+
+                // Log retrieved questions
+                Log::info("Retrieved questions for topic $topicId and level $level:", ['questions' => $levelQuestions]);
 
                 $topicQuestions = $topicQuestions->merge($levelQuestions);
             }
@@ -255,8 +274,29 @@ class StudentPracticeAssessmentController extends Controller
                     ->take($remaining)
                     ->get();
                 
+                // Log additional questions
+                Log::info("Additional questions for topic $topicId:", ['questions' => $additionalQuestions]);
+
                 $topicQuestions = $topicQuestions->merge($additionalQuestions);
-            }
+                }
+                // Step 6: If still not enough questions, get random questions regardless of difficulty
+                if ($topicQuestions->count() < $questionsPerTopic) {
+                    $remaining = $questionsPerTopic - $topicQuestions->count();
+                    $randomQuestions = Question::where('topic_id', $topicId)
+                        ->where('purpose_type', 'practice')
+                        ->whereDoesntHave('studentQuestionUsages', function ($query) use ($studentId) {
+                            $query->where('student_id', $studentId)
+                                ->where('is_used', true);
+                        })
+                        ->inRandomOrder()
+                        ->take($remaining)
+                        ->get();
+
+                    // Log random questions
+                    Log::info("Random questions for topic $topicId:", ['questions' => $randomQuestions]);
+
+                    $topicQuestions = $topicQuestions->merge($randomQuestions);
+                }
 
             // Step 5: Mark fetched questions as used
             foreach ($topicQuestions as $question) {
@@ -287,6 +327,9 @@ class StudentPracticeAssessmentController extends Controller
             // Step 1: Get the grading criteria for the topic
             $criteria = TopicGradingCriteria::getCriteriaByTopic($topicId);
 
+            // Log criteria
+            Log::info("Criteria for topic $topicId:", ['criteria' => $criteria]);
+
             foreach ($criteria as $criterion) {
                 // Step 2: Calculate the number of questions based on the percentage
                 $questionsForCriterion = (int) floor(($criterion->percentage / 100) * $totalItems);
@@ -311,6 +354,9 @@ class StudentPracticeAssessmentController extends Controller
                         ->take($questionsForCriterion)
                         ->get();
 
+                    // Log retrieved questions
+                    Log::info("Retrieved questions for topic $topicId and level $level:", ['questions' => $levelQuestions]);
+
                     $criterionQuestions = $criterionQuestions->merge($levelQuestions);
                 }
 
@@ -330,6 +376,9 @@ class StudentPracticeAssessmentController extends Controller
                         ->take($remaining)
                         ->get();
 
+                    // Log additional questions
+                    Log::info("Additional questions for topic $topicId:", ['questions' => $additionalQuestions]);
+
                     // Merge additional questions into the result
                     $criterionQuestions = $criterionQuestions->merge($additionalQuestions);
                 }
@@ -346,6 +395,9 @@ class StudentPracticeAssessmentController extends Controller
                         ->inRandomOrder()
                         ->take($remaining)
                         ->get();
+
+                    // Log random questions
+                    Log::info("Random questions for topic $topicId:", ['questions' => $randomQuestions]);
 
                     $criterionQuestions = $criterionQuestions->merge($randomQuestions);
                 }
@@ -384,6 +436,9 @@ class StudentPracticeAssessmentController extends Controller
             throw new \Exception('No Table of Specification defined for this subject.');
         }
 
+        // Log Table of Specification
+        Log::info("Table of Specification for subject $subjectId:", ['tableOfSpecifications' => $tableOfSpecifications]);
+
         // Step 2: Calculate the total items based on ToS
         foreach ($tableOfSpecifications as $tos) {
             $totalItems += $tos->total_items;
@@ -406,6 +461,9 @@ class StudentPracticeAssessmentController extends Controller
                 ->take($questionsForTopic)
                 ->get();
 
+            // Log retrieved questions
+            Log::info("Retrieved questions for topic $topicId and difficulty {$tos->difficulty}:", ['questions' => $topicQuestions]);
+
             // Step 5: If all questions are used, reset usage
             if ($topicQuestions->count() < $questionsForTopic) {
                 // Reset all used questions for this topic
@@ -425,6 +483,9 @@ class StudentPracticeAssessmentController extends Controller
                     ->inRandomOrder()
                     ->take($remainingQuestionsNeeded)
                     ->get();
+
+                // Log additional questions
+                Log::info("Additional questions for topic $topicId after reset:", ['questions' => $additionalQuestions]);
 
                 $topicQuestions = $topicQuestions->merge($additionalQuestions);
             }
@@ -447,6 +508,9 @@ class StudentPracticeAssessmentController extends Controller
     /**
      * Taking the Practice assessment
      */
+    public function startIndex($practiceAssessmentId){
+        return inertia('PracticeAssessment/PracticeStart', ['practiceAssessmentId' => $practiceAssessmentId]);
+    }
 
     public function startAssessment($practiceAssessmentId){
         $assessment = StudentPracticeAssessment::findOrFail($practiceAssessmentId);
@@ -460,7 +524,7 @@ class StudentPracticeAssessmentController extends Controller
             'started_at' => now()
         ]);
 
-        return redirect()->route('practice-assessments.take', $practiceAssessmentId);
+        return redirect()->route('practice-assessment.take', $practiceAssessmentId);
     }
 
     public function takePracticeAssessment($practiceAssessmentId){
@@ -468,7 +532,7 @@ class StudentPracticeAssessmentController extends Controller
         $practiceAssessment = Cache::remember($cacheKey, now()->addMinutes(60), function () use ($practiceAssessmentId) {
             $assessment = StudentPracticeAssessment::with([
                 'questions' => function ($query) {
-                    $query->with('question:id,text,correct_answer,options,topic_id,difficulty_level')
+                    $query->with('question:id,question_text,correct_answer,options,topic_id,difficulty')
                         ->select('id', 'practice_assessment_id', 'question_id', 'answered', 'is_correct');
                 },
             ])
@@ -481,7 +545,11 @@ class StudentPracticeAssessmentController extends Controller
 
             // Shuffle options for each question
             foreach ($shuffledQuestions as $question) {
-                $question->question->options = collect(json_decode($question->question->options))->shuffle()->toArray();
+                $options = $question->question->options;
+                if (!is_array($options)) {
+                    $options = json_decode($options, true);
+                }
+                $question->question->options = collect($options)->shuffle()->toArray();
             }
 
             $assessment->setRelation('questions', $shuffledQuestions);
@@ -503,6 +571,15 @@ class StudentPracticeAssessmentController extends Controller
             'selected_option' => 'required|string'
         ]);
 
+        // Check if the assessment is still within the time limit
+        $assessment = StudentPracticeAssessment::findOrFail($practiceAssessmentId);
+        $elapsedTime = now()->diffInSeconds($assessment->started_at);
+        $timeLimit = strtotime($assessment->time_limit) - strtotime('TODAY');
+
+        if ($elapsedTime > $timeLimit) {
+            return response()->json(['message' => 'Time limit exceeded. Answer cannot be saved.'], 422);
+        }
+
         //Check if the selected option is correct
         $question = $practiceAssessmentQuestion->question;
         $isCorrect = $question->correct_answer === $validated['selected_option'];
@@ -512,6 +589,8 @@ class StudentPracticeAssessmentController extends Controller
             'answered' => true,
             'is_correct' => $isCorrect
         ]);
+
+        return back();
 
     }
 
