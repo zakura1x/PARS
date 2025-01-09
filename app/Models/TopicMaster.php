@@ -27,10 +27,6 @@ class TopicMaster extends Model
                     ->withTimestamps();
     }
     
-    
-
-    
-
     public function subject(){
         return $this->belongsTo(Subject::class, 'subject_id');
     }

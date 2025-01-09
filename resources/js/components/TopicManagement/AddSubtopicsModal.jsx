@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useForm } from "@inertiajs/react";
+import { useForm, router } from "@inertiajs/react";
 
 const AddSubtopicsModal = ({
     showModal,
@@ -24,12 +24,11 @@ const AddSubtopicsModal = ({
             return;
         }
 
-        console.log(topicMaster.id);
-
-        post(`/topics/${topicMaster.id}/add-topics`, {
+        post(`/topics/${subject.id}/store`, {
             onSuccess: () => {
                 console.log("Subtopic added successfully");
                 toggleModal(); // Close the modal
+                router.reload();
                 setData("name", ""); // Reset the name field
             },
             onError: (error) => {

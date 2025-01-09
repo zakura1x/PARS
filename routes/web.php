@@ -36,17 +36,18 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::post('/subjects/edit/{id}', [SubjectController::class, 'edit'])->name('subjects-edit');
 
     //MASTER TOPIC MANAGEMENT
-    Route::get('/topicList', [TopicMasterController::class, 'index'])->name('topicList');
-    Route::post('/topic-masters/add',[TopicMasterController::class,'store'])->name('topic-masters.store');
-    Route::get('/topic-masters/{id}/edit', [TopicMasterController::class, 'edit'])->name('topic-masters.edit');
-    Route::put('/topic-masters/{id}', [TopicMasterController::class, 'update'])->name('topic-masters.update');
-    Route::delete('/topic-masters/{id}', [TopicMasterController::class, 'destroy'])->name('topic-masters.destroy');
+    // Route::get('/topicList', [TopicMasterController::class, 'index'])->name('topicList');
+    // Route::post('/topic-masters/add',[TopicMasterController::class,'store'])->name('topic-masters.store');
+    // Route::get('/topic-masters/{id}/edit', [TopicMasterController::class, 'edit'])->name('topic-masters.edit');
+    // Route::put('/topic-masters/{id}', [TopicMasterController::class, 'update'])->name('topic-masters.update');
+    // Route::delete('/topic-masters/{id}', [TopicMasterController::class, 'destroy'])->name('topic-masters.destroy');
 
     //TOPIC/SUBTOPICS MANAGEMENT
-    Route::get('/topicDetails', [TopicsController::class, 'index'])->name('topicDetails');
-    Route::post('/topics/{id}/add-topics', [TopicsController::class, 'store'])->name('topics.store');
-    Route::post('/topics/{topicMasterId}/reorder', [TopicsController::class, 'reorder'])->name('topics.reorder');
-    Route::get('/topics/{id}/{topicMasterId}/edit', [TopicsController::class, 'editView'])->name('topics.edit');
+    Route::get('/topic/lists', [TopicsController::class, 'index'])->name('topics.index');
+    Route::get('/topics/view/details/{subjectId}', [TopicsController::class, 'viewDetails'])->name('topics.view-details');
+    Route::post('/topics/{subjectId}/store', [TopicsController::class, 'store'])->name('topics.store');
+    Route::post('/topics/reorder/{subjectId}', [TopicsController::class, 'reorderTopics'])->name('topics.reorder');
+    Route::get('/topics/edit/{subjectId}', [TopicsController::class, 'editView'])->name('topics.edit');
     
 
     //Question Management

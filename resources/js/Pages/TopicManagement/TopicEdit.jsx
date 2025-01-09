@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { useForm, usePage, Link } from "@inertiajs/react";
+import { useForm, usePage, Link, router } from "@inertiajs/react";
 import AddSubtopicsModal from "../../components/TopicManagement/AddSubtopicsModal";
 
-const TopicEdit = ({ onSave, onCancel }) => {
-    const { topic, subject, topicMaster } = usePage().props; // Extract `topic` and `subject` from the page props
+const TopicEdit = () => {
+    const { topic, subject, subTopics } = usePage().props; // Extract `topic` and `subject` from the page props
 
     // States for modal visibility
     const [showSubtopicModal, setShowSubtopicModal] = useState(false);
@@ -13,39 +13,36 @@ const TopicEdit = ({ onSave, onCancel }) => {
 
     const { data, setData, post, errors } = useForm({
         name: topic.name,
-        subtopics: topic.sub_topics || [], // Set subtopics for editing
+        subtopics: subTopics || [], // Set subtopics for editing
         subject_id: subject.id,
     });
 
-    // Handle the removal of subtopics
-    const handleRemoveSubtopic = (index) => {
-        const updatedSubtopics = data.subtopics.filter((_, i) => i !== index);
-        setData("subtopics", updatedSubtopics);
-    };
+    // Sort subtopics based on the `order` field
+    const sortedSubtopics = data.subtopics.sort((a, b) => a.order - b.order);
 
     // Handle the drag-and-drop functionality
     const onDragEnd = (result) => {
-        if (!result.destination) return;
+        if (!result.destination) return; // Exit if there's no destination
 
-        // Reorder subtopics
-        const reorderedSubtopics = Array.from(topic.sub_topics);
-        const [movedSubtopic] = reorderedSubtopics.splice(
-            result.source.index,
-            1
-        );
-        reorderedSubtopics.splice(result.destination.index, 0, movedSubtopic);
+        // Reorder subtopics array in local state
+        const reorderedTopics = Array.from(sortedSubtopics);
+        const [movedTopic] = reorderedTopics.splice(result.source.index, 1);
+        reorderedTopics.splice(result.destination.index, 0, movedTopic);
 
-        // Update subtopics order in the state
-        const updatedSubtopics = reorderedSubtopics.map((subtopic, index) => ({
-            ...subtopic,
-            order: index + 1,
+        // Update the `order` fields
+        const updatedTopics = reorderedTopics.map((topic, index) => ({
+            ...topic,
+            order: index + 1, // Update order
         }));
 
-        // Sync with backend
+        // Update the local state with the new order
+        setData("subtopics", updatedTopics);
+
+        // Send reordered data to the backend
         setIsLoading(true);
         router.post(
-            `/topics/${topic.id}/update-subtopics-order`,
-            { subtopics: updatedSubtopics },
+            `/topics/reorder/${subject.id}`, // Backend route for reordering
+            { topics: updatedTopics }, // Payload
             {
                 onSuccess: () => {
                     setIsLoading(false);
@@ -58,27 +55,8 @@ const TopicEdit = ({ onSave, onCancel }) => {
         );
     };
 
-    // Handle subtopic name changes
-    const handleSubtopicChange = (index, newName) => {
-        const updatedSubtopics = [...data.subtopics];
-        updatedSubtopics[index].name = newName;
-        setData("subtopics", updatedSubtopics);
-    };
-
-    // Save subtopics to the backend
-    const saveSubtopics = () => {
-        post(
-            `/topics/${topic.id}/update-subtopics`,
-            { subtopics: data.subtopics },
-            {
-                onSuccess: () => {
-                    setShowSubtopicModal(false);
-                },
-                onError: (errors) => {
-                    console.error(errors);
-                },
-            }
-        );
+    const handleSubtopicAdded = (newSubtopic) => {
+        setData("subtopics", [...data.subtopics, newSubtopic]);
     };
 
     return (
@@ -93,7 +71,7 @@ const TopicEdit = ({ onSave, onCancel }) => {
                         <Link href="/topicList">Topic Master</Link>
                     </li>
                     <li>
-                        <Link href={`/topic-masters/${topicMaster.id}/edit`}>
+                        <Link href={`/topics/view/details/${subject.id}`}>
                             Topic Details
                         </Link>
                     </li>
@@ -110,7 +88,9 @@ const TopicEdit = ({ onSave, onCancel }) => {
                     <h2 className="text-lg font-bold">
                         Edit Topic Information
                     </h2>
-                    <h2 className="text-md font-medium">{topic.name}</h2>
+                    <h2 className="text-md font-medium">
+                        Topic Name: {topic.name}
+                    </h2>
                 </div>
                 <div className="flex flex-col items-center space-y-2 lg:flex-row lg:space-x-2 lg:space-y-0">
                     <button
@@ -119,19 +99,13 @@ const TopicEdit = ({ onSave, onCancel }) => {
                     >
                         + Add Subtopic
                     </button>
-                    <button
-                        className="btn border-none bg-[#303030] text-white hover:bg-[#42604C]"
-                        onClick={toggleSubtopicModal}
-                    >
-                        - Edit Topic title
-                    </button>
                 </div>
             </div>
             <hr className="my-4 border-t-2 border-gray-400" />
 
             {/* Subtopics (Draggable) */}
             <div className="mb-4">
-                {data.subtopics.length > 0 ? (
+                {subTopics.length > 0 ? (
                     <DragDropContext onDragEnd={onDragEnd}>
                         <Droppable droppableId="subtopics">
                             {(provided) => (
@@ -140,7 +114,7 @@ const TopicEdit = ({ onSave, onCancel }) => {
                                     ref={provided.innerRef}
                                     className="space-y-4"
                                 >
-                                    {topic.sub_topics.map((subtopic, index) => (
+                                    {data.subtopics.map((subtopic, index) => (
                                         <Draggable
                                             key={subtopic.id}
                                             draggableId={subtopic.id.toString()}
@@ -183,7 +157,7 @@ const TopicEdit = ({ onSave, onCancel }) => {
                 toggleModal={toggleSubtopicModal}
                 topic={topic}
                 subject={subject}
-                topicMaster={topicMaster}
+                onSubtopicAdded={handleSubtopicAdded} // Pass the handler as a prop
             />
         </div>
     );

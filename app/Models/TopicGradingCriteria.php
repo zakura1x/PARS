@@ -28,4 +28,18 @@ class TopicGradingCriteria extends Model
     public static function getCriteriaByTopic($topicId){
         return self::where('topic_id', $topicId)->get();
     }
+
+    public static function getBloomLevelsForDifficulty($difficulty)
+    {
+        $bloomMapping = [
+            'remembering' => ['Remembering'],
+            'understanding' => ['Understanding'],
+            'applying' => ['Applying'],
+            'analyzing' => ['Analyzing'],
+            'evaluating' => ['Evaluating'],
+            'create' => ['Creating'],
+        ];
+
+        return $bloomMapping[$difficulty] ?? ['Remembering'];  // Default to 'Remembering' if difficulty is undefined
+    }
 }

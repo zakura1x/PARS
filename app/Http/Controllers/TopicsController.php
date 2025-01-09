@@ -4,44 +4,69 @@ namespace App\Http\Controllers;
 
 use App\Models\Topics;
 use App\Http\Requests\UpdateTopicsRequest;
-use App\Models\TopicMaster;
+use App\Models\Subject;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class TopicsController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return inertia('TopicManagement/TopicDetails');
+        //Get all the subjects
+        $subjects = Subject::all();
+
+        return inertia('TopicManagement/TopicList', [
+            'subjects' => $subjects
+        ]);
     }
+
+    public function viewDetails($subjectId)
+    {
+        // Find the subject by ID or return null if not found
+        $subject = Subject::find($subjectId);
+    
+        // If no subject exists, set topics as an empty collection
+        $topics = $subject ? $subject->topics()->with(['parent', 'subTopics'])->get() : collect();
+    
+        // Get parent topics (or empty if no topics)
+        $parentTopics = $topics->whereNull('parent_id');
+    
+        // Get subtopics (or empty if no topics)
+        $subTopics = $topics->whereNotNull('parent_id');
+    
+        return Inertia::render('TopicManagement/TopicDetails', [
+            'subject' => $subject,
+            'topics' => $topics,
+            'parentTopics' => $parentTopics,
+            'subTopics' => $subTopics,
+        ]);
+    }
+    
 
     /*
      * View for editing topic
      */
-    public function editView($id, $topicMasterId){
+    public function editView($id){
         //Fetch the topic and its subtopics
         $topics = Topics::with(['subTopics' , 'subject', 'parent'])->findOrFail($id);
-        $topicMaster = TopicMaster::findOrFail($topicMasterId);
-        //debugging
-        //dd($topicMaster);
-        //dd($topics);
+        //$subject = Subject::findOrFail($subjectId);
 
         return Inertia::render('TopicManagement/TopicEdit', [
             'topic' => $topics,
             'subTopics' => $topics->subTopics,
             'parent' => $topics->parent,
             'subject' => $topics->subject,
-            'topicMaster' => $topicMaster
         ]);
     }
 
-    public function store(Request $request, string $id)
+    public function store(Request $request, string $subjectId)
     {
-        $topicMaster = TopicMaster::findOrFail($id);
+        $subject = Subject::findOrFail($subjectId);
 
         // Validate the request data
         $validated = $request->validate([
@@ -50,13 +75,6 @@ class TopicsController extends Controller
             'subject_id' => 'required|integer|exists:subjects,id',
         ]);
 
-        //dd($validated);
-
-        // // Ensure parent topic belongs to the same topic master
-        // if ($validated['parent_id'] && !$topicMaster->topics()->where('id', $validated['parent_id'])->exists()) {
-        //     return response()->json(['error' => 'Invalid parent topic'], 422);
-        // }
-
         // Create the topic
         $topic = Topics::create([
             'name' => $validated['name'],
@@ -64,61 +82,55 @@ class TopicsController extends Controller
             'subject_id' => $validated['subject_id'],
         ]);
 
-        if (!array_key_exists('parent_id', $validated) || is_null($validated['parent_id'])) {
-            // Main topic: Calculate the next order value
-            $nextOrder = $topicMaster->topics()->max('topic_master_topics.order') + 1;
+        // Find the subject by ID or return null if not found
+        $subject = Subject::find($subjectId);
+    
+        // If no subject exists, set topics as an empty collection
+        $topics = $subject ? $subject->topics()->with(['parent', 'subTopics'])->get() : collect();
+    
+        // Get parent topics (or empty if no topics)
+        $parentTopics = $topics->whereNull('parent_id');
+    
+        // Get subtopics (or empty if no topics)
+        $subTopics = $topics->whereNotNull('parent_id');
 
-            // Attach the topic to the TopicMaster
-            $topicMaster->topics()->attach($topic->id, ['order' => $nextOrder]);
-        } else {
-            // Subtopic: Attach using the parent's order
-            $parentTopic = Topics::findOrFail($validated['parent_id']);
-            $parentOrder = $topicMaster
-                ->topics()
-                ->wherePivot('topics_id', $parentTopic->id)
-                ->firstOrFail()
-                ->pivot->order;
-
-            // Attach the subtopic with the parent's order
-            $topicMaster->topics()->attach($topic->id, ['order' => $parentOrder]);
-        }
-
-        // Fetch the updated topicMaster with its topics and subject
-        $updatedTopicMaster = TopicMaster::with(['subject', 'topics'])->findOrFail($id);
-
-        return response()->json([
+        return redirect()->back()->with([
             'message' => 'Subtopic added successfully',
-            'topicMaster' => $updatedTopicMaster,
+            'subject' => $subject,
+            'parentTopics' => $parentTopics,
+            'subTopics' => $subTopics,
         ]);
     }
-
-
-    
 
     /**
      * Update the topic order
     */
-    public function reorder(Request $request, $topicMasterId)
+    public function reorderTopics(Request $request, $id)
     {
-        $topicMaster = TopicMaster::findOrFail($topicMasterId);
-
         $validated = $request->validate([
-            'topics' => 'required|array',
+            'topics' => 'required|array', // Array of topics to reorder
             'topics.*.id' => 'required|exists:topics,id',
             'topics.*.order' => 'required|integer|min:1',
         ]);
     
-        DB::transaction(function () use ($topicMaster, $validated) {
-            foreach ($validated['topics'] as $topic) {
-                $topicMaster->topics()->updateExistingPivot($topic['id'], ['order' => $topic['order']]);
+        DB::transaction(function () use ($validated) {
+            foreach ($validated['topics'] as $index => $topic) {
+                Topics::where('id', $topic['id'])->update(['order' => $index + 1]);
             }
         });
+
+        // Fetch parent and subtopics separately
+        $topics = Topics::with(['subTopics' , 'subject', 'parent'])->findOrFail($id);
     
-        return response()->json([
-            'message' => 'Topics reordered successfully',
-            'topics' => $topicMaster->topics()->orderBy('pivot_order')->get(),
-        ]);
+        // Return an Inertia response with the updated topics
+        return redirect()->back()->with([
+            'message' => 'Topics reordered successfully.',
+            'subTopics' => $topics->subTopics,
+            'parent' => $topics->parent,
+            'topics' => Topics::orderBy('order')->get(),]
+        );
     }
+    
 
     /**
      * Edit/update the topic
@@ -135,7 +147,6 @@ class TopicsController extends Controller
 
         $topic->update([
             'name' => $validated['name'],
-            
         ]);
 
         return redirect()->back()->with('message', 'Topic was updated successfully');

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreStudentPracticeAssessmentRequest;
 use App\Http\Requests\UpdateStudentPracticeAssessmentRequest;
 use App\Models\Question;
+use App\Models\StudentAssessmentTopicProficiencies;
 use App\Models\StudentPracticeAssessment;
 use App\Models\StudentPracticeAssessmentQuestion;
 use App\Models\StudentPracticeResult;
@@ -208,43 +209,53 @@ class StudentPracticeAssessmentController extends Controller
                 ->where('topic_id', $topicId)
                 ->first();
 
-            // Step 2: Determine Bloom's levels based on proficiency
-            $bloomLevels = match ($proficiency?->proficiency_level) {
-                'beginner' => ['Remembering', 'Understanding'],
-                'intermediate' => ['Applying', 'Analyzing'],
-                'advanced' => ['Evaluating', 'Creating'],
-                default => ['Remembering', 'Understanding'], // Default for no proficiency
-            };
+            // Bloom levels weighting based on proficiency
+            $proficiencyWeighting = [
+                'beginner' => ['Remembering' => 0.7, 'Understanding' => 0.3],
+                'intermediate' => ['Applying' => 0.4, 'Analyzing' => 0.4, 'Remembering' => 0.2],
+                'advanced' => ['Evaluating' => 0.3, 'Creating' => 0.3, 'Analyzing' => 0.2, 'Applying' => 0.2],
+            ];
 
-            // Step 3: Check unused questions
-            $topicQuestions = Question::where('topic_id', $topicId)
-                ->where('purpose_type', 'practice')
-                ->whereIn('difficulty', $bloomLevels)
-                ->whereDoesntHave('studentQuestionUsages', function ($query) use ($studentId) {
-                    $query->where('student_id', $studentId)
-                        ->where('is_used', true);
-                })
-                ->inRandomOrder()
-                ->take($questionsPerTopic)
-                ->get();
+            $bloomWeights = $proficiencyWeighting[$proficiency?->proficiency_level] ?? $proficiencyWeighting['beginner'];
 
-            // Step 4: If all questions are used, reset usage for this student
-            if ($topicQuestions->isEmpty()) {
-                StudentQuestionUsage::where('student_id', $studentId)
-                    ->whereIn('question_id', Question::where('topic_id', $topicId)->pluck('id'))
-                    ->update(['is_used' => false]);
+            // Calculate number of questions per Bloom level
+            $questionsPerLevel = [];
+            $totalWeight = array_sum($bloomWeights);
+            foreach ($bloomWeights as $level => $weight) {
+                $questionsPerLevel[$level] = (int) ceil(($weight / $totalWeight) * $questionsPerTopic);
+            }
 
-                // Re-fetch questions after reset
-                $topicQuestions = Question::where('topic_id', $topicId)
+            // Retrieve questions per Bloom level
+            $topicQuestions = collect();
+            foreach ($bloomWeights as $level => $weight) {
+                $levelQuestions = Question::where('topic_id', $topicId)
                     ->where('purpose_type', 'practice')
-                    ->whereIn('difficulty', $bloomLevels)
+                    ->where('difficulty', $level)
                     ->whereDoesntHave('studentQuestionUsages', function ($query) use ($studentId) {
                         $query->where('student_id', $studentId)
                             ->where('is_used', true);
                     })
                     ->inRandomOrder()
-                    ->take($questionsPerTopic)
+                    ->take($questionsPerLevel[$level])
                     ->get();
+
+                $topicQuestions = $topicQuestions->merge($levelQuestions);
+            }
+
+             // Handle fallback if questions are insufficient
+            if ($topicQuestions->count() < $questionsPerTopic) {
+                $remaining = $questionsPerTopic - $topicQuestions->count();
+                $additionalQuestions = Question::where('topic_id', $topicId)
+                    ->where('purpose_type', 'practice')
+                    ->whereDoesntHave('studentQuestionUsages', function ($query) use ($studentId) {
+                        $query->where('student_id', $studentId)
+                            ->where('is_used', true);
+                    })
+                    ->inRandomOrder()
+                    ->take($remaining)
+                    ->get();
+                
+                $topicQuestions = $topicQuestions->merge($additionalQuestions);
             }
 
             // Step 5: Mark fetched questions as used
@@ -284,35 +295,14 @@ class StudentPracticeAssessmentController extends Controller
                 $questionsForCriterion = max($questionsForCriterion, $criterion->min_questions);
 
                 // Map difficulty to Bloom's levels
-                $bloomLevels = match ($criterion->difficulty) {
-                    'easy' => ['Remembering', 'Understanding'],
-                    'medium' => ['Applying', 'Analyzing'],
-                    'hard' => ['Evaluating', 'Creating'],
-                    default => ['Remembering'], // Fallback for undefined difficulty
-                };
+                $bloomLevels = TopicGradingCriteria::getBloomLevelsForDifficulty($criterion->difficulty);
 
-                // Step 3: Check unused questions
-                $criterionQuestions = Question::where('topic_id', $topicId)
-                    ->where('purpose_type', 'practice')
-                    ->whereIn('difficulty', $bloomLevels)
-                    ->whereDoesntHave('studentQuestionUsages', function ($query) use ($studentId) {
-                        $query->where('student_id', $studentId)
-                            ->where('is_used', true);
-                    })
-                    ->inRandomOrder()
-                    ->take($questionsForCriterion)
-                    ->get();
-
-                // Step 4: If all questions are used, reset usage for this student
-                if ($criterionQuestions->isEmpty()) {
-                    StudentQuestionUsage::where('student_id', $studentId)
-                        ->whereIn('question_id', Question::where('topic_id', $topicId)->pluck('id'))
-                        ->update(['is_used' => false]);
-
-                    // Re-fetch questions after reset
-                    $criterionQuestions = Question::where('topic_id', $topicId)
+                // Step 4: Check unused questions and retrieve questions per Bloom level
+                $criterionQuestions = collect();
+                foreach ($bloomLevels as $level) {
+                    $levelQuestions = Question::where('topic_id', $topicId)
                         ->where('purpose_type', 'practice')
-                        ->whereIn('difficulty', $bloomLevels)
+                        ->where('difficulty', $level)
                         ->whereDoesntHave('studentQuestionUsages', function ($query) use ($studentId) {
                             $query->where('student_id', $studentId)
                                 ->where('is_used', true);
@@ -320,6 +310,44 @@ class StudentPracticeAssessmentController extends Controller
                         ->inRandomOrder()
                         ->take($questionsForCriterion)
                         ->get();
+
+                    $criterionQuestions = $criterionQuestions->merge($levelQuestions);
+                }
+
+                // Step 5: If not enough questions, fallback to other difficulty levels
+                if ($criterionQuestions->count() < $questionsForCriterion) {
+                    $remaining = $questionsForCriterion - $criterionQuestions->count();
+
+                    // Fetch additional questions from different difficulty levels
+                    $additionalQuestions = Question::where('topic_id', $topicId)
+                        ->where('purpose_type', 'practice')
+                        ->whereDoesntHave('studentQuestionUsages', function ($query) use ($studentId) {
+                            $query->where('student_id', $studentId)
+                                ->where('is_used', true);
+                        })
+                        ->whereNotIn('difficulty', $bloomLevels) // Exclude selected Bloom levels
+                        ->inRandomOrder()
+                        ->take($remaining)
+                        ->get();
+
+                    // Merge additional questions into the result
+                    $criterionQuestions = $criterionQuestions->merge($additionalQuestions);
+                }
+
+                // Step 6: If still not enough questions, get random questions regardless of difficulty
+                if ($criterionQuestions->count() < $questionsForCriterion) {
+                    $remaining = $questionsForCriterion - $criterionQuestions->count();
+                    $randomQuestions = Question::where('topic_id', $topicId)
+                        ->where('purpose_type', 'practice')
+                        ->whereDoesntHave('studentQuestionUsages', function ($query) use ($studentId) {
+                            $query->where('student_id', $studentId)
+                                ->where('is_used', true);
+                        })
+                        ->inRandomOrder()
+                        ->take($remaining)
+                        ->get();
+
+                    $criterionQuestions = $criterionQuestions->merge($randomQuestions);
                 }
 
                 // Step 5: Mark fetched questions as used
@@ -517,37 +545,33 @@ class StudentPracticeAssessmentController extends Controller
         $assessment = StudentPracticeAssessment::findOrFail($practiceAssessmentId);
 
         $questions = $assessment->questions()->with('question')->get();
-    
+        
         // Initialize grading variables
         $correctAnswers = 0;
         $incorrectAnswers = 0;
-    
-        // Variables for proficiency calculation
-        $numerator = [];
-        $denominator = [];
-    
+        $totalWeightedScore = 0; // Total possible score (weighted)
+        $earnedWeightedScore = 0; // Total score earned (weighted)
+
+        // Group questions by topic for topic-specific calculations
+        $questionsByTopic = $questions->groupBy(fn($q) => $q->question->topic_id);
+
         foreach ($questions as $question) {
             $isCorrect = $question->is_correct; // Check if the question was answered correctly
-    
+            $questionWeight = $question->question->weight ?? 1; // Default weight is 1 if not set
+
             if ($isCorrect) {
                 $correctAnswers++;
+                $earnedWeightedScore += $questionWeight;
             } else {
                 $incorrectAnswers++;
             }
-    
-            // Proficiency calculation logic
-            $attemptWeight = 1 / $assessment->attempts; // A = 1 / attempts
-            $difficultyWeight = $this->getDifficultyWeight($question->question); // Get D (default = 1)
-            $score = $isCorrect ? 1 : 0; // Score is 1 for correct, 0 for incorrect
-    
-            $numerator[] = $attemptWeight * $score * $difficultyWeight;
-            $denominator[] = $difficultyWeight;
+
+            $totalWeightedScore += $questionWeight; // Add to the total weighted score
         }
-    
-        // Calculate the final score for the assessment
-        $totalQuestions = $questions->count();
-        $scorePercentage = ($totalQuestions > 0) ? ($correctAnswers / $totalQuestions) * 100 : 0;
-    
+
+        // Calculate the final score percentage for the assessment
+        $scorePercentage = ($totalWeightedScore > 0) ? ($earnedWeightedScore / $totalWeightedScore) * 100 : 0;
+
         // Save the results to the database
         $assessment->results()->create([
             'student_id' => $assessment->student_id,
@@ -555,28 +579,116 @@ class StudentPracticeAssessmentController extends Controller
             'incorrect_answers' => $incorrectAnswers,
             'score_percentage' => $scorePercentage,
         ]);
-    
+
         // Update proficiency for each topic
-        foreach ($questions as $question) {
-            $this->updateTopicProficiency($assessment->student_id, $question->question->topic_id, $numerator, $denominator);
+        foreach ($questionsByTopic as $topicId => $topicQuestions) {
+            $numerator = [];
+            $denominator = [];
+
+            foreach ($topicQuestions as $question) {
+                $isCorrect = $question->is_correct;
+                $questionWeight = $question->question->weight ?? 1;
+                $difficultyWeight = $this->getDifficultyWeight($question->question);
+
+                $score = $isCorrect ? 1 : 0;
+                $attemptWeight = 1;
+
+                $numerator[] = $attemptWeight * $score * $difficultyWeight * $questionWeight;
+                $denominator[] = $difficultyWeight * $questionWeight;
+            }
+
+            $this->updateTopicProficiency($assessment->student_id, $topicId, $numerator, $denominator, $assessment->id);
         }
-    
+
         return $assessment;
     }
+
 
     /**
      * Get Difficulty Weight for a Question
      */
     private function getDifficultyWeight($question)
     {
-        // Assign default difficulty weights (adjust as needed)
-        return match ($question->difficulty_level) {
-            'easy' => 1,
-            'moderate' => 2,
-            'advanced' => 3,
-            default => 1, // Default to easy if difficulty is missing
+        return match ($question->bloom_taxonomy_level) {
+            'remembering', 'understanding' => 1, // Easy
+            'applying', 'analyzing' => 2,        // Moderate
+            'evaluating', 'create' => 3,       // Advanced
+            default => 1,                        // Default to easy
         };
     }
+
+    /**
+     * Update Topic Proficiency
+     */
+    private function updateTopicProficiency($studentId, $topicId, $numerator, $denominator, $assessmentId)
+    {
+        $totalNumerator = array_sum($numerator);
+        $totalDenominator = array_sum($denominator);
+
+        $proficiencyScore = $totalDenominator > 0 ? $totalNumerator / $totalDenominator : 0;
+
+        // Fetch the current proficiency record (if it exists)
+        $proficiency = StudentTopicProficiency::firstOrCreate(
+            [
+                'student_id' => $studentId,
+                'topic_id' => $topicId,
+            ],
+            [
+                'proficiency_level' => 'beginner',
+                'grade' => 0.00,
+            ]
+        );
+
+        // Save the current proficiency to the historical table
+        StudentAssessmentTopicProficiencies::create([
+            'assessment_id' => $assessmentId,
+            'student_id' => $studentId,
+            'topic_id' => $topicId,
+            'grade' => $proficiency->grade, // Save the grade before updating it
+            'proficiency_level' => $proficiency->proficiency_level, // Save the level before updating it
+        ]);
+
+        // Update the current proficiency record
+        $proficiency->grade = $proficiencyScore * 100; // Convert to percentage
+        $proficiency->proficiency_level = $this->determineProficiencyLevel($proficiencyScore);
+        $proficiency->save();
+    }
+
+    public function viewAssessmentReport($practiceAssessmentId){
+        $assessment = StudentPracticeAssessment::with('results', 'questions.question')
+        ->findOrFail($practiceAssessmentId);
+
+        //Get historical topic proficiency for the assessment
+        $topicProficiencies = StudentAssessmentTopicProficiencies::where('assessment_id', $practiceAssessmentId)
+        ->with('topic')
+        ->get();
+
+        return inertia('PracticeAssessment/AssessmentReport', [
+            'assessment' => $assessment,
+            'result' => $assessment->results,
+            'questions' => $assessment->questions->map(function ($question){
+                return [
+                    'question_text' => $question->question->text,
+                    'question_options' => $question->question->options,
+                    'correct_answer' => $question->question->correct_answer,
+                    'student_answer' => $question->answered,
+                    'is_correct' => $question->is_correct,
+                    'score' => $question->question->weight,
+                ];
+            }),
+            'topicProficiencies' => $topicProficiencies->map(function ($proficiency){
+                return [
+                    'topic_name' => $proficiency->topic->name,
+                    'previous_grade' => $proficiency->previous_grade,
+                    'previous_level' => $proficiency->previous_level,
+                    'current_grade' => $proficiency->current_grade,
+                    'current_level' => $proficiency->current_level,
+                ];
+            })
+        ]);
+        
+    }
+    
     
 
 
@@ -600,32 +712,7 @@ class StudentPracticeAssessmentController extends Controller
         return inertia('PracticeAssessment/PracticeQuestionList', ['assessment' => $assessment]);
     }
 
-    /**
-     * Update Topic Proficiency
-     */
-    private function updateTopicProficiency($studentId, $topicId, $numerator, $denominator)
-    {
-        $totalNumerator = array_sum($numerator);
-        $totalDenominator = array_sum($denominator);
-
-        $proficiencyScore = $totalDenominator > 0 ? $totalNumerator / $totalDenominator : 0;
-
-        // Update or create StudentTopicProficiency record
-        $proficiency = StudentTopicProficiency::firstOrCreate(
-            [
-                'student_id' => $studentId,
-                'topic_id' => $topicId,
-            ],
-            [
-                'proficiency_level' => 'beginner',
-                'grade' => 0.00,
-            ]
-        );
-
-        $proficiency->grade = $proficiencyScore * 100; // Convert to percentage
-        $proficiency->proficiency_level = $this->determineProficiencyLevel($proficiencyScore);
-        $proficiency->save();
-    }
+ 
 
     /**
      * Determine proficiency level based on score

@@ -19,7 +19,7 @@ class StudentTopicProficiency extends Model
         'proficiency_level'
     ];
 
-    public function student(){
+    public function student() {
         return $this->belongsTo(User::class);
     }
 

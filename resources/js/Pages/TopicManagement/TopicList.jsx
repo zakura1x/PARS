@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { usePage, useForm, router } from "@inertiajs/react";
 import Header from "../../components/TopicManagement/Header";
-import AddMasterTopicsModal from "../../components/TopicManagement/AddMasterTopicsModal";
 import TopicTable from "../../components/TopicManagement/TopicTable";
 import FlashMessage from "../../components/Notifications/FlashMessage";
 
@@ -9,54 +8,15 @@ const TopicManagement = () => {
     const [showMasterTopicModal, setShowMasterTopicModal] = useState(false);
 
     // Extract data passed from controller
-    const { flash, topics, subjects } = usePage().props;
-
-    // Form data state
-    const { data, setData, post, reset, errors } = useForm({
-        name: "",
-        subject_id: "", // Change to match subject selection
-        status: true,
-    });
-
-    // Handle save action
-    const handleSaveMasterTopic = (e) => {
-        e.preventDefault();
-        const url = "/topic-masters/add";
-
-        post(url, data, {
-            onSuccess: () => {
-                setShowMasterTopicModal(false);
-                reset();
-            },
-        });
-    };
-
-    const handleCancelMasterTopic = () => {
-        reset();
-        setShowMasterTopicModal(false);
-    };
+    const { flash, subjects } = usePage().props;
+    //console.log(subjects);
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen">
             <FlashMessage message={flash.message} />
             <Header setShowModal={setShowMasterTopicModal} />
 
-            <TopicTable
-                topicmasters={topics}
-                setShowModal={setShowMasterTopicModal}
-            />
-
-            {/* Pass activeSubjects to modal */}
-            <AddMasterTopicsModal
-                sModal
-                showModal={showMasterTopicModal}
-                handleCancel={handleCancelMasterTopic}
-                handleSaveChanges={handleSaveMasterTopic}
-                data={data}
-                setData={setData}
-                errors={errors}
-                subjects={subjects}
-            />
+            <TopicTable subjects={subjects} />
         </div>
     );
 };

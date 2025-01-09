@@ -14,14 +14,8 @@ class Topics extends Model
         'name',
         'parent_id',
         'subject_id',
+        'order',
     ];
-
-    public function topicMasters()
-    {
-        return $this->belongsToMany(TopicMaster::class, 'topic_master_topics', 'topics_id', 'topic_master_id')
-                    ->withPivot('order');
-    }
-    
 
     public function subject(){
         return $this->belongsTo(Subject::class);
@@ -36,6 +30,4 @@ class Topics extends Model
     {
         return $this->hasMany(Topics::class, 'parent_id');
     }
-
-
 }

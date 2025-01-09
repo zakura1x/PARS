@@ -6,7 +6,6 @@ use App\Models\TopicMaster;
 use App\Http\Requests\StoreTopicMasterRequest;
 use App\Http\Requests\UpdateTopicMasterRequest;
 use App\Models\Subject;
-//use Illuminate\Container\Attributes\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -21,10 +20,8 @@ class TopicMasterController extends Controller
         $topicMasters = TopicMaster::with('subject:id,name', 'creator:id,first_name')
         ->latest()->paginate(perPage: 10);
 
-        
         $subjects = Subject::where('status', true)->get();
 
-        
         return inertia('TopicManagement/TopicList', ['topics' => $topicMasters, 'subjects' => $subjects]);
     }
 
@@ -60,8 +57,6 @@ class TopicMasterController extends Controller
         return to_route('topic-masters.edit', $topic->id)
             ->with('message', 'The Master Topic was successfully created');
     }
-    
-    
 
     /**
      * Reorder the order of the topicMaster
@@ -78,10 +73,6 @@ class TopicMasterController extends Controller
     {
         //Fetch the topicMaster details
         $topicMaster = TopicMaster::with(['subject', 'topics.subtopics'])->findOrFail($id);
-
-        //dd($topicMaster);
-        //dd($topicMaster->topics);
-
 
         //Return the view
         return Inertia::render('TopicManagement/TopicDetails', [
