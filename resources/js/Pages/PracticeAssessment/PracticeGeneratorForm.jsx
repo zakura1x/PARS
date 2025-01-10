@@ -115,6 +115,7 @@ const PracticeGeneratorForm = () => {
     return (
         <div className="m-4 p-6 rounded-lg bg-white relative">
             <h1 className="text-2xl font-bold mb-4">Practice Generator Form</h1>
+            <hr className="border-t-2 border-black my-4" />
             {/* Confirmation Dialog */}
             {showConfirmation && (
                 <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
@@ -152,7 +153,7 @@ const PracticeGeneratorForm = () => {
                             id="type"
                             value={data.type}
                             onChange={(e) => setData("type", e.target.value)}
-                            className="select select-bordered w-full"
+                            className="select select-bordered w-full bg-transparent"
                         >
                             <option value="">Assessment Type</option>
                             <option value="proficiency">
@@ -183,7 +184,7 @@ const PracticeGeneratorForm = () => {
                                 setData("subject_id", e.target.value);
                                 handleSubjectChange(e);
                             }}
-                            className="select select-bordered w-full"
+                            className="select select-bordered w-full bg-transparent"
                         >
                             <option value="">Select a subject</option>
                             {subjects.map((subject) => (
@@ -212,7 +213,7 @@ const PracticeGeneratorForm = () => {
                                 setData("total_items", e.target.value)
                             }
                             placeholder="Minimum of 1"
-                            className="input input-bordered w-full"
+                            className="input input-bordered w-full bg-transparent"
                         />
                         {errors.total_items && (
                             <span className="text-red-500 text-sm">
@@ -251,19 +252,6 @@ const PracticeGeneratorForm = () => {
 
                 <div className="flex flex-row space-x-4">
                     <div>
-                        {/* <label htmlFor="search" className="block mb-2">
-                            Search Topics:
-                        </label>
-                        <select
-                            id="search"
-                            value={search}
-                            onChange={handleSearchChange}
-                            className="select select-bordered w-full"
-                        >
-                            <option value="">Select for a parent topic</option>
-                        </select> */}
-                    </div>
-                    <div>
                         <label htmlFor="Topics" className="block mb-2">
                             Search Topics:
                         </label>
@@ -279,7 +267,7 @@ const PracticeGeneratorForm = () => {
                 </div>
 
                 {/* Topics Table containing name and id */}
-                <div className="my-2 overflow-x-auto lg:mx-4 h-96">
+                <div className="my-2 overflow-x-auto lg:mx-4 max-h-96">
                     <table className="table w-full bg-white shadow-md rounded-md">
                         <thead>
                             <tr className="bg-gray-200 text-gray-700 text-sm">
@@ -318,14 +306,21 @@ const PracticeGeneratorForm = () => {
                         Topics for assessment:
                     </h2>
                     <div className="flex flex-wrap">
-                        {selectedTopics.map((topicId) => (
-                            <span
-                                key={topicId} // Use just `topicId` if it's unique
-                                onClick={() => handleRemoveTopic(topicId)}
-                            >
-                                Topic ID: {topicId} &times;
-                            </span>
-                        ))}
+                        {selectedTopics.map((topicId) => {
+                            const topic = topics.find((t) => t.id === topicId);
+                            return (
+                                <span
+                                    key={topicId}
+                                    onClick={() => handleRemoveTopic(topicId)}
+                                    className="badge p-4 bg-green-800 text-white cursor-pointer"
+                                >
+                                    {topic
+                                        ? `Topic: ${topic.name}`
+                                        : `Topic ID: ${topicId}`}{" "}
+                                    &times;
+                                </span>
+                            );
+                        })}
                     </div>
                     {errors.topics && (
                         <span className="text-red-500 text-sm">
@@ -336,7 +331,7 @@ const PracticeGeneratorForm = () => {
 
                 <button
                     type="submit"
-                    className="btn btn-primary w-full"
+                    className="btn bg-black w-full hover:bg-green-800 hover:text-white"
                     disabled={processing}
                 >
                     Generate the Assessment

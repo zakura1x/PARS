@@ -68,7 +68,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
 });
 
 Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function () {
-    //Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    //Route::get('/dash', [DashboardController::class, 'index'])->name('students.dashboard');
     //Practice Assessment\
     Route::get('/student-practice-assessments/index', [StudentPracticeAssessmentController::class, 'index'])->name('practice-assessment-generator.index');
     Route::get('/student-practice-assessments/generator/form', [StudentPracticeAssessmentController::class, 'create'])->name('practice-assessment-generator.form');
@@ -78,6 +78,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function 
     Route::post('/student-practice-assessments/answer/{id}', [StudentPracticeAssessmentController::class, 'startAssessment'])->name('practice-assessment.start-post');
     Route::get('/student-practice-assessments/take/{id}', [StudentPracticeAssessmentController::class, 'takePracticeAssessment'])->name('practice-assessment.take');
     Route::post('/student-practice-assessments/{practiceAssessmentId}/questions/{questionId}/save', [StudentPracticeAssessmentController::class,'saveAnswer'])->name('practice-assessment.save');
+    Route::post('/student-practice-assessments/{practiceAssessmentId}/save',[StudentPracticeAssessmentController::class,'submitAssessment'])->name('practice-assessment.submit');
 });
 
 //TEster

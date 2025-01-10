@@ -50,8 +50,14 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             // Regenerate session to prevent session fixation attacks
             $request->session()->regenerate();
-    
-            return redirect()->route('dashboard');
+            
+            // Check user role and redirect accordingly
+            $user = Auth::user();
+            if ($user->role === 'program_head') {
+                return redirect()->route('dashboard');
+            } elseif ($user->role === 'student') {
+                return redirect()->route('students.dashboard');
+            }
         }
     
         // Return error for invalid credentials

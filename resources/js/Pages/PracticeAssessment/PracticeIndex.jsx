@@ -1,8 +1,9 @@
 import React from "react";
 import { usePage, router } from "@inertiajs/react";
+import FlashMessage from "../../components/Notifications/FlashMessage";
 
 const PracticeIndex = () => {
-    const { assessments } = usePage().props;
+    const { assessments, flash } = usePage().props;
 
     const handleClick = (assessment) => {
         const { id, status } = assessment;
@@ -41,40 +42,43 @@ const PracticeIndex = () => {
     };
 
     return (
-        <div>
-            <h1>Practice Assessments</h1>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Subject</th>
-                        <th>Total Items</th>
-                        <th>Type</th>
-                        <th>Status</th>
-                        <th>Created Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {assessments.map((assessment) => (
-                        <tr
-                            key={assessment.id}
-                            onClick={() => handleClick(assessment)}
-                            style={{ cursor: "pointer" }}
-                        >
-                            <td>{assessment.id}</td>
-                            <td>{assessment.subject.name}</td>
-                            <td>{assessment.total_items}</td>
-                            <td>{assessment.type}</td>
-                            <td>{getStatusBadge(assessment.status)}</td>
-                            <td>
-                                {new Date(
-                                    assessment.created_at
-                                ).toLocaleDateString()}
-                            </td>
+        <div className="container mx-auto p-4">
+            <FlashMessage message={flash.message}></FlashMessage>
+            <h1 className="text-2xl font-bold mb-4">Practice Assessments</h1>
+            <div className="overflow-x-auto">
+                <table className="table w-full">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Subject</th>
+                            <th>Total Items</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Created Date</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {assessments.map((assessment) => (
+                            <tr
+                                key={assessment.id}
+                                onClick={() => handleClick(assessment)}
+                                className="hover:bg-gray-100 cursor-pointer"
+                            >
+                                <td>{assessment.id}</td>
+                                <td>{assessment.subject.name}</td>
+                                <td>{assessment.total_items}</td>
+                                <td>{assessment.type}</td>
+                                <td>{getStatusBadge(assessment.status)}</td>
+                                <td>
+                                    {new Date(
+                                        assessment.created_at
+                                    ).toLocaleDateString()}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 };

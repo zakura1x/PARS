@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "@inertiajs/react";
 
 const TakeAssessment = ({ practiceAssessment }) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
-    const { data, setData, post, processing } = useForm({
-        selected_option: null,
+    const { data, setData, post, processing, reset } = useForm({
+        answers: practiceAssessment.questions.map(() => []),
     });
 
     const currentQuestion = practiceAssessment.questions[currentQuestionIndex];
@@ -16,9 +16,27 @@ const TakeAssessment = ({ practiceAssessment }) => {
         100;
 
     const handleOptionChange = (option) => {
-        setData("selected_option", option);
+        const updatedOptions = data.answers[currentQuestionIndex].includes(
+            option
+        )
+            ? data.answers[currentQuestionIndex].filter((opt) => opt !== option)
+            : [...data.answers[currentQuestionIndex], option];
 
-        // Automatically save the answer when an option is selected
+        const updatedAnswers = [...data.answers];
+        updatedAnswers[currentQuestionIndex] = updatedOptions;
+        setData("answers", updatedAnswers);
+    };
+
+    console.log(data.answers);
+
+    const handleEssayChange = (e) => {
+        const essayAnswer = e.target.value;
+        const updatedAnswers = [...data.answers];
+        updatedAnswers[currentQuestionIndex] = [essayAnswer];
+        setData("answers", updatedAnswers);
+    };
+
+    const saveAnswer = () => {
         post(
             `/student-practice-assessments/${practiceAssessment.id}/questions/${currentQuestion.question.id}/save`,
             {
@@ -32,19 +50,22 @@ const TakeAssessment = ({ practiceAssessment }) => {
 
     const handleNext = () => {
         if (currentQuestionIndex < practiceAssessment.questions.length - 1) {
+            saveAnswer();
             setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
         }
     };
 
     const handlePrevious = () => {
         if (currentQuestionIndex > 0) {
+            saveAnswer();
             setCurrentQuestionIndex((prevIndex) => prevIndex - 1);
         }
     };
 
     const handleSubmit = () => {
+        saveAnswer();
         // Submit the assessment
-        post(`/practice-assessments/${practiceAssessment.id}/submit`, {
+        post(`/student-practice-assessments/${practiceAssessment.id}/save`, {
             onSuccess: () => {
                 console.log("Assessment submitted successfully!");
             },
@@ -52,62 +73,102 @@ const TakeAssessment = ({ practiceAssessment }) => {
     };
 
     return (
-        <div className="p-4">
-            <h1 className="text-xl font-bold mb-4">Practice Assessment</h1>
-            <div className="mb-4">
-                <progress
-                    className="progress progress-accent w-56"
-                    value={progress}
-                    max="100"
-                ></progress>
-                <p className="text-sm mt-2">
-                    Progress: {Math.round(progress)}%
-                </p>
-            </div>
-            <div className="border p-4 rounded shadow">
+        <div className="p-4 flex flex-col min-h-[90%] justify-center items-center">
+            {/* <h1 className="text-xl font-bold mb-4">Practice Assessment</h1> */}
+
+            <div className="border p-4 rounded-md shadow w-[95%] bg-white">
                 <p className="text-sm mb-2">
                     Question {currentQuestionIndex + 1} of{" "}
                     {practiceAssessment.questions.length}
                 </p>
                 <h2 className="text-lg font-medium mb-4">
-                    {currentQuestion.question.text}
+                    {currentQuestion.question.question_text}
                 </h2>
-                <ul className="space-y-2">
-                    {currentQuestion.question.options.map((option, index) => (
-                        <li key={index} className="flex items-center">
-                            <input
-                                type="radio"
-                                name={`question-${currentQuestionIndex}`}
-                                id={`option-${index}`}
-                                value={option}
-                                className="radio radio-primary mr-2"
-                                onChange={() => handleOptionChange(option)}
-                                checked={data.selected_option === option}
-                                disabled={processing}
-                            />
-                            <label htmlFor={`option-${index}`}>{option}</label>
-                        </li>
-                    ))}
-                </ul>
+                {currentQuestion.question.format_type === "multiple_choice" && (
+                    <ul className="space-y-2">
+                        {currentQuestion.question.options.map(
+                            (option, index) => (
+                                <li key={index} className="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        name={`question-${currentQuestionIndex}`}
+                                        id={`option-${index}`}
+                                        value={option}
+                                        className="checkbox checkbox-success mr-2"
+                                        onChange={() =>
+                                            handleOptionChange(option)
+                                        }
+                                        checked={data.answers[
+                                            currentQuestionIndex
+                                        ].includes(option)}
+                                        disabled={processing}
+                                    />
+                                    <label htmlFor={`option-${index}`}>
+                                        {option}
+                                    </label>
+                                </li>
+                            )
+                        )}
+                    </ul>
+                )}
+                {currentQuestion.question.format_type === "true_false" && (
+                    <ul className="space-y-2">
+                        {["True", "False"].map((option, index) => (
+                            <li key={index} className="flex items-center">
+                                <input
+                                    type="radio"
+                                    name={`question-${currentQuestionIndex}`}
+                                    id={`option-${index}`}
+                                    value={option}
+                                    className="radio radio-primary mr-2"
+                                    onChange={() => handleOptionChange(option)}
+                                    checked={data.answers[
+                                        currentQuestionIndex
+                                    ].includes(option)}
+                                    disabled={processing}
+                                />
+                                <label htmlFor={`option-${index}`}>
+                                    {option}
+                                </label>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+                {currentQuestion.question.format_type === "essay" && (
+                    <textarea
+                        className="textarea textarea-bordered w-full"
+                        value={data.answers[currentQuestionIndex][0] || ""}
+                        onChange={handleEssayChange}
+                        disabled={processing}
+                    ></textarea>
+                )}
             </div>
-            <div className="flex justify-between mt-4">
+            <div className="mt-4">
+                <progress
+                    className="progress w-96 bg-gray-300 [&::-webkit-progress-bar]:bg-gray-300 [&::-webkit-progress-value]:bg-green-500 [&::-moz-progress-bar]:bg-green-500"
+                    value={progress}
+                    max="100"
+                ></progress>
+            </div>
+
+            <div className="flex flex-row space-x-2 justify-between mt-2">
                 <button
                     onClick={handlePrevious}
                     disabled={currentQuestionIndex === 0 || processing}
                     className={`btn ${
                         currentQuestionIndex === 0
-                            ? "btn-disabled"
-                            : "btn-primary"
+                            ? "btn-disabled text-black"
+                            : "btn bg-transparent text-black hover:bg-black hover:text-white"
                     }`}
                 >
-                    Previous
+                    Previous Question
                 </button>
                 {currentQuestionIndex ===
                 practiceAssessment.questions.length - 1 ? (
                     <button
                         onClick={handleSubmit}
                         disabled={processing}
-                        className="btn btn-success"
+                        className="btn btn-success hover:bg-green-800 hover:text-white "
                     >
                         Submit
                     </button>
@@ -115,12 +176,13 @@ const TakeAssessment = ({ practiceAssessment }) => {
                     <button
                         onClick={handleNext}
                         disabled={processing}
-                        className="btn btn-success"
+                        className="btn btn-success hover:bg-green-800 hover:text-white"
                     >
-                        Next
+                        Next Question
                     </button>
                 )}
             </div>
+
             {processing && (
                 <p className="mt-2 text-blue-500">Saving your answer...</p>
             )}

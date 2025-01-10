@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Subject extends Model
 {
     /** @use HasFactory<\Database\Factories\SubjectFactory> */
-    use HasFactory ;
-    //SoftDeletes
+    use HasFactory, SoftDeletes ;
+    
 
     protected $fillable = [
         'subject_id',

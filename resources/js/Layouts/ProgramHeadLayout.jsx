@@ -8,7 +8,7 @@ const ProgramHeadLayout = ({ children }) => {
         setIsOpen(!isOpen);
     };
     return (
-        <div className="flex h-screen overflow-hidden">
+        <div className="flex h-screen overflow-hidden text-black bg-gray-700">
             <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
             <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
                 <Navbar toggleSidebar={toggleSidebar} />

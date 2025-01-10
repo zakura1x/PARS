@@ -16,7 +16,7 @@ class StudentAssessmentTopicProficiencies extends Model
         'topic_id',
         'previous_grade',
         'previous_level',
-        'current_grade',
+        'grade',
         'current_level'
     ];
 

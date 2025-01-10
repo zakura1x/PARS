@@ -528,11 +528,17 @@ class StudentPracticeAssessmentController extends Controller
     }
 
     public function takePracticeAssessment($practiceAssessmentId){
+        $assessment = StudentPracticeAssessment::findOrFail($practiceAssessmentId);
+        
+        // if($assessment->status !== 'active' || $assessment->status !== 'on_going' ){
+        //     return back()->with(['message' => 'The assessment has been submitted already']);
+        // } 
+
         $cacheKey = 'practice_assessment_' . $practiceAssessmentId . '_shuffled';
         $practiceAssessment = Cache::remember($cacheKey, now()->addMinutes(60), function () use ($practiceAssessmentId) {
             $assessment = StudentPracticeAssessment::with([
                 'questions' => function ($query) {
-                    $query->with('question:id,question_text,correct_answer,options,topic_id,difficulty')
+                    $query->with('question:id,question_text,options,topic_id,format_type')
                         ->select('id', 'practice_assessment_id', 'question_id', 'answered', 'is_correct');
                 },
             ])
@@ -568,7 +574,7 @@ class StudentPracticeAssessmentController extends Controller
         ->firstOrFail();
 
         $validated = $request->validate([
-            'selected_option' => 'required|string'
+            'selected_option' => 'required|array'
         ]);
 
         // Check if the assessment is still within the time limit
@@ -580,11 +586,12 @@ class StudentPracticeAssessmentController extends Controller
             return response()->json(['message' => 'Time limit exceeded. Answer cannot be saved.'], 422);
         }
 
-        //Check if the selected option is correct
+        // Check if the selected option is correct
         $question = $practiceAssessmentQuestion->question;
-        $isCorrect = $question->correct_answer === $validated['selected_option'];
-        
-        //Update the Student's answer
+        $correctAnswers = $question->correct_answer;
+        $isCorrect = !array_diff($validated['selected_option'], $correctAnswers);
+
+        // Update the Student's answer
         $practiceAssessmentQuestion->update([
             'answered' => true,
             'is_correct' => $isCorrect
@@ -703,33 +710,48 @@ class StudentPracticeAssessmentController extends Controller
     {
         $totalNumerator = array_sum($numerator);
         $totalDenominator = array_sum($denominator);
-
+    
         $proficiencyScore = $totalDenominator > 0 ? $totalNumerator / $totalDenominator : 0;
-
-        // Fetch the current proficiency record (if it exists)
-        $proficiency = StudentTopicProficiency::firstOrCreate(
+    
+        // Fetch or create the current proficiency record
+        $proficiency = StudentTopicProficiency::firstOrNew(
             [
                 'student_id' => $studentId,
                 'topic_id' => $topicId,
             ],
             [
-                'proficiency_level' => 'beginner',
-                'grade' => 0.00,
+                'proficiency_level' => 'beginner', // Fallback level
+                'grade' => 0.00, // Fallback grade
+                'average_score' => 0.00, // Fallback average score
+                'attempts' => 0, // Fallback attempts
             ]
         );
 
+        // Handle fallback for historical proficiency (if no grade exists)
+        $previousGrade = $proficiency->grade ?? 0.00; // Use 0 if no grade exists
+        $previousLevel = $proficiency->proficiency_level ?? 'beginner'; // Use 'beginner' if no level exists
+    
         // Save the current proficiency to the historical table
         StudentAssessmentTopicProficiencies::create([
             'assessment_id' => $assessmentId,
             'student_id' => $studentId,
             'topic_id' => $topicId,
-            'grade' => $proficiency->grade, // Save the grade before updating it
-            'proficiency_level' => $proficiency->proficiency_level, // Save the level before updating it
+            'previous_grade' => $previousGrade, // Save the current grade before updating
+            'previous_level' => $previousLevel, // Save the current level before updating
+            'grade' => $proficiencyScore * 100, // Convert to percentage
+            'current_level' => $this->determineProficiencyLevel($proficiencyScore),
         ]);
-
+    
         // Update the current proficiency record
-        $proficiency->grade = $proficiencyScore * 100; // Convert to percentage
-        $proficiency->proficiency_level = $this->determineProficiencyLevel($proficiencyScore);
+        $newTotalScore = ($proficiency->average_score * $proficiency->attempts) + ($proficiencyScore * 100);
+        $proficiency->attempts += 1; // Increment attempts
+        $proficiency->average_score = $proficiency->attempts > 0 ? $newTotalScore / $proficiency->attempts : $proficiencyScore * 100;
+        $proficiency->grade = $proficiencyScore * 100; // Current assessment grade
+        $proficiency->proficiency_level = match (true) {
+            $proficiency->average_score < 60 => 'beginner',
+            $proficiency->average_score >= 60 && $proficiency->average_score <= 80 => 'intermediate',
+            default => 'advanced',
+        };
         $proficiency->save();
     }
 

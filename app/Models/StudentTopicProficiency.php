@@ -16,7 +16,8 @@ class StudentTopicProficiency extends Model
         'topic_id',
         'average_score',
         'attempts',
-        'proficiency_level'
+        'proficiency_level',
+        'grade',
     ];
 
     public function student() {
