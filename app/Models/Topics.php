@@ -30,4 +30,9 @@ class Topics extends Model
     {
         return $this->hasMany(Topics::class, 'parent_id');
     }
+
+    public function studyMaterials()
+    {
+        return $this->hasMany(StudyMaterial::class);
+    }
 }

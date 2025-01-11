@@ -111,6 +111,9 @@ const TopicEdit = () => {
                     >
                         + Add Subtopic
                     </button>
+                    <button className="btn border-none bg-[#303030] text-white hover:bg-[#42604C]">
+                        <Link href="/">Study Materials</Link>
+                    </button>
                 </div>
             </div>
             <hr className="my-4 border-t-2 border-gray-400" />
