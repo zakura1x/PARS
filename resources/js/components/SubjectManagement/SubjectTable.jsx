@@ -18,7 +18,6 @@ const SubjectTable = ({ subjects, onEditSubject }) => {
                         <th className="py-3 px-4 text-left">Subject ID</th>
                         <th className="py-3 px-4 text-left">Subject Name</th>
                         <th className="py-3 px-4 text-left">Created By</th>
-                        <th className="py-3 px-4 text-left">Status</th>
                         <th className="py-3 px-4 text-left">Date Added</th>
                         <th className="py-3 px-4 text-center">Actions</th>
                     </tr>
@@ -42,30 +41,23 @@ const SubjectTable = ({ subjects, onEditSubject }) => {
                                 className="border-b hover:bg-gray-50 text-gray-700"
                             >
                                 {/* Subject ID */}
-                                <td className="py-3 px-4">{subject.subject_id}</td>
+                                <td className="py-3 px-4">
+                                    {subject.subject_id}
+                                </td>
 
                                 {/* Subject Name */}
                                 <td className="py-3 px-4">{subject.name}</td>
 
                                 {/* Created By */}
-                                <td className="py-3 px-4">{subject.created_by}</td>
-
-                                {/* Status with Color-coded Badge */}
                                 <td className="py-3 px-4">
-                                    <span
-                                        className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                                            subject.status
-                                                ? "bg-green-100 text-green-700"
-                                                : "bg-red-100 text-red-700"
-                                        }`}
-                                    >
-                                        {subject.status ? "Active" : "Inactive"}
-                                    </span>
+                                    {subject.created_by}
                                 </td>
 
                                 {/* Date Added */}
                                 <td className="py-3 px-4">
-                                    {new Date(subject.created_at).toLocaleDateString()}
+                                    {new Date(
+                                        subject.created_at
+                                    ).toLocaleDateString()}
                                 </td>
 
                                 {/* Actions */}

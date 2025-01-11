@@ -28,7 +28,7 @@ const studentMenu = [
                     {
                         label: "Generate Assessment",
                         href: "/student-practice-assessments/generator/form",
-                        key: 2,
+                        key: 3,
                     },
                 ],
             },

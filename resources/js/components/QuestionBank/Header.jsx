@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "@inertiajs/react";
 
 const Header = () => {
     return (
@@ -18,7 +19,7 @@ const Header = () => {
                 <h4 className="font-bold text-[24px] ">Questions</h4>
                 <div className="space-x-4 space-y-2 md:space-y-0 flex-col md:flex-row">
                     <button className="btn border-none bg-[#42604C] text-white hover:bg-gray-600 px-4">
-                        + Add New Question
+                        <Link href="/questionDetails">+ Add New Question</Link>
                     </button>
                     <button className="btn border-none bg-[#42604C] text-white hover:bg-gray-600 px-4">
                         Import Question/s

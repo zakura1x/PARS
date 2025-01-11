@@ -6,6 +6,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     const { auth } = usePage().props;
     const [activeSummary, setActiveSummary] = useState(null);
     const [activeItem, setActiveItem] = useState(null);
+    const [isHovered, setIsHovered] = useState(false);
 
     const menuItems = getMenuByRole(auth.user.role);
 
@@ -17,18 +18,34 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         setActiveItem(itemKey);
     };
 
+    const handleMouseEnter = () => {
+        setIsHovered(true);
+    };
+
+    const handleMouseLeave = () => {
+        setIsHovered(false);
+    };
+
     return (
         <aside
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
             className={`fixed left-0 top-0 flex h-screen flex-col duration-300 ease-linear lg:static lg:translate-x-0  bg-[#42604C] text-white z-40 ${
-                isOpen ? "translate-x-0 w-72" : "-translate-x-full w-16"
+                isOpen || isHovered
+                    ? "translate-x-0 w-72"
+                    : "-translate-x-full w-16"
             }`}
         >
             <div
                 className={`flex items-center justify-between gap-2 pt-6 ${
-                    isOpen ? "px-4" : "px-2"
+                    isOpen || isHovered ? "px-4" : "px-2"
                 }`}
             >
-                {isOpen && <h1 className="font-semibold text-2xl">PARS</h1>}
+                {isOpen ||
+                    (isHovered && (
+                        <h1 className="font-semibold text-2xl">PARS</h1>
+                    ))}
+
                 <button
                     className="btn btn-square btn-ghost"
                     onClick={toggleSidebar}
@@ -51,7 +68,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
             <nav
                 className={`flex flex-col overflow-y-auto no-scrollbar pt-2 px-4 ${
-                    isOpen ? "flex" : "hidden"
+                    isOpen || isHovered ? "flex" : "hidden"
                 }`}
             >
                 <ul className="menu rounded-box w-64 text-lg">

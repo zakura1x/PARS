@@ -132,7 +132,7 @@ const PracticeGeneratorForm = () => {
                                 Cancel
                             </button>
                             <button
-                                className="btn btn-success"
+                                className="btn bg-green-500 border-none text-white"
                                 onClick={handleConfirmSubmit}
                             >
                                 Yes
@@ -312,11 +312,9 @@ const PracticeGeneratorForm = () => {
                                 <span
                                     key={topicId}
                                     onClick={() => handleRemoveTopic(topicId)}
-                                    className="badge p-4 bg-green-800 text-white cursor-pointer"
+                                    className="badge badge-accent cursor-pointer"
                                 >
-                                    {topic
-                                        ? `Topic: ${topic.name}`
-                                        : `Topic ID: ${topicId}`}{" "}
+                                    {topic ? `${topic.name}` : `${topicId}`}{" "}
                                     &times;
                                 </span>
                             );

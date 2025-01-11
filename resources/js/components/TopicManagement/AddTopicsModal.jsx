@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { useForm } from "@inertiajs/react";
+import { useForm, router } from "@inertiajs/react";
 
 const AddTopicsModal = ({
     showModal,
     handleCancel,
     subjectId,
-    onParentTopicAdded,
+    onParentTopicAdded, // Ensure this prop is used
 }) => {
     const { post, errors, data, processing, reset, setData } = useForm({
         name: "",
@@ -19,7 +19,9 @@ const AddTopicsModal = ({
         post(`/topics/${subjectId}/store`, {
             onSuccess: (response) => {
                 reset();
-                onParentTopicAdded(response.parentTopic);
+                if (response.props.parentTopic) {
+                    onParentTopicAdded(response.props.parentTopic); // Call the function with the new topic
+                }
                 handleCancel();
             },
         });

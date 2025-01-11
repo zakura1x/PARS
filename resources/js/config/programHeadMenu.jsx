@@ -1,4 +1,10 @@
 import { TbCloudQuestion } from "react-icons/tb";
+import { LuFileQuestion } from "react-icons/lu";
+import { MdOutlineAssessment } from "react-icons/md";
+import { FaUsers } from "react-icons/fa";
+import { FaUserGraduate } from "react-icons/fa";
+import { IoBook } from "react-icons/io5";
+import { IoIosBookmarks } from "react-icons/io";
 
 const programHeadMenu = [
     {
@@ -6,7 +12,7 @@ const programHeadMenu = [
         details: [
             {
                 title: "Question",
-                icon: <TbCloudQuestion size={26} />,
+                icon: <LuFileQuestion size={26} />,
                 items: [
                     { label: "Add Question", href: "/questionDetails", key: 1 },
                     { label: "Question List", href: "/questionBank", key: 2 },
@@ -16,7 +22,7 @@ const programHeadMenu = [
             },
             {
                 title: "Assessment",
-                icon: <TbCloudQuestion size={26} />,
+                icon: <MdOutlineAssessment size={26} />,
                 items: [
                     { label: "Generate Assessment", href: "", key: 5 },
                     { label: "View Assessments", href: "", key: 6 },
@@ -31,7 +37,7 @@ const programHeadMenu = [
         details: [
             {
                 title: "User",
-                icon: <TbCloudQuestion size={26} />,
+                icon: <FaUsers size={26} />,
                 items: [
                     { label: "User List", href: "/UserList", key: 8 },
                     { label: "Faculty Assignment", href: "", key: 9 },
@@ -39,7 +45,7 @@ const programHeadMenu = [
             },
             {
                 title: "Student",
-                icon: <TbCloudQuestion size={26} />,
+                icon: <FaUserGraduate size={26} />,
                 items: [
                     { label: "Student List", href: "/student/list", key: 10 },
                     { label: "Mass Upload Student", href: "", key: 11 },
@@ -52,14 +58,14 @@ const programHeadMenu = [
         details: [
             {
                 title: "Subject Manage",
-                icon: <TbCloudQuestion size={26} />,
+                icon: <IoBook size={26} />,
                 items: [
                     { label: "Subject List", href: "/subjectList", key: 10 },
                 ],
             },
             {
                 title: "Topic Manage",
-                icon: <TbCloudQuestion size={26} />,
+                icon: <IoIosBookmarks size={26} />,
                 items: [
                     { label: "Topic List", href: "/topic/lists", key: 11 },
                     {

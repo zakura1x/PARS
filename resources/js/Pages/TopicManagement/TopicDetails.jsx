@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { GiNotebook } from "react-icons/gi";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Link, usePage, useForm, router } from "@inertiajs/react";
@@ -17,7 +17,7 @@ const TopicDetails = () => {
     } = usePage().props;
 
     const { data, setData, post, errors } = useForm({
-        name: topics.name,
+        name: topics?.name || "",
         parentTopics: Array.isArray(parentTopics)
             ? parentTopics
             : Object.values(parentTopics),
@@ -71,8 +71,21 @@ const TopicDetails = () => {
     };
 
     const handleParentTopicAdded = (newParentTopic) => {
-        setData("parentTopics", [...data.parentTopics, newParentTopic]);
+        const updatedParentTopics = [...data.parentTopics, newParentTopic];
+        setData("parentTopics", updatedParentTopics);
+        router.reload({ only: ["parentTopics"] }); // Ensure the topics are reloaded
     };
+
+    //console.log(parentTopics);
+    //console.log(data.parentTopics);
+
+    // Keep `data.parentTopics` in sync with `parentTopics` from props
+    useEffect(() => {
+        setData(
+            "parentTopics",
+            Array.isArray(parentTopics) ? parentTopics : []
+        );
+    }, [parentTopics]);
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen">

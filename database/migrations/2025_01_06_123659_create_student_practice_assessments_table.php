@@ -19,6 +19,7 @@ return new class extends Migration
             $table->enum('type', ['proficiency', 'criteria', 'exam']);
             $table->enum('status', ['active', 'completed', 'on_going'])->default('active');
             $table->time('time_limit')->nullable(); // Time limit (e.g., 00:30:00 for 30 minutes)
+            $table->json('student_answer');
             $table->timestamp('started_at')->nullable(); // Timestamp when the assessment starts
             $table->timestamp('submitted_at')->nullable(); // Timestamp when the assessment is submitted
             $table->timestamps();

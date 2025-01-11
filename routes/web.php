@@ -79,6 +79,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function 
     Route::get('/student-practice-assessments/take/{id}', [StudentPracticeAssessmentController::class, 'takePracticeAssessment'])->name('practice-assessment.take');
     Route::post('/student-practice-assessments/{practiceAssessmentId}/questions/{questionId}/save', [StudentPracticeAssessmentController::class,'saveAnswer'])->name('practice-assessment.save');
     Route::post('/student-practice-assessments/{practiceAssessmentId}/save',[StudentPracticeAssessmentController::class,'submitAssessment'])->name('practice-assessment.submit');
+    Route::get('/student-practice-assessments/result/{practiceAssessmentId}', [StudentPracticeAssessmentController::class,'viewAssessmentReport'])->name('practice-assessment.view-result');
 });
 
 //TEster

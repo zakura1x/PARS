@@ -164,7 +164,7 @@ class StudentPracticeAssessmentController extends Controller
         }
 
         // Debugging: Log the generated questions
-        Log::info('Generated Questions:', $questions->toArray());
+        //Log::info('Generated Questions:', $questions->toArray());
 
         // Check if questions are empty
         if (empty($questions) || $questions->isEmpty()) {
@@ -189,7 +189,7 @@ class StudentPracticeAssessmentController extends Controller
             ]);
         }
 
-        return to_route('practice-assessment-generator.index')->with('message', 'Assessment was Created Successfully');
+        return inertia('PracticeAssessment/PracticeStart', ['practiceAssessmentId' => $assessment]);
 
 
         //Generate the questions based on the type
@@ -220,7 +220,7 @@ class StudentPracticeAssessmentController extends Controller
                 ->first();
 
             // Log proficiency
-            Log::info("Proficiency for student $studentId and topic $topicId:", ['proficiency' => $proficiency]);
+            //Log::info("Proficiency for student $studentId and topic $topicId:", ['proficiency' => $proficiency]);
 
             // Bloom levels weighting based on proficiency
             $proficiencyWeighting = [
@@ -239,7 +239,7 @@ class StudentPracticeAssessmentController extends Controller
             }
 
             // Log questions per level
-            Log::info("Questions per level for topic $topicId:", ['questionsPerLevel' => $questionsPerLevel]);
+            //::info("Questions per level for topic $topicId:", ['questionsPerLevel' => $questionsPerLevel]);
 
             // Retrieve questions per Bloom level
             $topicQuestions = collect();
@@ -256,7 +256,7 @@ class StudentPracticeAssessmentController extends Controller
                     ->get();
 
                 // Log retrieved questions
-                Log::info("Retrieved questions for topic $topicId and level $level:", ['questions' => $levelQuestions]);
+                //Log::info("Retrieved questions for topic $topicId and level $level:", ['questions' => $levelQuestions]);
 
                 $topicQuestions = $topicQuestions->merge($levelQuestions);
             }
@@ -275,7 +275,7 @@ class StudentPracticeAssessmentController extends Controller
                     ->get();
                 
                 // Log additional questions
-                Log::info("Additional questions for topic $topicId:", ['questions' => $additionalQuestions]);
+                //Log::info("Additional questions for topic $topicId:", ['questions' => $additionalQuestions]);
 
                 $topicQuestions = $topicQuestions->merge($additionalQuestions);
                 }
@@ -293,7 +293,7 @@ class StudentPracticeAssessmentController extends Controller
                         ->get();
 
                     // Log random questions
-                    Log::info("Random questions for topic $topicId:", ['questions' => $randomQuestions]);
+                    //Log::info("Random questions for topic $topicId:", ['questions' => $randomQuestions]);
 
                     $topicQuestions = $topicQuestions->merge($randomQuestions);
                 }
@@ -328,7 +328,7 @@ class StudentPracticeAssessmentController extends Controller
             $criteria = TopicGradingCriteria::getCriteriaByTopic($topicId);
 
             // Log criteria
-            Log::info("Criteria for topic $topicId:", ['criteria' => $criteria]);
+            //Log::info("Criteria for topic $topicId:", ['criteria' => $criteria]);
 
             foreach ($criteria as $criterion) {
                 // Step 2: Calculate the number of questions based on the percentage
@@ -355,7 +355,7 @@ class StudentPracticeAssessmentController extends Controller
                         ->get();
 
                     // Log retrieved questions
-                    Log::info("Retrieved questions for topic $topicId and level $level:", ['questions' => $levelQuestions]);
+                   // Log::info("Retrieved questions for topic $topicId and level $level:", ['questions' => $levelQuestions]);
 
                     $criterionQuestions = $criterionQuestions->merge($levelQuestions);
                 }
@@ -377,7 +377,7 @@ class StudentPracticeAssessmentController extends Controller
                         ->get();
 
                     // Log additional questions
-                    Log::info("Additional questions for topic $topicId:", ['questions' => $additionalQuestions]);
+                    //Log::info("Additional questions for topic $topicId:", ['questions' => $additionalQuestions]);
 
                     // Merge additional questions into the result
                     $criterionQuestions = $criterionQuestions->merge($additionalQuestions);
@@ -397,7 +397,7 @@ class StudentPracticeAssessmentController extends Controller
                         ->get();
 
                     // Log random questions
-                    Log::info("Random questions for topic $topicId:", ['questions' => $randomQuestions]);
+                    //Log::info("Random questions for topic $topicId:", ['questions' => $randomQuestions]);
 
                     $criterionQuestions = $criterionQuestions->merge($randomQuestions);
                 }
@@ -437,7 +437,7 @@ class StudentPracticeAssessmentController extends Controller
         }
 
         // Log Table of Specification
-        Log::info("Table of Specification for subject $subjectId:", ['tableOfSpecifications' => $tableOfSpecifications]);
+        //Log::info("Table of Specification for subject $subjectId:", ['tableOfSpecifications' => $tableOfSpecifications]);
 
         // Step 2: Calculate the total items based on ToS
         foreach ($tableOfSpecifications as $tos) {
@@ -462,7 +462,7 @@ class StudentPracticeAssessmentController extends Controller
                 ->get();
 
             // Log retrieved questions
-            Log::info("Retrieved questions for topic $topicId and difficulty {$tos->difficulty}:", ['questions' => $topicQuestions]);
+            //Log::info("Retrieved questions for topic $topicId and difficulty {$tos->difficulty}:", ['questions' => $topicQuestions]);
 
             // Step 5: If all questions are used, reset usage
             if ($topicQuestions->count() < $questionsForTopic) {
@@ -485,7 +485,7 @@ class StudentPracticeAssessmentController extends Controller
                     ->get();
 
                 // Log additional questions
-                Log::info("Additional questions for topic $topicId after reset:", ['questions' => $additionalQuestions]);
+                //Log::info("Additional questions for topic $topicId after reset:", ['questions' => $additionalQuestions]);
 
                 $topicQuestions = $topicQuestions->merge($additionalQuestions);
             }
@@ -524,22 +524,22 @@ class StudentPracticeAssessmentController extends Controller
             'started_at' => now()
         ]);
 
-        return redirect()->route('practice-assessment.take', $practiceAssessmentId);
+        return to_route('practice-assessment.take', $practiceAssessmentId);
     }
 
     public function takePracticeAssessment($practiceAssessmentId){
         $assessment = StudentPracticeAssessment::findOrFail($practiceAssessmentId);
         
-        // if($assessment->status !== 'active' || $assessment->status !== 'on_going' ){
-        //     return back()->with(['message' => 'The assessment has been submitted already']);
-        // } 
+        if($assessment->status !== 'on_going' ){
+            return back()->with(['message' => 'The assessment is not yet available or have been completed']);
+        } 
 
         $cacheKey = 'practice_assessment_' . $practiceAssessmentId . '_shuffled';
         $practiceAssessment = Cache::remember($cacheKey, now()->addMinutes(60), function () use ($practiceAssessmentId) {
             $assessment = StudentPracticeAssessment::with([
                 'questions' => function ($query) {
                     $query->with('question:id,question_text,options,topic_id,format_type')
-                        ->select('id', 'practice_assessment_id', 'question_id', 'answered', 'is_correct');
+                        ->select('id', 'practice_assessment_id', 'question_id', 'answered', 'is_correct', 'student_answer');
                 },
             ])
             ->where('id', $practiceAssessmentId)
@@ -593,6 +593,7 @@ class StudentPracticeAssessmentController extends Controller
 
         // Update the Student's answer
         $practiceAssessmentQuestion->update([
+            'student_answer' => $validated['selected_option'],
             'answered' => true,
             'is_correct' => $isCorrect
         ]);
@@ -623,7 +624,36 @@ class StudentPracticeAssessmentController extends Controller
         }
 
         // Grade the assessment (regardless of whether time expired or student submitted manually)
-        return $this->gradeAssessment($practiceAssessmentId);
+        $this->gradeAssessment($practiceAssessmentId);
+
+        // Return the Inertia component with the assessment report
+        return inertia('PracticeAssessment/AssessmentReport', [
+            'assessment' => $assessment,
+            'result' => $assessment->results,
+            'questions' => $assessment->questions->map(function ($question) {
+                return [
+                    'question_text' => $question->question->question_text,
+                    'question_options' => $question->question->options,
+                    'correct_answer' => $question->question->correct_answer,
+                    'student_answer' => $question->student_answer,
+                    'is_correct' => $question->is_correct,
+                    'score' => $question->question->weight,
+                    'solution' => $question->question->solution,
+                ];
+            }),
+            'topicProficiencies' => StudentAssessmentTopicProficiencies::where('assessment_id', $practiceAssessmentId)
+                ->with('topic')
+                ->get()
+                ->map(function ($proficiency) {
+                    return [
+                        'topic_name' => $proficiency->topic->name,
+                        'previous_grade' => $proficiency->previous_grade,
+                        'previous_level' => $proficiency->previous_level,
+                        'current_grade' => $proficiency->current_grade,
+                        'current_level' => $proficiency->current_level,
+                    ];
+                }),
+        ]);
     }
 
     public function gradeAssessment($practiceAssessmentId)
@@ -764,17 +794,18 @@ class StudentPracticeAssessmentController extends Controller
         ->with('topic')
         ->get();
 
-        return inertia('PracticeAssessment/AssessmentReport', [
+        return inertia('PracticeAssessment/PracticeReport', [
             'assessment' => $assessment,
             'result' => $assessment->results,
             'questions' => $assessment->questions->map(function ($question){
                 return [
-                    'question_text' => $question->question->text,
+                    'question_text' => $question->question->question_text,
                     'question_options' => $question->question->options,
                     'correct_answer' => $question->question->correct_answer,
-                    'student_answer' => $question->answered,
+                    'student_answer' => $question->student_answer,
                     'is_correct' => $question->is_correct,
                     'score' => $question->question->weight,
+                    'solution' => $question->question->solution,
                 ];
             }),
             'topicProficiencies' => $topicProficiencies->map(function ($proficiency){
@@ -782,7 +813,7 @@ class StudentPracticeAssessmentController extends Controller
                     'topic_name' => $proficiency->topic->name,
                     'previous_grade' => $proficiency->previous_grade,
                     'previous_level' => $proficiency->previous_level,
-                    'current_grade' => $proficiency->current_grade,
+                    'grade' => $proficiency->grade,
                     'current_level' => $proficiency->current_level,
                 ];
             })

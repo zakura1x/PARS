@@ -87,14 +87,14 @@ class TopicGradingCriteriaController extends Controller
         $request->validate([
             'criteria' => 'required|array',
             'criteria.*.difficulty' => 'required|in:remembering,understanding,applying,analyzing,evaluating,create',
-            'criteria.*.percentage' => 'required|decimal|min:0|max:100',
+            'criteria.*.percentage' => 'required|numeric|min:0|max:100',
             'criteria.*.min_questions' => 'required|integer|min:1'
         ]);
 
         // Validate that the total percentage should equal 100
         $totalPercentage = array_sum(array_column($request->criteria, 'percentage'));
         if ($totalPercentage !== 100) {
-            return back()->withErrors(['Total percentage for the topic must equal to 100.']);
+            return back()->withErrors(['totalPercentage' => 'Total percentage for the topic must equal to 100.']);
         }
 
         // Save each difficulty level's criteria
@@ -130,7 +130,7 @@ class TopicGradingCriteriaController extends Controller
         // Check if the Total Percentage is 100
         $totalPercentage = array_sum(array_column($request->criteria, 'percentage'));
         if ($totalPercentage !== 100) {
-            return back()->withErrors(['Total percentage for the topic must equal to 100.']);
+            return back()->withErrors(['totalPercentage' => 'Total percentage for the topic must equal to 100.']);
         }
 
         foreach ($request->criteria as $criterion) {

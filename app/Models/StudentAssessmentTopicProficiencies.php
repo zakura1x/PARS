@@ -31,5 +31,9 @@ class StudentAssessmentTopicProficiencies extends Model
         return $this->belongsTo(StudentPracticeAssessment::class);
     }
 
+    public function topic(){
+        return $this->belongsTo(Topics::class);
+    }
+
     //declare the table it uses
 }

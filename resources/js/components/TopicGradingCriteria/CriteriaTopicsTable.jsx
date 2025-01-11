@@ -10,7 +10,7 @@ const CriteriaTopicsTable = ({ topics }) => {
 
     const handlePageChange = (url) => {
         if (url) {
-            Inertia.get(url);
+            router.get(url);
         }
     };
 

@@ -17,8 +17,9 @@ const DetailsTable = ({
         ? subTopics
         : Object.values(subTopics);
 
+    //console.log(parentTopics);
     // console.log("Rendering DetailsTable");
-    // console.log("Parent Topics:", sortedParentTopics);
+    //console.log("Parent Topics:", sortedParentTopics);
     // console.log("Sub Topics:", subTopicsArray);
 
     return (

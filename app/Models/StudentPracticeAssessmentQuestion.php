@@ -14,8 +14,13 @@ class StudentPracticeAssessmentQuestion extends Model
     protected $fillable = [
         'practice_assessment_id',
         'question_id',
+        'student_answer',
         'answered',
         'is_correct'
+    ];
+
+    protected $casts =[
+        'student_answer' => 'array',
     ];
 
     public function practiceAssessment()

@@ -8,7 +8,7 @@ const PracticeStart = () => {
 
     const startAssessment = () => {
         router.post(
-            `/student-practice-assessments/answer/${practiceAssessmentId}`
+            `/student-practice-assessments/answer/${practiceAssessmentId.id}`
         );
     };
 

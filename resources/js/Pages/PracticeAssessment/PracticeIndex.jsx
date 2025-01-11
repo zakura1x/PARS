@@ -12,7 +12,7 @@ const PracticeIndex = () => {
         } else if (status === "on_going") {
             router.get(`/student-practice-assessments/take/${id}`);
         } else if (status === "completed") {
-            router.get(`/student-practice-assessments/report/${id}`);
+            router.get(`/student-practice-assessments/result/${id}`);
         }
     };
 

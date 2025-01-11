@@ -27,7 +27,7 @@ const TakeAssessment = ({ practiceAssessment }) => {
         setData("answers", updatedAnswers);
     };
 
-    console.log(data.answers);
+    console.log(practiceAssessment);
 
     const handleEssayChange = (e) => {
         const essayAnswer = e.target.value;

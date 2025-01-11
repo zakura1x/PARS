@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { useForm, usePage, Link, router } from "@inertiajs/react";
 import AddSubtopicsModal from "../../components/TopicManagement/AddSubtopicsModal";
@@ -16,6 +16,13 @@ const TopicEdit = () => {
         subtopics: subTopics || [], // Set subtopics for editing
         subject_id: subject.id,
     });
+
+    // Keep `data.subtopics` in sync with `subTopics` from props
+    useEffect(() => {
+        setData("subtopics", Array.isArray(subTopics) ? subTopics : []);
+    }, [subTopics]);
+
+    console.log(subTopics);
 
     // Sort subtopics based on the `order` field
     const sortedSubtopics = data.subtopics.sort((a, b) => a.order - b.order);
@@ -55,8 +62,13 @@ const TopicEdit = () => {
         );
     };
 
+    // Handle addition of a new subtopic
     const handleSubtopicAdded = (newSubtopic) => {
-        setData("subtopics", [...data.subtopics, newSubtopic]);
+        const updatedSubtopics = [...data.subtopics, newSubtopic];
+        setData("subTopics", updatedSubtopics);
+
+        // Reload to fetch updated subtopics from the server (if necessary)
+        router.reload({ only: ["subTopics"] });
     };
 
     return (
@@ -105,7 +117,7 @@ const TopicEdit = () => {
 
             {/* Subtopics (Draggable) */}
             <div className="mb-4">
-                {subTopics.length > 0 ? (
+                {data.subtopics.length > 0 ? (
                     <DragDropContext onDragEnd={onDragEnd}>
                         <Droppable droppableId="subtopics">
                             {(provided) => (
@@ -114,7 +126,7 @@ const TopicEdit = () => {
                                     ref={provided.innerRef}
                                     className="space-y-4"
                                 >
-                                    {data.subtopics.map((subtopic, index) => (
+                                    {sortedSubtopics.map((subtopic, index) => (
                                         <Draggable
                                             key={subtopic.id}
                                             draggableId={subtopic.id.toString()}
@@ -147,7 +159,7 @@ const TopicEdit = () => {
                         </Droppable>
                     </DragDropContext>
                 ) : (
-                    <div>No subtopics available</div> // Optional message when no subtopics are found
+                    <div>No subtopics available</div>
                 )}
             </div>
 
@@ -157,7 +169,7 @@ const TopicEdit = () => {
                 toggleModal={toggleSubtopicModal}
                 topic={topic}
                 subject={subject}
-                onSubtopicAdded={handleSubtopicAdded} // Pass the handler as a prop
+                onSubtopicAdded={handleSubtopicAdded}
             />
         </div>
     );

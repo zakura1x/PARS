@@ -25,7 +25,6 @@ class Question extends Model
         'attachment_path',
         'correct_answer',
         'solution',
-        'status',
         'is_used',
     ];
 

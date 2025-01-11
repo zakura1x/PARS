@@ -123,7 +123,7 @@ const QuestionForm = ({ initialSubjects }) => {
                                             e.target.value
                                         )
                                     }
-                                    className="input input-bordered w-full mr-2"
+                                    className="input input-bordered w-full mr-2 bg-white"
                                 />
                                 <button
                                     type="button"
@@ -238,7 +238,7 @@ const QuestionForm = ({ initialSubjects }) => {
                                 onChange={(e) =>
                                     setData("subject_id", e.target.value)
                                 }
-                                className="select select-bordered w-full"
+                                className="select select-bordered w-full bg-white"
                             >
                                 <option value="">Select a subject</option>
                                 {initialSubjects.map((subject) => (
@@ -265,7 +265,7 @@ const QuestionForm = ({ initialSubjects }) => {
                                 onChange={(e) =>
                                     setData("topic_id", e.target.value)
                                 }
-                                className="select select-bordered w-full"
+                                className="select select-bordered w-full bg-white"
                             >
                                 <option value="">Select a topic</option>
                                 {topics.map((topic) => (
@@ -292,7 +292,7 @@ const QuestionForm = ({ initialSubjects }) => {
                                 onChange={(e) =>
                                     setData("purpose_type", e.target.value)
                                 }
-                                className="select select-bordered w-full"
+                                className="select select-bordered w-full bg-white"
                             >
                                 <option value="">Select the Purpose</option>
                                 <option value="practice">Practice Type</option>
@@ -323,7 +323,7 @@ const QuestionForm = ({ initialSubjects }) => {
                                 onChange={(e) =>
                                     setData("difficulty", e.target.value)
                                 }
-                                className="select select-bordered w-full"
+                                className="select select-bordered w-full bg-white"
                             >
                                 <option value="">Select Difficulty</option>
                                 <option value="remembering">Remembering</option>
@@ -353,7 +353,7 @@ const QuestionForm = ({ initialSubjects }) => {
                                 onChange={(e) =>
                                     setData("weight", e.target.value)
                                 }
-                                className="input input-bordered w-full"
+                                className="input input-bordered w-full bg-white"
                             />
                             {errors.weight && (
                                 <span className="text-red-500 text-sm">
@@ -376,7 +376,7 @@ const QuestionForm = ({ initialSubjects }) => {
                                         e.target.files[0]
                                     )
                                 }
-                                className="input input-bordered w-full"
+                                className="input input-bordered w-full bg-white"
                             />
                             {errors.attachment_path && (
                                 <span className="text-red-500 text-sm">
@@ -397,7 +397,7 @@ const QuestionForm = ({ initialSubjects }) => {
                             onChange={(e) =>
                                 setData("question_text", e.target.value)
                             }
-                            className="textarea textarea-bordered w-full"
+                            className="textarea textarea-bordered w-full bg-white"
                         ></textarea>
                         {errors.question_text && (
                             <span className="text-red-500 text-sm">
@@ -415,7 +415,7 @@ const QuestionForm = ({ initialSubjects }) => {
                             name="status"
                             value={data.status}
                             onChange={(e) => setData("status", e.target.value)}
-                            className="select select-bordered w-full"
+                            className="select select-bordered w-full bg-white"
                         >
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
@@ -438,7 +438,7 @@ const QuestionForm = ({ initialSubjects }) => {
                             onChange={(e) =>
                                 setData("format_type", e.target.value)
                             }
-                            className="select select-bordered w-full"
+                            className="select select-bordered w-full bg-white"
                         >
                             <option value="">Select a format</option>
                             <option value="multiple_choice">
@@ -457,13 +457,13 @@ const QuestionForm = ({ initialSubjects }) => {
                     {/* Options */}
                     <div className="mb-4">{renderOptionsField()}</div>
 
-                    <div className="flex flex-col md:flex-row md:justify-between gap-4">
+                    <div className="flex flex-col lg:flex-row justify-between lg:justify-center lg:space-x-4 lg:items-center">
                         {/* Submit Button */}
-                        <div className="mt-4 w-full">
+                        <div className="mt-4 w-full lg:w-[20%]">
                             <button
                                 type="submit"
                                 disabled={isProcessing} // Use isProcessing here
-                                className="btn w-full bg-green-800 border-none text-white hover:bg-black"
+                                className="btn w-full bg-black border-none text-white hover:bg-green-800"
                             >
                                 {isProcessing ? (
                                     <ClipLoader size={20} color={"#fff"} />
@@ -473,7 +473,7 @@ const QuestionForm = ({ initialSubjects }) => {
                             </button>
                         </div>
                         {/* Cancel Button */}
-                        <div className="mt-4 w-full">
+                        <div className="mt-4 w-full lg:w-[20%]">
                             <Link href="/questionBank">
                                 <button className="btn btn-error hover:bg-red-500 w-full">
                                     Cancel

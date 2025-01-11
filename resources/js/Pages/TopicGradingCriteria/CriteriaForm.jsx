@@ -2,11 +2,7 @@ import React from "react";
 import { useForm, usePage, Link } from "@inertiajs/react";
 
 const CriteriaForm = () => {
-    const { topic, criteria } = usePage().props;
-
-    // Add this debug logging
-    // console.log("Criteria prop:", criteria);
-    // console.log("Topic prop:", topic);
+    const { topic, criteria, errors: pageErrors } = usePage().props;
 
     const { data, setData, post, put, processing, errors, reset } = useForm({
         criteria: criteria
@@ -47,25 +43,22 @@ const CriteriaForm = () => {
         setData("criteria", newCriteria);
     };
 
-    //console.log(topic.id);
-    //console.log(criteria.id);
-
     const handleSubmit = (e) => {
         e.preventDefault();
         console.log("Submitting data:", data.criteria);
 
         if (criteria && criteria.length > 0) {
-            // Make sure we're accessing the first criteria's ID if it's an array
             const criteriaId = criteria[0].id;
-            //console.log("Updating with criteria ID:", criteriaId);
             put(
-                `/topic-grading-criteria/update/criteria/${topic.id}/${criteriaId}`
+                `/topic-grading-criteria/update/criteria/${topic.id}/${criteriaId}`,
+                {
+                    //onError: (e) => console.log("Error:", e),
+                }
             );
         } else {
-            //console.log("Creating new criteria");
             post(`/topic-grading-criteria/create/criteria/${topic.id}`, {
                 onSuccess: () => reset(),
-                onError: (e) => console.log("Error:", e),
+                //onError: (e) => console.log("Error:", e),
             });
         }
     };
@@ -110,7 +103,16 @@ const CriteriaForm = () => {
                         </button>
                     </div>
                     <div>
-                        {errors.criteria && <div>{errors.criteria}</div>}
+                        {pageErrors.criteria && (
+                            <div className="text-red-500 mb-4">
+                                <span>{pageErrors.criteria}</span>
+                            </div>
+                        )}
+                        {pageErrors.totalPercentage && (
+                            <div className="text-red-500 mb-4">
+                                <span>{pageErrors.totalPercentage}</span>
+                            </div>
+                        )}
                         <table className="table-md bg-white shadow-md rounded-md border-2 border-collapse border-gray-200">
                             <thead className="bg-[#64946a] text-white">
                                 <tr className="border-b-2 border-gray-200">
@@ -145,8 +147,15 @@ const CriteriaForm = () => {
                                                         e.target.value
                                                     )
                                                 }
-                                                className="w-full hover:bg-[#94b398]"
+                                                className="w-full bg-white text-black hover:bg-[#94b398]"
                                             />
+                                            {errors[
+                                                `criteria.${index}.percentage`
+                                            ] && (
+                                                <div className="text-red-500">
+                                                    Percentage is Required
+                                                </div>
+                                            )}
                                         </td>
                                         <td className="border border-gray-200 p-2">
                                             <input
@@ -159,8 +168,15 @@ const CriteriaForm = () => {
                                                         e.target.value
                                                     )
                                                 }
-                                                className="w-full hover:bg-[#94b398]"
+                                                className="w-full bg-white text-black hover:bg-[#94b398]"
                                             />
+                                            {errors[
+                                                `criteria.${index}.min_questions`
+                                            ] && (
+                                                <div className="text-red-500">
+                                                    Minimum Question is Required
+                                                </div>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}

@@ -27,7 +27,6 @@ return new class extends Migration
             $table->integer('weight')->default(1);
             $table->string('attachment_path')->nullable();
             $table->string('solution')->nullable(); //Correct answer path this can be image or pdf
-            $table->enum('status', ['active', 'inactive', 'archived'])->default('inactive');
             $table->boolean('is_used')->default(false);
             $table->softDeletes();
             $table->timestamps();
