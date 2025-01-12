@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->text('content')->nullable();
+            $table->json('links')->nullable();
             $table->foreignId('topic_id')->constrained('topics')->onDelete('cascade');
             //$table->foreignId('subject_id')->constrained('subjects')->onDelete('cascade');
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');

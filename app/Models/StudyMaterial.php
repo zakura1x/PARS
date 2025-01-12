@@ -15,8 +15,13 @@ class StudyMaterial extends Model
     protected $fillable = [
         'title',
         'content',
+        'links',
         'topic_id',
         'created_by'
+    ];
+
+    protected $casts =[
+        'links' => 'array'
     ];
 
     public function topic(){

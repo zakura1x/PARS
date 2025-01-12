@@ -68,6 +68,9 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
 
     //Study Materials
     Route::get('/study-materials/index/{topicId}', [StudyMaterialController::class, 'index'])->name('study-materials.index');
+    Route::get('/study-materials/add/form/{topicId}', [StudyMaterialController::class, 'create'])->name('study-materials.form');
+    Route::get('/study-materials/edit/{studyMaterialId}', [StudyMaterialController::class, 'show'])->name('study-materials.edit');
+    Route::post('/study-materials/add/new/{topicId}',[StudyMaterialController::class, 'store'])->name('study-materials.store');
 
 });
 

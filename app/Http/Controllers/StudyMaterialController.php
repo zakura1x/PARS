@@ -8,7 +8,7 @@ use App\Models\StudyMaterial;
 use App\Models\StudyMaterialAttachment;
 use App\Models\Subject;
 use App\Models\Topics;
-use Illuminate\Http\Client\Request;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class StudyMaterialController extends Controller
@@ -21,8 +21,11 @@ class StudyMaterialController extends Controller
     public function index($topicId)
     {
         $topic = Topics::with('subject')->findOrFail($topicId);
-        $studyMaterials = StudyMaterial::where('topic_id', $topicId)->get();
-
+        $studyMaterials = StudyMaterial::with('attachments')
+            ->where('topic_id', $topicId)
+            ->get();
+            // Removed the map function since the array casting is already handling it
+        //dd($studyMaterials);
         return inertia('StudyMaterial/StudyMaterialList', [
             'studyMaterials' => $studyMaterials,
             'topic' => $topic,
@@ -51,21 +54,22 @@ class StudyMaterialController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'nullable|string',
-            'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:2048'
+            'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:2048',
+            'links' => 'nullable|array',
+            'links.*' => 'nullable|url',
         ]);
 
-        // $topic = Topics::findOrFail($topicId);
-        // $subject = Subject::findOrFail($subjectId);
+        //dd($validated);
 
-        //Create the study material
         $studyMaterial = StudyMaterial::create([
             'title' => $validated['title'],
             'content' => $validated['content'],
+            'links' => $validated['links'] ?? [],
             'topic_id' => $topicId,
             'created_by' => Auth::id(),
         ]);
 
-        //File uploads
+        // Handle file uploads
         if($request->hasFile('attachments')){
             foreach ($request->file('attachments') as $file){
                 $path = $file->store('study_materials');
@@ -75,8 +79,13 @@ class StudyMaterialController extends Controller
                     'file_path' => $path,
                     'file_name' => $file->getClientOriginalName(),
                 ]);
-            };
+            }
         }
+
+        // return back();
+
+        return redirect()->route('topics.study-materials.index', $topicId)
+            ->with('success', 'Study material created successfully');
     }
 
     /**
@@ -92,7 +101,11 @@ class StudyMaterialController extends Controller
         // Get the attachments
         $attachments = StudyMaterialAttachment::where('study_material_id', $studyMaterialId)->get();
 
-        return inertia('StudyMaterial/StudyMaterialView', ['studyMaterial'=> $studyMaterial,'attachments'=> $attachments]);
+        return inertia('StudyMaterial/StudyMaterialView', [
+            'studyMaterial'=> $studyMaterial,
+            'attachments'=> $attachments,
+            'links' => $studyMaterial->links
+        ]);
     }
 
     /**
@@ -115,7 +128,9 @@ class StudyMaterialController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'nullable|string',
-            'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:2048'
+            'attachments.*' => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:2048',
+            'links' => 'nullable|array',
+            'links.*' => 'url'
         ]);
 
         $studyMaterial = StudyMaterial::findOrFail($studyMaterialId);
@@ -124,6 +139,7 @@ class StudyMaterialController extends Controller
         $studyMaterial->update([
             'title' => $validated['title'],
             'content' => $validated['content'],
+            'links' => $validated['links']
         ]);
 
         // Handle file uploads
