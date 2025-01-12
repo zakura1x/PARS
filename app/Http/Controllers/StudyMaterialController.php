@@ -20,9 +20,14 @@ class StudyMaterialController extends Controller
      */
     public function index($topicId)
     {
+        $topic = Topics::with('subject')->findOrFail($topicId);
         $studyMaterials = StudyMaterial::where('topic_id', $topicId)->get();
 
-        return inertia('StudyMaterial/StudyMaterialList', ['studyMaterials' => $studyMaterials]);
+        return inertia('StudyMaterial/StudyMaterialList', [
+            'studyMaterials' => $studyMaterials,
+            'topic' => $topic,
+            'subject' => $topic->subject,
+        ]);
     }
 
     /**
@@ -147,6 +152,8 @@ class StudyMaterialController extends Controller
     public function destroy($studyMaterialId)
     {
         $studyMaterial = StudyMaterial::findOrFail($studyMaterialId);
+        $topic = $studyMaterial->topic->id;
+        $studyMaterials = StudyMaterial::where('topic_id', $topic)->get();
 
         // Delete attachments
         StudyMaterialAttachment::where('study_material_id', $studyMaterialId)->delete();
@@ -154,6 +161,6 @@ class StudyMaterialController extends Controller
         // Delete the study material
         $studyMaterial->delete();
 
-        return response()->json(['message' => 'Study material deleted successfully']);
+        return inertia('StudyMaterial/StudyMaterialList', ['studyMaterials' => $studyMaterials]);
     }
 }

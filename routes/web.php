@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\StudentPracticeAssessmentController;
+use App\Http\Controllers\StudyMaterialController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TopicGradingCriteriaController;
 use App\Http\Controllers\UserManagementController;
@@ -64,6 +65,9 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::get('/topic-grading-criteria/form/{topicId}', [TopicGradingCriteriaController::class, 'createOrEdit'])->name('topic-grading-criteria.add.edit');
     Route::post('/topic-grading-criteria/create/criteria/{topicId}', [TopicGradingCriteriaController::class, 'store'])->name('topic-grading-criteria.store');
     Route::put('/topic-grading-criteria/update/criteria/{topicId}/{criterionId}', [TopicGradingCriteriaController::class, 'update'])->name('topic-grading-criteria.update');
+
+    //Study Materials
+    Route::get('/study-materials/index/{topicId}', [StudyMaterialController::class, 'index'])->name('study-materials.index');
 
 });
 
