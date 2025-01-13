@@ -1,9 +1,32 @@
-import React from "react";
-import { usePage, Link } from "@inertiajs/react";
+import React, { useState } from "react";
+import { usePage, Link, router } from "@inertiajs/react";
 import FlashMessage from "../../components/Notifications/FlashMessage";
 
 const StudyMaterialList = () => {
     const { flash, studyMaterials, topic, subject } = usePage().props;
+    const [materialToDelete, setMaterialToDelete] = useState(null);
+
+    const openDeleteModal = (material) => {
+        setMaterialToDelete(material);
+        document.getElementById("delete_modal").showModal();
+    };
+
+    const handleDelete = () => {
+        if (!materialToDelete) return;
+        // Perform delete action
+        router.delete(`/study-materials/add/new/${materialToDelete.id}`, {
+            onSuccess: () => {
+                console.log(`Deleted material with id: ${materialToDelete.id}`);
+                // Optionally, close the modal and reset the state
+                document.getElementById("delete_modal").close();
+                setMaterialToDelete(null);
+            },
+            onError: (errors) => {
+                console.error("Delete failed:", errors);
+                // Handle errors here, e.g., show a flash message
+            },
+        });
+    };
 
     return (
         <div className="p-4 bg-white rounded shadow m-2">
@@ -64,29 +87,49 @@ const StudyMaterialList = () => {
                                         <div className="flex flex-row justify-between items-center">
                                             <p>{material.content}</p>
                                         </div>
-                                        {material.attachments &&
-                                            material.attachments.length > 0 && (
-                                                <div className="mt-2">
-                                                    <h4 className="font-medium">
-                                                        Attachments:
-                                                    </h4>
-                                                    <ul className="list-disc ml-4">
-                                                        {material.attachments.map(
-                                                            (attachment) => (
-                                                                <li
-                                                                    key={
-                                                                        attachment.id
-                                                                    }
-                                                                >
-                                                                    {
-                                                                        attachment.file_name
-                                                                    }
-                                                                </li>
-                                                            )
-                                                        )}
-                                                    </ul>
+                                        <div>
+                                            <p>Attachments:</p>
+                                        </div>
+                                        {material.attachments.map(
+                                            (attachment) => (
+                                                <div
+                                                    key={attachment.id}
+                                                    className="mb-2"
+                                                >
+                                                    {attachment.public_url.endsWith(
+                                                        ".jpg"
+                                                    ) ||
+                                                    attachment.public_url.endsWith(
+                                                        ".jpeg"
+                                                    ) ||
+                                                    attachment.public_url.endsWith(
+                                                        ".png"
+                                                    ) ? (
+                                                        <img
+                                                            src={
+                                                                attachment.public_url
+                                                            }
+                                                            alt={
+                                                                attachment.file_name
+                                                            }
+                                                            className="w-64 h-auto rounded-lg shadow"
+                                                        />
+                                                    ) : (
+                                                        <a
+                                                            href={
+                                                                attachment.public_url
+                                                            }
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-blue-600 hover:text-blue-800"
+                                                        >
+                                                            Open File
+                                                        </a>
+                                                    )}
                                                 </div>
-                                            )}
+                                            )
+                                        )}
+
                                         {material.links &&
                                             material.links.length > 0 && (
                                                 <div className="mt-2">
@@ -123,8 +166,13 @@ const StudyMaterialList = () => {
                                             Edit Material
                                         </Link>
                                     </button>
-                                    <button className="btn border-none bg-[#303030] text-white hover:bg-red-500">
-                                        <Link href={`/`}>Delete</Link>
+                                    <button
+                                        className="btn border-none bg-[#303030] text-white hover:bg-red-500"
+                                        onClick={() =>
+                                            openDeleteModal(material)
+                                        }
+                                    >
+                                        Delete
                                     </button>
                                 </div>
                             </div>
@@ -132,6 +180,26 @@ const StudyMaterialList = () => {
                     ))
                 )}
             </div>
+            {/* Confirmation to delete */}
+            <dialog id="delete_modal" className="modal">
+                <div className="modal-box">
+                    <h3 className="font-bold text-lg">Confirm Delete</h3>
+                    <p className="py-4">
+                        Are you sure you want to delete this study material?
+                    </p>
+                    <div className="modal-action">
+                        <form method="dialog">
+                            <button className="btn">Cancel</button>
+                        </form>
+                        <button
+                            className="btn btn-error"
+                            onClick={handleDelete}
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </dialog>
         </div>
     );
 };

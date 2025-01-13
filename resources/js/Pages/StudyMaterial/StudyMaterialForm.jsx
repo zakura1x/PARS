@@ -1,22 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm, router } from "@inertiajs/react";
 
-const StudyMaterialForm = ({ topicId }) => {
+const StudyMaterialForm = ({ topicId, studyMaterial = null }) => {
     const [fileList, setFileList] = useState([]);
     const [linkInput, setLinkInput] = useState("");
-    const [links, setLinks] = useState([]);
+    const [links, setLinks] = useState(
+        studyMaterial ? studyMaterial.links : []
+    );
     const [linkError, setLinkError] = useState("");
-    const { data, setData, post, processing, errors } = useForm({
-        title: "",
-        content: "",
-        attachments: [],
-        links: [],
+    const { data, setData, post, processing, errors, put } = useForm({
+        title: studyMaterial ? studyMaterial.title : "",
+        content: studyMaterial ? studyMaterial.content : "",
+        attachments: [], // For new files only
+        existingAttachments: studyMaterial
+            ? studyMaterial.attachments.map((attachment) => attachment.id)
+            : [],
+        links: studyMaterial ? studyMaterial.links : [],
     });
+
+    useEffect(() => {
+        if (studyMaterial && studyMaterial.attachments) {
+            setFileList(studyMaterial.attachments);
+        }
+    }, [studyMaterial]);
 
     const handleFileAdd = (e) => {
         const newFiles = Array.from(e.target.files);
         setFileList([...fileList, ...newFiles]);
-        setData("attachments", [...fileList, ...newFiles]);
+        setData("attachments", [...data.attachments, ...newFiles]); // Keep track of new files
     };
 
     const removeFile = (indexToRemove) => {
@@ -24,18 +35,20 @@ const StudyMaterialForm = ({ topicId }) => {
             (_, index) => index !== indexToRemove
         );
         setFileList(updatedFiles);
-        setData("attachments", updatedFiles);
+        setData((prevData) => ({
+            ...prevData,
+            attachments: updatedFiles,
+        }));
     };
 
     const handleAddLink = (e) => {
         e.preventDefault();
 
-        // URL validation
         try {
             new URL(linkInput.trim());
             const newLinks = [...links, linkInput.trim()];
-            setLinks(newLinks);
-            setData("links", newLinks);
+            setLinks(newLinks); // Update UI
+            setData("links", newLinks); // Sync with form data
             setLinkInput("");
             setLinkError("");
         } catch (error) {
@@ -53,23 +66,59 @@ const StudyMaterialForm = ({ topicId }) => {
         setData("links", updatedLinks);
     };
 
-    //console.log(data.links);
-
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log(data);
-        post(
-            `/study-materials/add/new/${topicId}`,
-            data, // Remove the nested data object
-            {
-                onSuccess: () => {
-                    console.log("Form submitted successfully");
+
+        const formData = new FormData();
+
+        // Add title and content
+        formData.append("title", data.title || ""); // Add fallback for safety
+        formData.append("content", data.content || "");
+
+        // Add existing attachments (if any)
+        if (data.existingAttachments?.length > 0) {
+            data.existingAttachments.forEach((id, index) => {
+                formData.append(`existingAttachments[${index}]`, id);
+            });
+        }
+
+        // Add new attachments
+        if (data.attachments.length > 0) {
+            data.attachments.forEach((file) => {
+                formData.append("attachments[]", file);
+            });
+        }
+
+        // Add links
+        if (data.links.length > 0) {
+            data.links.forEach((link, index) => {
+                formData.append(`links[${index}]`, link);
+            });
+        }
+
+        formData.forEach((value, key) => {
+            console.log(key, value);
+        });
+
+        if (studyMaterial) {
+            put(`/study-materials/update/${studyMaterial.id}`, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
                 },
-                onError: (errors) => {
-                    console.error("Form submission failed:", errors);
+                onSuccess: () => console.log("Form updated successfully"),
+                onError: (errors) =>
+                    console.error("Form update failed:", errors),
+            });
+        } else {
+            post(`/study-materials/add/new/${topicId}`, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
                 },
-            }
-        );
+                onSuccess: () => console.log("Form submitted successfully"),
+                onError: (errors) =>
+                    console.error("Form submission failed:", errors),
+            });
+        }
     };
 
     const handleCancel = () => {
@@ -78,7 +127,9 @@ const StudyMaterialForm = ({ topicId }) => {
 
     return (
         <div className="p-6 bg-white rounded-md m-2 mt-4">
-            <h2 className="text-2xl font-bold mb-6">Add Study Material</h2>
+            <h2 className="text-2xl font-bold mb-6">
+                {studyMaterial ? "Edit Study Material" : "Add Study Material"}
+            </h2>
 
             <form onSubmit={handleSubmit} className="form-control">
                 <div className="mb-4">
@@ -187,7 +238,7 @@ const StudyMaterialForm = ({ topicId }) => {
                             <div className="mt-2 space-y-2">
                                 {fileList.map((file, index) => (
                                     <div
-                                        key={`file-${index}`}
+                                        key={`new-file-${index}`}
                                         className="flex items-center justify-between p-2 rounded bg-slate-100"
                                     >
                                         <span className="text-sm">
@@ -202,6 +253,34 @@ const StudyMaterialForm = ({ topicId }) => {
                                         </button>
                                     </div>
                                 ))}
+                                {studyMaterial?.attachments.map(
+                                    (attachment, index) => (
+                                        <div
+                                            key={`existing-file-${index}`}
+                                            className="flex items-center justify-between p-2 rounded bg-slate-100"
+                                        >
+                                            <span className="text-sm">
+                                                📎 {attachment.file_name}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setData(
+                                                        "existingAttachments",
+                                                        data.existingAttachments.filter(
+                                                            (id) =>
+                                                                id !==
+                                                                attachment.id
+                                                        )
+                                                    )
+                                                }
+                                                className="btn btn-ghost btn-sm text-error"
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                    )
+                                )}
                             </div>
                         )}
 
