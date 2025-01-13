@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateStudyMaterialAttachmentRequest;
 use App\Models\StudyMaterialAttachment;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
 
 class StudyMaterialAttachmentController extends Controller
 {
@@ -45,9 +46,25 @@ class StudyMaterialAttachmentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreStudyMaterialAttachmentRequest $request)
+    public function store(Request $request, $studyMaterialId)
     {
-        //
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            
+            // Store the file in the public storage directory
+            $path = $file->store('study_materials', 'public');
+
+            // Create a database record for the attachment
+            StudyMaterialAttachment::create([
+                'study_material_id' => $studyMaterialId,
+                'file_path' => $path,
+                'file_name' => $file->getClientOriginalName(),
+            ]);
+
+            return back()->with('message', 'File uploaded successfully');
+        }
+
+        return back()->with('message', 'No file uploaded');
     }
 
     /**
@@ -77,8 +94,21 @@ class StudyMaterialAttachmentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(StudyMaterialAttachment $studyMaterialAttachment)
+    public function destroy($studyMaterialAttachmentId)
     {
-        //
+        $studyMaterialAttachment = StudyMaterialAttachment::findOrFail($studyMaterialAttachmentId);
+        
+        // Get the file path before deleting the record
+        $filePath = $studyMaterialAttachment->file_path;
+        
+        // Delete the database record
+        $studyMaterialAttachment->delete();
+        
+        // Delete the file from storage if it exists
+        if (Storage::disk('public')->exists($filePath)) {
+            Storage::disk('public')->delete($filePath);
+        }
+        
+        return back()->with('message', 'Attachment deleted successfully');
     }
 }

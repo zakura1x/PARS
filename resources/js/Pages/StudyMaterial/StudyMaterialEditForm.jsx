@@ -1,31 +1,57 @@
 import React, { useState } from "react";
-import { useForm, router } from "@inertiajs/react";
+import { useForm, router, usePage } from "@inertiajs/react";
+import FlashMessage from "../../components/Notifications/FlashMessage";
 
-const StudyMaterialForm = ({ topicId }) => {
-    const [fileList, setFileList] = useState([]);
+const StudyMaterialEditForm = ({ topicId, studyMaterial, attachments }) => {
+    const [fileInput, setFileInput] = useState(null);
     const [linkInput, setLinkInput] = useState("");
-    const [links, setLinks] = useState([]);
+    const [links, setLinks] = useState(studyMaterial.links || []);
     const [linkError, setLinkError] = useState("");
 
-    const { data, setData, post, processing, errors } = useForm({
-        title: "",
-        content: "",
-        attachments: [],
-        links: [],
+    const { flash } = usePage().props;
+
+    const { data, setData, put, processing, errors } = useForm({
+        title: studyMaterial.title,
+        content: studyMaterial.content,
+        links: studyMaterial.links || [], // Initialize with existing links
     });
 
-    const handleFileAdd = (e) => {
-        const newFiles = Array.from(e.target.files);
-        setFileList([...fileList, ...newFiles]);
-        setData("attachments", [...data.attachments, ...newFiles]);
+    const handleAddFile = (e) => {
+        const newFile = e.target.files[0];
+        if (newFile) {
+            const formData = new FormData();
+            formData.append("attachment", newFile);
+
+            router.post(
+                route("study-materials-attachment.store", studyMaterial.id),
+                formData,
+                {
+                    onSuccess: () => {
+                        console.log("File uploaded successfully");
+                        setFileInput(null); // Reset the file input
+                        router.reload(); // Reload to reflect new attachment
+                    },
+                    onError: (errors) => {
+                        console.error("File upload failed:", errors);
+                    },
+                }
+            );
+        }
     };
 
-    const removeFile = (indexToRemove) => {
-        const updatedFiles = fileList.filter(
-            (_, index) => index !== indexToRemove
+    const handleDeleteAttachment = (attachmentId) => {
+        router.delete(
+            route("study-materials-attachment.delete", attachmentId),
+            {
+                onSuccess: () => {
+                    console.log("Attachment deleted successfully");
+                    router.reload(); // Reload to reflect deleted attachment
+                },
+                onError: (errors) => {
+                    console.error("Attachment deletion failed:", errors);
+                },
+            }
         );
-        setFileList(updatedFiles);
-        setData("attachments", updatedFiles);
     };
 
     const handleAddLink = (e) => {
@@ -33,9 +59,9 @@ const StudyMaterialForm = ({ topicId }) => {
 
         try {
             new URL(linkInput.trim());
-            const newLinks = [...links, linkInput.trim()];
-            setLinks(newLinks);
-            setData("links", newLinks);
+            const updatedLinks = [...links, linkInput.trim()];
+            setLinks(updatedLinks);
+            setData("links", updatedLinks); // This will now update the form data with all links
             setLinkInput("");
             setLinkError("");
         } catch (error) {
@@ -55,32 +81,7 @@ const StudyMaterialForm = ({ topicId }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-
-        const formData = new FormData();
-
-        formData.append("title", data.title || "");
-        formData.append("content", data.content || "");
-
-        if (data.attachments.length > 0) {
-            data.attachments.forEach((file) => {
-                formData.append("attachments[]", file);
-            });
-        }
-
-        if (data.links.length > 0) {
-            data.links.forEach((link, index) => {
-                formData.append(`links[${index}]`, link);
-            });
-        }
-
-        post(`/study-materials/add/new/${topicId}`, formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-            onSuccess: () => console.log("Form submitted successfully"),
-            onError: (errors) =>
-                console.error("Form submission failed:", errors),
-        });
+        put(route("study-materials.update", studyMaterial.id));
     };
 
     const handleCancel = () => {
@@ -89,7 +90,8 @@ const StudyMaterialForm = ({ topicId }) => {
 
     return (
         <div className="p-6 bg-white rounded-md m-2 mt-4">
-            <h2 className="text-2xl font-bold mb-6">Add Study Material</h2>
+            <FlashMessage message={flash.message} />
+            <h2 className="text-2xl font-bold mb-6">Edit Study Material</h2>
 
             <form onSubmit={handleSubmit} className="form-control">
                 <div className="mb-4">
@@ -148,12 +150,11 @@ const StudyMaterialForm = ({ topicId }) => {
                     <div className="flex flex-col gap-4">
                         <div className="flex items-center space-x-2">
                             <label className="btn bg-black text-white hover:bg-green-800 border-none">
-                                <span>Add Files</span>
+                                <span>Add File</span>
                                 <input
                                     type="file"
                                     className="hidden"
-                                    onChange={handleFileAdd}
-                                    multiple
+                                    onChange={handleAddFile}
                                     accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
                                 />
                             </label>
@@ -163,69 +164,23 @@ const StudyMaterialForm = ({ topicId }) => {
                             </span>
                         </div>
 
-                        <div className="flex flex-col gap-2">
-                            <div className="flex items-center space-x-2">
-                                <input
-                                    type="url"
-                                    value={linkInput}
-                                    onChange={(e) =>
-                                        setLinkInput(e.target.value)
-                                    }
-                                    placeholder="Enter resource URL"
-                                    className={`input input-bordered flex-1 ${
-                                        linkError ? "input-error" : ""
-                                    }`}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={handleAddLink}
-                                    className="btn bg-black text-white hover:bg-green-800 border-none"
-                                >
-                                    Add Link
-                                </button>
-                            </div>
-                            {linkError && (
-                                <span className="text-error text-sm">
-                                    {linkError}
-                                </span>
-                            )}
-                        </div>
-
-                        {fileList.length > 0 && (
+                        {attachments.length > 0 && (
                             <div className="mt-2 space-y-2">
-                                {fileList.map((file, index) => (
+                                {attachments.map((attachment) => (
                                     <div
-                                        key={`new-file-${index}`}
+                                        key={attachment.id}
                                         className="flex items-center justify-between p-2 rounded bg-slate-100"
                                     >
                                         <span className="text-sm">
-                                            📎 {file.name}
+                                            📎 {attachment.file_name}
                                         </span>
                                         <button
                                             type="button"
-                                            onClick={() => removeFile(index)}
-                                            className="btn btn-ghost btn-sm text-error"
-                                        >
-                                            Remove
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {links.length > 0 && (
-                            <div className="mt-2 space-y-2">
-                                {links.map((link, index) => (
-                                    <div
-                                        key={`link-${index}`}
-                                        className="flex items-center justify-between p-2 rounded bg-slate-100"
-                                    >
-                                        <span className="text-sm">
-                                            🔗 {link}
-                                        </span>
-                                        <button
-                                            type="button"
-                                            onClick={() => removeLink(index)}
+                                            onClick={() =>
+                                                handleDeleteAttachment(
+                                                    attachment.id
+                                                )
+                                            }
                                             className="btn btn-ghost btn-sm text-error"
                                         >
                                             Remove
@@ -235,19 +190,58 @@ const StudyMaterialForm = ({ topicId }) => {
                             </div>
                         )}
                     </div>
-                    {errors.attachments && (
-                        <label className="label">
-                            <span className="label-text-alt text-error">
-                                {errors.attachments}
+                </div>
+
+                <div className="mb-4">
+                    <label className="label">
+                        <span className="label-text font-bold text-slate-600">
+                            Links
+                        </span>
+                    </label>
+                    <div className="flex flex-col gap-2">
+                        <div className="flex items-center space-x-2">
+                            <input
+                                type="url"
+                                value={linkInput}
+                                onChange={(e) => setLinkInput(e.target.value)}
+                                placeholder="Enter resource URL"
+                                className={`input input-bordered flex-1 ${
+                                    linkError ? "input-error" : ""
+                                }`}
+                            />
+                            <button
+                                type="button"
+                                onClick={handleAddLink}
+                                className="btn bg-black text-white hover:bg-green-800 border-none"
+                            >
+                                Add Link
+                            </button>
+                        </div>
+                        {linkError && (
+                            <span className="text-error text-sm">
+                                {linkError}
                             </span>
-                        </label>
-                    )}
-                    {errors.links && (
-                        <label className="label">
-                            <span className="label-text-alt text-error">
-                                {errors.links}
-                            </span>
-                        </label>
+                        )}
+                    </div>
+
+                    {links.length > 0 && (
+                        <div className="mt-2 space-y-2">
+                            {links.map((link, index) => (
+                                <div
+                                    key={`link-${index}`}
+                                    className="flex items-center justify-between p-2 rounded bg-slate-100"
+                                >
+                                    <span className="text-sm">🔗 {link}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeLink(index)}
+                                        className="btn btn-ghost btn-sm text-error"
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
                     )}
                 </div>
 
@@ -267,10 +261,10 @@ const StudyMaterialForm = ({ topicId }) => {
                         {processing ? (
                             <>
                                 <span className="loading loading-spinner"></span>
-                                Submitting...
+                                Saving...
                             </>
                         ) : (
-                            "Submit"
+                            "Save Changes"
                         )}
                     </button>
                 </div>
@@ -279,4 +273,4 @@ const StudyMaterialForm = ({ topicId }) => {
     );
 };
 
-export default StudyMaterialForm;
+export default StudyMaterialEditForm;

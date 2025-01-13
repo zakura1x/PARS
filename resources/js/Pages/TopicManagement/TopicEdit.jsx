@@ -95,16 +95,16 @@ const TopicEdit = () => {
                 </ul>
             </div>
 
-            <div className="flex flex-row items-center space-x-4">
+            <div className="flex flex-row items-center space-x-4 lg:justify-between">
                 <div className="flex flex-col space-y-2">
-                    <h2 className="text-lg font-bold">
+                    <h2 className="text-2xl font-bold">
                         Edit Topic Information
                     </h2>
                     <h2 className="text-md font-medium">
                         Topic Name: {topic.name}
                     </h2>
                 </div>
-                <div className="flex flex-col items-center space-y-2 lg:flex-row lg:space-x-2 lg:space-y-0">
+                <div className="flex flex-col items-center space-y-2 lg:flex-row lg:space-x-2 lg:space-y-0 lg:just">
                     <button
                         className="btn border-none bg-[#303030] text-white hover:bg-[#42604C]"
                         onClick={toggleSubtopicModal}
@@ -153,6 +153,13 @@ const TopicEdit = () => {
                                                         <h2 className="text-lg font-semibold">
                                                             {subtopic.name}
                                                         </h2>
+                                                        <button className="btn border-none bg-[#303030] text-white hover:bg-[#42604C]">
+                                                            <Link
+                                                                href={`/study-materials/index/${subtopic.id}`}
+                                                            >
+                                                                Study Materials
+                                                            </Link>
+                                                        </button>
                                                     </div>
                                                 </div>
                                             )}

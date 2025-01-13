@@ -1,10 +1,7 @@
 import React, { useState } from "react";
 import { usePage } from "@inertiajs/react";
 
-const Header = ({ searchQuery, setSearchQuery, setShowModal }) => {
-    const [selectedSubject, setSelectedSubject] = useState("");
-    const { subjects } = usePage().props;
-
+const Header = () => {
     return (
         <div className="space-y-4">
             <div className="breadcrumbs text-sm">

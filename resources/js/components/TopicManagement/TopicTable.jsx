@@ -23,7 +23,6 @@ const TopicTable = ({ subjects }) => {
                     <tr className="bg-gray-200 text-gray-700 text-sm">
                         <th className="py-3 px-4 text-left">Subject Name</th>
                         <th className="py-3 px-4 text-left">Subject ID</th>
-                        <th className="py-3 px-4 text-left">Status</th>
                         <th className="py-3 px-4 text-left">Date Added</th>
                     </tr>
                 </thead>
@@ -52,21 +51,6 @@ const TopicTable = ({ subjects }) => {
                                 {/* Subject ID */}
                                 <td className="py-3 px-4">
                                     {subject.subject_id || "N/A"}
-                                </td>
-
-                                {/* Status with Color-coded Badge */}
-                                <td className="py-3 px-4">
-                                    <span
-                                        className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                                            subject.deleted_at
-                                                ? "bg-green-100 text-green-700"
-                                                : "bg-gray-100 text-gray-700"
-                                        }`}
-                                    >
-                                        {subject.deleted_at
-                                            ? "Active"
-                                            : "Inactive"}
-                                    </span>
                                 </td>
 
                                 {/* Date Added */}

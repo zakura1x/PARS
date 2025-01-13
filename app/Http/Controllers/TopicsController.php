@@ -135,15 +135,14 @@ class TopicsController extends Controller
     /**
      * Edit/update the topic
      */
-    public function edit(Request $request)
+    public function edit(Request $request, $topicId)
     {
         $validated = $request->validate([
-            'topic_id' => 'required|exists:topics,id',
             'name' => 'required|string',
         ]);
 
         //Update the topic name of the topics not the topic master
-        $topic = Topics::findOrFail($validated['topic_id']);
+        $topic = Topics::findOrFail($topicId);
 
         $topic->update([
             'name' => $validated['name'],
@@ -153,16 +152,65 @@ class TopicsController extends Controller
     }
 
     /**
-     * Delete the topic
-    */
-    public function delete(Request $request){
-        $validated = $request->validate([
-            'topic_id' => 'required|exits:topics,id'
-        ]);
+     * Delete the topic or a specific subtopic
+     */
+    public function delete($topicId)
+    {
+        $topic = Topics::with('subTopics', 'studyMaterials.attachments')->findOrFail($topicId);
 
-        $topic = Topics::findOrFail($validated['topic_id']);
-        
-        //soft delete here
-        $topic->delete();
+        if ($topic->parent_id) {
+            // Delete a specific subtopic
+            // Delete related study materials and their attachments
+            foreach ($topic->studyMaterials as $studyMaterial) {
+                foreach ($studyMaterial->attachments as $attachment) {
+                    $attachment->delete();
+                }
+                $studyMaterial->delete();
+            }
+
+            // Delete the subtopic itself
+            $topic->delete();
+
+            return redirect()->back()->with('message', 'Subtopic and its related data were deleted successfully');
+        } else {
+            // Delete the main topic and its subtopics
+            // Delete related study materials and their attachments
+            foreach ($topic->studyMaterials as $studyMaterial) {
+                foreach ($studyMaterial->attachments as $attachment) {
+                    $attachment->delete();
+                }
+                $studyMaterial->delete();
+            }
+
+            // Recursively delete subtopics and their study materials
+            $this->deleteSubTopics($topic->subTopics);
+
+            // Delete the topic itself
+            $topic->delete();
+
+            return redirect()->back()->with('message', 'Topic and its related data were deleted successfully');
+        }
+    }
+
+    /**
+     * Recursive function to delete subtopics and their related data
+     */
+    private function deleteSubTopics($subTopics)
+    {
+        foreach ($subTopics as $subTopic) {
+            // Delete related study materials and their attachments
+            foreach ($subTopic->studyMaterials as $studyMaterial) {
+                foreach ($studyMaterial->attachments as $attachment) {
+                    $attachment->delete();
+                }
+                $studyMaterial->delete();
+            }
+
+            // Recursively delete subtopics
+            $this->deleteSubTopics($subTopic->subTopics);
+
+            // Delete the subtopic itself
+            $subTopic->delete();
+        }
     }
 }

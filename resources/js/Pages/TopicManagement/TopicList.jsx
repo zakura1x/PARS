@@ -5,8 +5,6 @@ import TopicTable from "../../components/TopicManagement/TopicTable";
 import FlashMessage from "../../components/Notifications/FlashMessage";
 
 const TopicManagement = () => {
-    const [showMasterTopicModal, setShowMasterTopicModal] = useState(false);
-
     // Extract data passed from controller
     const { flash, subjects } = usePage().props;
     //console.log(subjects);
@@ -14,7 +12,7 @@ const TopicManagement = () => {
     return (
         <div className="p-6 bg-gray-100 min-h-screen">
             <FlashMessage message={flash.message} />
-            <Header setShowModal={setShowMasterTopicModal} />
+            <Header />
 
             <TopicTable subjects={subjects} />
         </div>

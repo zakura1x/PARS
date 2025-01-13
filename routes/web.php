@@ -76,6 +76,10 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::get('/attachments/download/{id}', [StudyMaterialAttachmentController::class, 'downloadAttachment'])->name('study-materials.download');
     Route::put('/study-materials/update/{studyMaterialId}', [StudyMaterialController::class, 'update'])->name('study-materials.update');
 
+    //Study Materials attachment
+    Route::post('/study-materials-attachment/add/new/{studyMaterialId}', [StudyMaterialAttachmentController::class, 'store'])->name('study-materials-attachment.store');
+    Route::delete('/study-materials-attachment/delete/{studyMaterialId}', [StudyMaterialAttachmentController::class, 'destroy'])->name('study-materials-attachment.delete');
+
 
 });
 

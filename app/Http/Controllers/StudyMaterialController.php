@@ -106,13 +106,16 @@ class StudyMaterialController extends Controller
      */
     public function edit($studyMaterialId)
     {
+        // Fetch the study material along with its attachments
         $studyMaterial = StudyMaterial::with('attachments')->findOrFail($studyMaterialId);
-
-        return inertia('StudyMaterial/StudyMaterialForm', [
+    
+        return inertia('StudyMaterial/StudyMaterialEditForm', [
             'topicId' => $studyMaterial->topic_id,
             'studyMaterial' => $studyMaterial,
+            'attachments' => $studyMaterial->attachments, // Include attachments explicitly
         ]);
     }
+    
 
     /**
      * Show the form for editing the specified resource.
@@ -131,22 +134,13 @@ class StudyMaterialController extends Controller
      */
     public function update(Request $request, $studyMaterialId)
     {
-        // Temporary debug script
-        dd($_FILES);
-        //dd($request->getContent());
-        dd($request->files->all());
-        //dd($request->headers->all());
-        //dd($request->getContent());
 
         //dd($request->all());
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'nullable|string',
-            'attachments' => 'nullable|array',
-            'attachments.*' => 'file|max:2048',
             'links' => 'nullable|array',
             'links.*' => 'url',
-            'existingAttachments' => 'nullable|array',
         ]);
 
         $studyMaterial = StudyMaterial::findOrFail($studyMaterialId);
@@ -158,38 +152,7 @@ class StudyMaterialController extends Controller
             'links' => $validated['links'] ?? []
         ]);
 
-        // Handle file uploads
-        if ($request->hasFile('attachments')) {
-            try {
-                foreach ($request->file('attachments') as $file) {
-                    $path = $file->store('study_materials', 'public');
-                    StudyMaterialAttachment::create([
-                        'study_material_id' => $studyMaterial->id,
-                        'file_path' => $path,
-                        'file_name' => $file->getClientOriginalName(),
-                    ]);
-                }
-            } catch (\Exception $e) {
-                return back()->withErrors(['attachments' => 'File upload failed: ' . $e->getMessage()]);
-            }
-            
-        }
-
-        // Handle existing attachments
-        if ($request->has('existingAttachments')) {
-            $existingAttachments = $validated['existingAttachments'];
-            $currentAttachments = $studyMaterial->attachments->pluck('id')->toArray();
-        
-            // Identify attachments to delete
-            $attachmentsToDelete = array_diff($currentAttachments, $existingAttachments);
-        
-            // Delete files and database records in bulk
-            $attachments = StudyMaterialAttachment::whereIn('id', $attachmentsToDelete)->get();
-            foreach ($attachments as $attachment) {
-                Storage::delete($attachment->file_path);
-            }
-            StudyMaterialAttachment::whereIn('id', $attachmentsToDelete)->delete();
-        }
+        //
 
         return redirect()->route('study-materials.index', $studyMaterial->topic_id)
             ->with('message', 'Study material updated successfully');
@@ -202,15 +165,21 @@ class StudyMaterialController extends Controller
     {
         $studyMaterial = StudyMaterial::findOrFail($studyMaterialId);
         $topic = $studyMaterial->topic->id;
-        $studyMaterials = StudyMaterial::where('topic_id', $topic)->get();
+        
+        // Get all attachments for this study material
+        $attachments = StudyMaterialAttachment::where('study_material_id', $studyMaterialId)->get();
+        
+        // Delete files from storage
+        foreach ($attachments as $attachment) {
+            Storage::disk('public')->delete($attachment->file_path);
+        };
 
-        // Delete attachments
+        // Delete attachments from database
         StudyMaterialAttachment::where('study_material_id', $studyMaterialId)->delete();
 
         // Delete the study material
         $studyMaterial->delete();
 
-        //return inertia('StudyMaterial/StudyMaterialList', ['studyMaterials' => $studyMaterials]);
         return redirect()->route('study-materials.index', $studyMaterial->topic_id)
             ->with('message', 'Topic has been deleted successfully');
     }
