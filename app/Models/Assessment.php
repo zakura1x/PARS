@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Assessment extends Model
 {
@@ -19,7 +20,10 @@ class Assessment extends Model
         'description',
         'status',
         'time_limit',
-        'code',
+        'access_code',
+        'approved',
+        'approved_by',
+        'rejection_reason',
         'started_at',
         'ended_at',
     ];
@@ -36,22 +40,34 @@ class Assessment extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    //Methods
-    public function generateCode()
+    public function studentAssessments()
     {
-        do {
-            // Generate a random 6-character alphanumeric code
-            $code = strtoupper(substr(md5(uniqid(rand(), true)), 0, 6));
-            
-            // Check if code already exists
-            $exists = static::where('code', $code)->exists();
-        } while ($exists);
-
-        $this->code = $code;
-        $this->save();
-        
-        return $code;
+        return $this->hasMany(StudentAssessment::class);
     }
 
+    public function studentResults()
+    {
+        return $this->hasMany(StudentResult::class);
+    }
+
+    public function students()
+    {
+        return $this->belongsToMany(User::class, 'assessment_student')
+            ->withPivot('status') // Include the `status` column from the pivot table
+            ->withTimestamps();  // Include timestamps if present in the pivot table
+    }
+
+    //Methods
+    public static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($assessment) {
+            $assessment->access_code = Str::random(8); // Generate an 8-character unique code
+        });
+    }
+
+
+    
     //Methods
 }

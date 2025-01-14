@@ -26,4 +26,8 @@ class Student extends Model
     {
         return "{$this->user->first_name} {$this->user->last_name}";
     }
+
+    public function assessments() {
+        return $this->belongsToMany(Assessment::class, 'student_assessments');
+    }
 }
