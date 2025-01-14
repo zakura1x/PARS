@@ -2,6 +2,16 @@ import { TbCloudQuestion } from "react-icons/tb";
 
 const studentMenu = [
     {
+        section: "Dashboard",
+        details: [
+            {
+                title: "Dashboard",
+                icon: <TbCloudQuestion size={26} />,
+                items: [{ label: "Dashboard", href: "/dashboard", key: 5 }],
+            },
+        ],
+    },
+    {
         section: "Assessments",
         details: [
             {
