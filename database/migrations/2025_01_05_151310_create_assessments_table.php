@@ -1,4 +1,4 @@
-<?php
+    <?php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -20,11 +20,10 @@ return new class extends Migration
             //Fillable
             $table->string('title')->nullable();
             $table->text('description')->nullable();
+            $table->enum('status', ['ongoing', 'archived', 'active', 'completed']);
+            $table->string('code')->nullable();
             
             $table->timestamps();
-
-            //Implement a softDelete
-            $table->softDeletes();
         });
     }
 

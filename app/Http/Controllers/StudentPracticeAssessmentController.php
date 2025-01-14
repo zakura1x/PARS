@@ -451,7 +451,7 @@ class StudentPracticeAssessmentController extends Controller
 
             // Step 4: Fetch unused questions based on ToS difficulty
             $topicQuestions = Question::where('topic_id', $topicId)
-                ->where('purpose_type', 'exam') // Only fetch exam-related questions
+                ->where('purpose_type', 'practice') // Only fetch exam-related questions
                 ->where('difficulty', $tos->difficulty) // Use the difficulty from the ToS (Bloom's level)
                 ->whereDoesntHave('studentQuestionUsages', function ($query) use ($studentId) {
                     $query->where('student_id', $studentId)

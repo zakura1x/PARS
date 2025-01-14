@@ -64,6 +64,14 @@ const DetailsTable = ({
                                                         Manage Subtopics
                                                     </Link>
                                                 </button>
+                                                <button className="btn border-none bg-[#303030] text-white hover:bg-[#42604C] mt-2">
+                                                    <Link
+                                                        href={`/topics/edit/${topic.id}`}
+                                                        className="text-white"
+                                                    >
+                                                        Manage Subtopics
+                                                    </Link>
+                                                </button>
                                             </div>
                                             <hr className="my-4 border-t-2 border-gray-400" />
                                             <div className="mt-2 pl-6 text-slate-800">

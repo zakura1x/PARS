@@ -54,30 +54,29 @@ class Question extends Model
         return self::where('topic_id', $topicId)->update(['is_used' => false]);
     }
 
-    //Purpose: Retrieves unused questions from a specific topic
-    // Parameters:
-
-    // $topicId: Required - the topic to fetch questions from
-    // $difficulty: Optional - filter by difficulty level
-    // $limit: Optional - limit the number of questions returned
-    public static function fetchUnusedQuestion($topicId, $difficulty = null, $limit = null){
-        $query = self::where('topic_id', $topicId)->where('is_used', false);
-
-        if($difficulty){
-            $query->where('difficulty', $difficulty);
-        }
-
-        if($limit){
-            $query->limit($limit);
-        }
-
-        return $query->get();
-    }
-
-    // Helper method to get correct answers
-    public function getCorrectOptions()
+    public static function replaceQuestion($questionId)
     {
-        return collect($this->options)
-            ->filter(fn($option) => in_array($option['text'], $this->correct_answer ?? []));
+        $question = self::findOrFail($questionId);
+
+        // Find a replacement question with the same aspects
+        $replacement = self::where('topic_id', $question->topic_id)
+            ->where('format_type', $question->format_type)
+            ->where('purpose_type', $question->purpose_type)
+            ->where('difficulty', $question->difficulty)
+            ->where('is_used', false)
+            ->inRandomOrder()
+            ->first();
+
+        if ($replacement) {
+            // Flag the old question as not used
+            $question->update(['is_used' => false]);
+
+            // Flag the replacement question as used
+            $replacement->update(['is_used' => true]);
+
+            return $replacement;
+        }
+
+        return null;
     }
 }

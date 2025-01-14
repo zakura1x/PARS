@@ -16,7 +16,12 @@ class Assessment extends Model
         'type',
         'subject_id',
         'title',
-        'description'
+        'description',
+        'status',
+        'time_limit',
+        'code',
+        'started_at',
+        'ended_at',
     ];
 
     public function questions(){
@@ -32,5 +37,21 @@ class Assessment extends Model
     }
 
     //Methods
-    //public static function generate
+    public function generateCode()
+    {
+        do {
+            // Generate a random 6-character alphanumeric code
+            $code = strtoupper(substr(md5(uniqid(rand(), true)), 0, 6));
+            
+            // Check if code already exists
+            $exists = static::where('code', $code)->exists();
+        } while ($exists);
+
+        $this->code = $code;
+        $this->save();
+        
+        return $code;
+    }
+
+    //Methods
 }
