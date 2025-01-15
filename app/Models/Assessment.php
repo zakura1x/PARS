@@ -32,6 +32,11 @@ class Assessment extends Model
         return $this->hasMany(Question::class, 'assessment_questions');
     }
 
+    public function assessmentQuestions()
+    {
+        return $this->hasMany(StudentAssessmentQuestion::class, 'assessment_id');
+    }
+
     public function subject(){
         return $this->belongsTo(Subject::class);
     }

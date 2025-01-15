@@ -33,5 +33,10 @@ class StudentAssessment extends Model
     {
         return $this->belongsTo(User::class, 'student_id');
     }
+
+    public function results()
+    {
+        return $this->hasOne(StudentResult::class, 'assessment_id');
+    }
     
 }

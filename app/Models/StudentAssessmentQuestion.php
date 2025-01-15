@@ -13,7 +13,7 @@ class StudentAssessmentQuestion extends Model
     protected $fillable = [
         'student_assessment_id',
         'question_id',
-        'answer',
+        'student_answer',
         'is_correct'
     ];
 
