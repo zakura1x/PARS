@@ -7,12 +7,16 @@ use App\Http\Requests\UpdateAssessmentRequest;
 use App\Models\Assessment;
 use App\Models\AssessmentQuestion;
 use App\Models\Question;
+use App\Models\StudentAssessment;
+use App\Models\StudentAssessmentQuestion;
+use App\Models\StudentTopicProficiency;
 use App\Models\Subject;
 use App\Models\TableOfSpecification;
 use App\Models\TopicGradingCriteria;
 use App\Models\Topics;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class AssessmentController extends Controller
 {
@@ -80,13 +84,6 @@ class AssessmentController extends Controller
         $topics = $validated['topics'] ?: Subject::find($subjectId)->topics->pluck('id')->toArray();
         $totalItems = $validated['total_items'];
 
-        // Convert time_limit from minutes to HH:MM:SS format
-        $timeLimitInSeconds = $validated['time_limit'] * 60;
-        $hours = floor($timeLimitInSeconds / 3600);
-        $minutes = floor(($timeLimitInSeconds % 3600) / 60);
-        $seconds = $timeLimitInSeconds % 60;
-        $timeLimitFormatted = sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
-
         // Check if TopicGradingCriteria is available for the selected topics
         if ($type === 'assessment') {
             foreach ($topics as $topicId) {
@@ -130,13 +127,12 @@ class AssessmentController extends Controller
             'subject_id' => $subjectId,
             'title' => $validated['title'],
             'description' => $validated['description'],
-            'status' => 'active',
-            'time_limit' => $timeLimitFormatted
+            'time_limit' => $validated['time_limit']
         ]);
 
         //Attach the questions to the assessment
         foreach ($questions as $question) {
-            AssessmentQuestion::create([
+            StudentAssessmentQuestion::create([
                 'assessment_id' => $assessment->id,
                 'question_id' => $question->id,
             ]);
@@ -296,19 +292,11 @@ class AssessmentController extends Controller
     {
         $assessment = Assessment::findOrFail($assessmentId);
 
-        // Get all the Subjects for the dropdown
-        $subjects = Subject::all();
-
-        // Get the topics related to the assessment's subject
-        $topics = Topics::where('subject_id', $assessment->subject_id)->get();
-
         // Get all the questions related to the assessment
         $questions = $assessment->questions;
 
         return inertia('Assessment/AssessmentEditForm', [
             'assessment' => $assessment,
-            'subjects' => $subjects,
-            'topics' => $topics,
             'questions' => $questions,
         ]);
     }
@@ -319,10 +307,69 @@ class AssessmentController extends Controller
         $replacement = Question::replaceQuestion($questionId);
 
         if ($replacement) {
-            return response()->json(['message' => 'Question replaced successfully.', 'replacement' => $replacement], 200);
+            return back()->with(['message' => 'Question replaced successfully.', 'replacement' => $replacement]);
         }
 
-        return response()->json(['message' => 'No replacement question found.'], 404);
+        return back()->with(['message' => 'No replacement question found.']);
+    }
+
+    public function approveAssessment(Request $request, $assessmentId){
+        $assessment = Assessment::findOrFail($assessmentId);
+
+        //Only program head can approve or disapprove
+        if(Auth::user()->role !== 'program_head'){
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        //Check if the assessment is already approved
+        if($assessment->approved){
+            return response()->json(['message' => 'This assessment has already been approved.']);
+        }
+
+        //Approve the assessment
+        $assessment->update([
+            'approved' => true,
+            'approved_by' => Auth::user()->id,
+        ]);
+
+        return inertia('Assessment/AssessmentIndex', ['message' => 'Assessment is Approved']);
+    }
+
+    public function rejectAssessment(Request $request, $assessmentId){
+        $assessment = Assessment::findOrFail($assessmentId);
+
+        $validated = $request->validate([
+            'rejection_reason' => 'required'
+        ]);
+
+        if(Auth::user()->role !== 'program_head'){
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        //Check if the assessment is already approved
+        if($assessment->approved){
+            return response()->json(['message' => 'This assessment has already been approved.']);
+        }
+
+        $assessment->update([
+            'approved_by' => Auth::user()->id,
+            'rejection_reason' => $validated['rejection_reason']
+        ]);
+    }
+    
+    public function destroy($assessmentId)
+    {
+        $assessment = Assessment::findOrFail($assessmentId);
+
+        // Update all related questions' is_used to false
+        foreach ($assessment->questions as $question) {
+            $question->update(['is_used' => false]);
+        }
+
+        // Delete the assessment
+        $assessment->delete();
+
+        return inertia('Assessment/AssessmentIndex',['message' => 'Assessment deleted successfully.']);
     }
 
     /**
@@ -345,24 +392,331 @@ class AssessmentController extends Controller
     }
 
     /**
-     * This can be the way for the students to access the 
+     * Student View
      */
-    public function generateCode($assessmentId)
+    public function inputCode(){
+        return inertia('Assessment/StudentInputCode');
+    }
+
+    public function joinAssessment(Request $request)
+    {
+        $code = $request->input('code');
+        $assessment = Assessment::where('access_code', $code)->first();
+
+        if (!$assessment) {
+            return back()->withErrors(['code' => 'Invalid access code.']);
+        }
+
+        // Ensure the assessment is active or ongoing
+        if (!in_array($assessment->status, ['active', 'on_going'])) {
+            return back()->withErrors(['code' => 'Assessment is not available for joining.']);
+        }
+
+        // Check if the assessment is already due
+        if ($assessment->time_limit && $assessment->started_at) {
+            $dueTime = $assessment->started_at->addMinutes($assessment->time_limit);
+            if (now()->greaterThan($dueTime)) {
+                return back()->withErrors(['code' => 'The assessment has already ended.']);
+            }
+        }
+
+        $student = Auth::user();
+
+        // Check if the student has already joined
+        $alreadyJoined = $assessment->students()->wherePivot('student_id', $student->id)->exists();
+
+        if (!$alreadyJoined) {
+            // Set the status to 'started' for ongoing assessments
+            $status = $assessment->status === 'on_going' ? 'started' : 'waiting';
+
+            // Attach the student to the assessment
+            $assessment->students()->attach($student->id, ['status' => $status]);
+        }
+
+        // Redirect based on assessment status
+        if ($assessment->status === 'on_going') {
+            return to_route('', $assessment->id);
+        }
+
+        return view('student.waiting-list', ['assessment' => $assessment]);
+    }
+
+    public function takeAssessment($assessmentId)
+    {
+        // Retrieve the assessment
+        $assessment = Assessment::findOrFail($assessmentId);
+    
+        // Ensure the assessment is ongoing
+        if ($assessment->status !== 'on_going') {
+            return back()->with(['message' => 'The assessment is not yet available or has been completed']);
+        }
+    
+        // Cache the shuffled questions and options for a limited time
+        $cacheKey = 'assessment_' . $assessmentId . '_shuffled';
+        $assessmentData = Cache::remember($cacheKey, now()->addMinutes(60), function () use ($assessmentId) {
+            $assessment = Assessment::with([
+                'questions' => function ($query) {
+                    $query->with('question:id,question_text,options,topic_id,format_type')
+                        ->select('id', 'assessment_id', 'question_id', 'student_answer', 'is_correct');
+                },
+            ])
+            ->where('id', $assessmentId)
+            ->firstOrFail();
+    
+            // Shuffle questions
+            $shuffledQuestions = $assessment->questions->shuffle();
+    
+            // Shuffle options for each question
+            foreach ($shuffledQuestions as $question) {
+                $options = $question->question->options;
+                if (!is_array($options)) {
+                    $options = json_decode($options, true);
+                }
+                $question->question->options = collect($options)->shuffle()->toArray();
+            }
+    
+            $assessment->setRelation('questions', $shuffledQuestions);
+    
+            return $assessment;
+        });
+    
+        return inertia('Assessment/TakeAssessment', [
+            'assessment' => $assessmentData,
+        ]);
+    }
+
+    public function saveAnswer(Request $request, $assessmentId, $questionId)
     {
         $assessment = Assessment::findOrFail($assessmentId);
-        $code = $assessment->generateCode();
 
-        return response()->json(['message' => 'Code generated successfully.', 'code' => $code], 200);
+        $validated = $request->validate([
+            'selected_option' => 'required|array'
+        ]);
+
+        $assessmentQuestion = StudentAssessmentQuestion::where('assessment_id', $assessmentId)
+        ->where('question_id', $questionId)
+        ->firstOrFail();
+
+        // Check if the assessment is already due
+        if ($assessment->time_limit && $assessment->started_at) {
+            $dueTime = $assessment->started_at->addMinutes($assessment->time_limit);
+            if (now()->greaterThan($dueTime)) {
+                return back()->withErrors(['message' => 'The assessment has already ended.']);
+            }
+        }
+
+        //Check if the selected answer is correct
+        $question = $assessment->question;
+        $correctAnswer = $question->correct_answer;
+        $isCorrect = !array_diff($validated['selected_option'], $correctAnswer);
+
+        $assessmentQuestion->update([
+            'student_answer' => $validated['selected_option'],
+            'is_correct' => $isCorrect
+        ]);
+
+        return back();
+    }
+    
+    public function submitAssessment($assessmentId){
+        $assessment = StudentAssessment::with('answers.question')->findOrFail($assessmentId);
+
+        // Check if the assessment is already due
+        if ($assessment->time_limit && $assessment->started_at) {
+            $dueTime = $assessment->started_at->addMinutes($assessment->time_limit);
+            if (now()->greaterThan($dueTime)) {
+                $assessment->update([
+                    'status' => 'timed_out',
+                    'submitted_at' => now(),
+                ]);
+            }else{
+                $assessment->update([
+                    'status' => 'completed',
+                    'submitted_at' => now(),
+                ]);
+            }
+        }
+
+        $this->gradeAssessment($assessmentId);
+
+        return back()->with([
+            'message' => 'Assessment has been submitted successfully'
+        ]);
+    }
+
+    public function gradeAssessment($assessmentId)
+    {
+        $assessment = StudentAssessment::findOrFail($assessmentId);
+
+        $questions = $assessment->questions()->with('question')->get();
+        
+        // Initialize grading variables
+        $correctAnswers = 0;
+        $incorrectAnswers = 0;
+        $totalWeightedScore = 0; // Total possible score (weighted)
+        $earnedWeightedScore = 0; // Total score earned (weighted)
+
+        // Group questions by topic for topic-specific calculations
+        $questionsByTopic = $questions->groupBy(fn($q) => $q->question->topic_id);
+
+        foreach ($questions as $question) {
+            $isCorrect = $question->is_correct; // Check if the question was answered correctly
+            $questionWeight = $question->question->weight ?? 1; // Default weight is 1 if not set
+
+            if ($isCorrect) {
+                $correctAnswers++;
+                $earnedWeightedScore += $questionWeight;
+            } else {
+                $incorrectAnswers++;
+            }
+
+            $totalWeightedScore += $questionWeight; // Add to the total weighted score
+        }
+
+        // Calculate the final score percentage for the assessment
+        $scorePercentage = ($totalWeightedScore > 0) ? ($earnedWeightedScore / $totalWeightedScore) * 100 : 0;
+
+        // Save the results to the database
+        $assessment->results()->create([
+            'student_id' => $assessment->student_id,
+            'correct_answers' => $correctAnswers,
+            'incorrect_answers' => $incorrectAnswers,
+            'score_percentage' => $scorePercentage,
+        ]);
+
+        // Update proficiency for each topic
+        foreach ($questionsByTopic as $topicId => $topicQuestions) {
+            $numerator = [];
+            $denominator = [];
+
+            foreach ($topicQuestions as $question) {
+                $isCorrect = $question->is_correct;
+                $questionWeight = $question->question->weight ?? 1;
+                $difficultyWeight = $this->getDifficultyWeight($question->question);
+
+                $score = $isCorrect ? 1 : 0;
+                $attemptWeight = 1;
+
+                $numerator[] = $attemptWeight * $score * $difficultyWeight * $questionWeight;
+                $denominator[] = $difficultyWeight * $questionWeight;
+            }
+
+            $this->updateTopicProficiency($assessment->student_id, $topicId, $numerator, $denominator);
+        }
+
+        return $assessment;
     }
 
     /**
-     * 
+     * Get Difficulty Weight for a Question
      */
-    public function start($assessmentId)
+    private function getDifficultyWeight($question)
+    {
+        return match ($question->bloom_taxonomy_level) {
+            'remembering', 'understanding' => 1, // Easy
+            'applying', 'analyzing' => 2,        // Moderate
+            'evaluating', 'create' => 3,       // Advanced
+            default => 1,                        // Default to easy
+        };
+    }
+
+    /**
+     * Update Topic Proficiency
+     */
+    private function updateTopicProficiency($studentId, $topicId, $numerator, $denominator)
+    {
+        $totalNumerator = array_sum($numerator);
+        $totalDenominator = array_sum($denominator);
+    
+        $proficiencyScore = $totalDenominator > 0 ? $totalNumerator / $totalDenominator : 0;
+    
+        // Fetch or create the current proficiency record
+        $proficiency = StudentTopicProficiency::firstOrNew(
+            [
+                'student_id' => $studentId,
+                'topic_id' => $topicId,
+            ],
+            [
+                'proficiency_level' => 'beginner', // Fallback level
+                'grade' => 0.00, // Fallback grade
+                'average_score' => 0.00, // Fallback average score
+                'attempts' => 0, // Fallback attempts
+            ]
+        );
+    
+        // Update the current proficiency record
+        $newTotalScore = ($proficiency->average_score * $proficiency->attempts) + ($proficiencyScore * 100);
+        $proficiency->attempts += 1; // Increment attempts
+        $proficiency->average_score = $proficiency->attempts > 0 ? $newTotalScore / $proficiency->attempts : $proficiencyScore * 100;
+        $proficiency->grade = $proficiencyScore * 100; // Current assessment grade
+        $proficiency->proficiency_level = match (true) {
+            $proficiency->average_score < 60 => 'beginner',
+            $proficiency->average_score >= 60 && $proficiency->average_score <= 80 => 'intermediate',
+            default => 'advanced',
+        };
+        $proficiency->save();
+    }
+
+    /**
+     * Professor View
+     */
+
+    public function initializeAssessment($assessmentId){
+        $assessment = Assessment::findOrFail($assessmentId);
+
+        $waitingStudents = $assessment->students()->wherePivot('status', 'waiting')->get();
+
+        return inertia('Assessment/AssessmentWaitingProf', [
+            'assessment' => $assessment,
+            'waitingStudents' => $waitingStudents,
+            'assessmentCode' => $assessment->access_code,
+        ]);
+    }
+
+    public function startAssessmentNow($assessmentId)
     {
         $assessment = Assessment::findOrFail($assessmentId);
-        $assessment->generateCode();
 
-        return response()->json(['message' => 'Assessment started successfully.', 'code' => $assessment->code], 200);
+
+        // Ensure the assessment is approved and pending
+        if ($assessment->status !== 'pending' || !$assessment->approved) {
+            return back()->withErrors(['error' => 'Assessment must be approved and pending to start.']);
+        }
+
+        // Update assessment status to on_going and set the start time
+        $assessment->update([
+            'status' => 'on_going',
+            'started_at' => now(),
+        ]);
+
+        // Update all waiting students to 'started' status
+        $assessment->students()
+            ->wherePivot('status', 'waiting')
+            ->update(['status' => 'started']);
+
+        // Broadcast an event to notify students (optional)
+        //event(new AssessmentStarted($assessment));
+
+        // Redirect to the professor's dashboard or status view
+        return redirect()->route('professor.assessment-status', $assessmentId)
+            ->with('success', 'Assessment has started.');
     }
+
+    public function endAssessment($assessmentId)
+    {
+        $assessment = Assessment::findOrFail($assessmentId);
+
+        // Update assessment status to completed and set the end time
+        $assessment->update([
+            'status' => 'completed',
+            'ended_at' => now(),
+        ]);
+
+        // Notify all students (optional)
+        //event(new AssessmentEnded($assessment));
+
+        return redirect()->route('professor.assessment-status', $assessmentId)
+            ->with('success', 'Assessment has been completed.');
+    }
+
 }

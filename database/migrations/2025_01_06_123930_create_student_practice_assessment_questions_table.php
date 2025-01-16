@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('practice_assessment_id'); // Foreign key column
             $table->unsignedBigInteger('question_id');
+            $table->json('student_answer')->nullable();
             $table->boolean('answered')->default(false); // New column
             $table->boolean('is_correct')->default(false); // New column
             $table->timestamps();

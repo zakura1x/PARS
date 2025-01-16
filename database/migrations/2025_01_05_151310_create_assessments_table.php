@@ -1,4 +1,4 @@
-    <?php
+<?php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -20,8 +20,16 @@ return new class extends Migration
             //Fillable
             $table->string('title')->nullable();
             $table->text('description')->nullable();
-            $table->enum('status', ['ongoing', 'archived', 'active', 'completed']);
-            $table->string('code')->nullable();
+            $table->enum('status', ['pending', 'active', 'on_going', 'completed'])->default('pending');
+            $table->string('access_code')->unique();
+            $table->boolean('approved')->default(false);
+            $table->foreignId('approved_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->text('rejection_reason')->nullable();
+            
+            // New columns
+            $table->integer('time_limit')->nullable();
+            $table->timestamp('started_at')->nullable();
+            $table->timestamp('ended_at')->nullable();
             
             $table->timestamps();
         });

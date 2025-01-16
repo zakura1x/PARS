@@ -58,4 +58,23 @@ class User extends Authenticatable
     {
         return "{$this->first_name} {$this->last_name}";
     }
+
+    public function studentAssessments()
+    {
+        return $this->hasMany(StudentAssessment::class, 'student_id');
+    }
+
+    public function studentResults()
+    {
+        return $this->hasMany(StudentResult::class, 'student_id');
+    }
+
+    public function assessments()
+    {
+        return $this->belongsToMany(Assessment::class, 'assessment_student')
+            ->withPivot('status') // Include the `status` column from the pivot table
+            ->withTimestamps();  // Include timestamps if present in the pivot table
+    }
+
+
 }

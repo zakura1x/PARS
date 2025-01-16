@@ -49,6 +49,12 @@ class Question extends Model
         return $this->hasMany(StudentQuestionUsage::class);
     }
 
+    public function studentAnswers()
+    {
+        return $this->hasMany(StudentAssessmentQuestion::class);
+    }
+
+
     //Methods
     public static function resetIsUsed($topicId){
         return self::where('topic_id', $topicId)->update(['is_used' => false]);
