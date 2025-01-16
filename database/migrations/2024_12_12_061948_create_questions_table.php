@@ -20,7 +20,7 @@ return new class extends Migration
             //Question Details
             $table->enum('format_type',['multiple_choice', 'enumeration', 'true_or_false', 'fill_in_the_blank']);
             $table->enum('purpose_type',['practice', 'assessment', 'examination']);
-            $table->enum('difficulty', ['remembering', 'understanding', 'analyzing', 'evaluating', 'create']);
+            $table->enum('difficulty', ['remembering', 'understanding', 'applying', 'analyzing', 'evaluating', 'create']);
             $table->text('question_text');
             $table->json('options')->nullable();
             $table->json('correct_answer')->nullable();

@@ -330,6 +330,7 @@ const QuestionForm = ({ initialSubjects }) => {
                                 <option value="understanding">
                                     Understanding
                                 </option>
+                                <option value="applying">Applying</option>
                                 <option value="analyzing">Analyzing</option>
                                 <option value="evaluating">Evaluating</option>
                                 <option value="create">Creating</option>
