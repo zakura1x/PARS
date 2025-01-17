@@ -63,13 +63,13 @@ const TopicEdit = () => {
     };
 
     // Handle addition of a new subtopic
-    const handleSubtopicAdded = (newSubtopic) => {
-        const updatedSubtopics = [...data.subtopics, newSubtopic];
-        setData("subTopics", updatedSubtopics);
+    // const handleSubtopicAdded = (newSubtopic) => {
+    //     const updatedSubtopics = [...data.subtopics, newSubtopic];
+    //     setData("subTopics", updatedSubtopics);
 
-        // Reload to fetch updated subtopics from the server (if necessary)
-        router.reload({ only: ["subTopics"] });
-    };
+    //     // Reload to fetch updated subtopics from the server (if necessary)
+    //     router.reload({ only: ["subTopics"] });
+    // };
 
     return (
         <div className="p-4 bg-white rounded shadow">
@@ -181,7 +181,7 @@ const TopicEdit = () => {
                 toggleModal={toggleSubtopicModal}
                 topic={topic}
                 subject={subject}
-                onSubtopicAdded={handleSubtopicAdded}
+                // onSubtopicAdded={handleSubtopicAdded}
             />
         </div>
     );

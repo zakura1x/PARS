@@ -27,7 +27,8 @@ const AddSubtopicsModal = ({
         post(`/topics/${subject.id}/store`, {
             onSuccess: (response) => {
                 reset();
-                onSubtopicAdded(response.subtopic); // Pass the new subtopic to the parent component
+                //onSubtopicAdded(response.subtopic); // Pass the new subtopic to the parent component
+                //console.log(response.subtopic);
                 toggleModal(); // Close the modal
                 setData("name", ""); // Reset the name field
             },

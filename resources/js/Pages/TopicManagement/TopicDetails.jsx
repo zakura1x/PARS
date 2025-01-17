@@ -67,21 +67,23 @@ const TopicDetails = () => {
         );
     };
 
-    const handleParentTopicAdded = (newParentTopic) => {
-        const updatedParentTopics = [...data.parentTopics, newParentTopic];
-        setData("parentTopics", updatedParentTopics);
-        router.reload({ only: ["parentTopics"] }); // Ensure the topics are reloaded
-    };
+    // const handleParentTopicAdded = (newParentTopic) => {
+    //     const updatedParentTopics = [...data.parentTopics, newParentTopic];
+    //     setData("parentTopics", updatedParentTopics);
+    //     console.log("New Parent Topic Added:", newParentTopic);
+    //     console.log("Updated Parent Topics:", updatedParentTopics);
+    // };
 
     // Keep `data.parentTopics` in sync with `parentTopics` from props
     useEffect(() => {
-        if (Array.isArray(parentTopics) && parentTopics.length > 0) {
-            setData("parentTopics", parentTopics);
-        }
+        //if (Array.isArray(parentTopics) && parentTopics.length > 0) {
+        setData("parentTopics", parentTopics);
+        console.log("set", parentTopics);
+        //}
     }, [parentTopics]);
 
     useEffect(() => {
-        console.log("Updated Parent Topics:", data.parentTopics);
+        //console.log("Updated Parent Topics:", data.parentTopics);
     }, [data.parentTopics]);
 
     return (
@@ -110,7 +112,6 @@ const TopicDetails = () => {
                 subTopics={subTopics}
                 isLoading={isLoading}
                 onDragEnd={onDragEnd}
-                maxHeight="500px" // Add maxHeight prop
             />
 
             {/* AddTopicsModal */}
@@ -118,7 +119,7 @@ const TopicDetails = () => {
                 showModal={showModal}
                 handleCancel={handleModal}
                 subjectId={subject.id}
-                onParentTopicAdded={handleParentTopicAdded}
+                // onParentTopicAdded={handleParentTopicAdded}
             />
         </div>
     );

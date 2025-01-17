@@ -15,7 +15,6 @@ class StudentPracticeAssessmentQuestion extends Model
         'practice_assessment_id',
         'question_id',
         'student_answer',
-        'answered',
         'is_correct'
     ];
 

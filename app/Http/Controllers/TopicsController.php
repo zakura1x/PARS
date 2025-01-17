@@ -97,10 +97,11 @@ class TopicsController extends Controller
         $subTopics = $topics->whereNotNull('parent_id');
 
         return redirect()->back()->with([
-            'message' => 'Subtopic added successfully',
+            'message' => 'Topic added successfully',
             'subject' => $subject,
             'parentTopics' => $parentTopics,
             'subTopics' => $subTopics,
+            //'parentTopic' => $topic, // Add the newly created topic to the response
         ]);
     }
 

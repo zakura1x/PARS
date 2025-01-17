@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useForm } from "@inertiajs/react";
+import { useForm, router } from "@inertiajs/react";
 
 const TakeAssessment = ({ practiceAssessment }) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -27,7 +27,7 @@ const TakeAssessment = ({ practiceAssessment }) => {
         setData("answers", updatedAnswers);
     };
 
-    console.log(practiceAssessment);
+    //console.log(practiceAssessment);
 
     const handleEssayChange = (e) => {
         const essayAnswer = e.target.value;
@@ -37,19 +37,22 @@ const TakeAssessment = ({ practiceAssessment }) => {
     };
 
     const saveAnswer = () => {
-        post(
+        console.log("Saving answer for question:", currentQuestion.question.id);
+        console.log("Answer data:", data.answers[currentQuestionIndex]);
+
+        const selectedOption = data.answers[currentQuestionIndex];
+
+        router.post(
             `/student-practice-assessments/${practiceAssessment.id}/questions/${currentQuestion.question.id}/save`,
             {
-                preserveScroll: true, // Prevents the page from scrolling to the top
-                onSuccess: () => {
-                    console.log("Answer saved successfully!");
-                },
+                selected_option: selectedOption,
             }
         );
     };
 
     const handleNext = () => {
         if (currentQuestionIndex < practiceAssessment.questions.length - 1) {
+            //console.log(answers);
             saveAnswer();
             setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
         }
@@ -65,11 +68,14 @@ const TakeAssessment = ({ practiceAssessment }) => {
     const handleSubmit = () => {
         saveAnswer();
         // Submit the assessment
-        post(`/student-practice-assessments/${practiceAssessment.id}/save`, {
-            onSuccess: () => {
-                console.log("Assessment submitted successfully!");
-            },
-        });
+        // post(`/student-practice-assessments/${practiceAssessment.id}/save`, {
+        //     onSuccess: () => {
+        //         console.log("Assessment submitted successfully!");
+        //     },
+        // });
+        router.post(
+            `/student-practice-assessments/${practiceAssessment.id}/save`
+        );
     };
 
     return (

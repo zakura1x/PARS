@@ -51,9 +51,9 @@ const StudentDashboard = () => {
                                 key={practiceAssessment.id}
                                 className="card bg-base-100 shadow-xl rounded-lg p-4"
                             >
-                                <h3 className="text-lg font-bold">
+                                {/* <h3 className="text-lg font-bold">
                                     {practiceAssessment.subject.name}
-                                </h3>
+                                </h3> */}
                                 <p className="text-sm">
                                     Grade:{" "}
                                     {practiceAssessment.results

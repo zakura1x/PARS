@@ -19,8 +19,8 @@ const DetailsTable = ({
         ? subTopics
         : Object.values(subTopics);
 
-    console.log("Parent Topics:", sortedParentTopics);
-    console.log("Number of Parent Topics:", sortedParentTopics.length);
+    // console.log("Parent Topics:", sortedParentTopics);
+    // console.log("Number of Parent Topics:", sortedParentTopics.length);
 
     if (sortedParentTopics.length === 0) {
         return <p className="text-gray-500 italic">Loading topics...</p>;

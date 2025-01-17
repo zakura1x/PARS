@@ -19,9 +19,9 @@ const AddTopicsModal = ({
         post(`/topics/${subjectId}/store`, {
             onSuccess: (response) => {
                 reset();
-                if (response.props.parentTopic) {
-                    onParentTopicAdded(response.props.parentTopic); // Call the function with the new topic
-                }
+                // const newParentTopic = response.props.parentTopic;
+                // console.log(newParentTopic);
+                // onParentTopicAdded(newParentTopic); // Call the function with the new topic
                 handleCancel();
             },
         });

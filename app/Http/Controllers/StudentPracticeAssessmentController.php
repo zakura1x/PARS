@@ -279,8 +279,8 @@ class StudentPracticeAssessmentController extends Controller
 
                 $topicQuestions = $topicQuestions->merge($additionalQuestions);
                 }
-                // Step 6: If still not enough questions, get random questions regardless of difficulty
-                if ($topicQuestions->count() < $questionsPerTopic) {
+            // Step 6: If still not enough questions, get random questions regardless of difficulty
+            if ($topicQuestions->count() < $questionsPerTopic) {
                     $remaining = $questionsPerTopic - $topicQuestions->count();
                     $randomQuestions = Question::where('topic_id', $topicId)
                         ->where('purpose_type', 'practice')
@@ -296,7 +296,32 @@ class StudentPracticeAssessmentController extends Controller
                     //Log::info("Random questions for topic $topicId:", ['questions' => $randomQuestions]);
 
                     $topicQuestions = $topicQuestions->merge($randomQuestions);
-                }
+            }
+
+            // New logic to reset used questions and re-fetch them
+            if ($topicQuestions->count() < $questionsPerTopic) {
+                // Reset all used questions for this topic
+                StudentQuestionUsage::where('student_id', $studentId)
+                    ->whereIn('question_id', Question::where('topic_id', $topicId)->pluck('id'))
+                    ->update(['is_used' => false]);
+
+                // Re-fetch questions after reset
+                $remainingQuestionsNeeded = $questionsPerTopic - $topicQuestions->count();
+                $additionalQuestions = Question::where('topic_id', $topicId)
+                    ->where('purpose_type', 'practice')
+                    ->whereDoesntHave('studentQuestionUsages', function ($query) use ($studentId) {
+                        $query->where('student_id', $studentId)
+                              ->where('is_used', true);
+                    })
+                    ->inRandomOrder()
+                    ->take($remainingQuestionsNeeded)
+                    ->get();
+
+                // Log additional questions
+                //Log::info("Additional questions for topic $topicId after reset:", ['questions' => $additionalQuestions]);
+
+                $topicQuestions = $topicQuestions->merge($additionalQuestions);
+            }
 
             // Step 5: Mark fetched questions as used
             foreach ($topicQuestions as $question) {
@@ -573,9 +598,13 @@ class StudentPracticeAssessmentController extends Controller
         ->where('question_id', $questionId)
         ->firstOrFail();
 
+        //dd($request->all());
+
         $validated = $request->validate([
             'selected_option' => 'required|array'
         ]);
+
+        //dd($validated['selected_option']);
 
         // Check if the assessment is still within the time limit
         $assessment = StudentPracticeAssessment::findOrFail($practiceAssessmentId);
@@ -594,7 +623,6 @@ class StudentPracticeAssessmentController extends Controller
         // Update the Student's answer
         $practiceAssessmentQuestion->update([
             'student_answer' => $validated['selected_option'],
-            'answered' => true,
             'is_correct' => $isCorrect
         ]);
 
@@ -627,33 +655,7 @@ class StudentPracticeAssessmentController extends Controller
         $this->gradeAssessment($practiceAssessmentId);
 
         // Return the Inertia component with the assessment report
-        return inertia('PracticeAssessment/AssessmentReport', [
-            'assessment' => $assessment,
-            'result' => $assessment->results,
-            'questions' => $assessment->questions->map(function ($question) {
-                return [
-                    'question_text' => $question->question->question_text,
-                    'question_options' => $question->question->options,
-                    'correct_answer' => $question->question->correct_answer,
-                    'student_answer' => $question->student_answer,
-                    'is_correct' => $question->is_correct,
-                    'score' => $question->question->weight,
-                    'solution' => $question->question->solution,
-                ];
-            }),
-            'topicProficiencies' => StudentAssessmentTopicProficiencies::where('assessment_id', $practiceAssessmentId)
-                ->with('topic')
-                ->get()
-                ->map(function ($proficiency) {
-                    return [
-                        'topic_name' => $proficiency->topic->name,
-                        'previous_grade' => $proficiency->previous_grade,
-                        'previous_level' => $proficiency->previous_level,
-                        'current_grade' => $proficiency->current_grade,
-                        'current_level' => $proficiency->current_level,
-                    ];
-                }),
-        ]);
+        return to_route('practice-assessment.view-result', $assessment->id);
     }
 
     public function gradeAssessment($practiceAssessmentId)
@@ -762,15 +764,15 @@ class StudentPracticeAssessmentController extends Controller
         $previousLevel = $proficiency->proficiency_level ?? 'beginner'; // Use 'beginner' if no level exists
     
         // Save the current proficiency to the historical table
-        StudentAssessmentTopicProficiencies::create([
-            'assessment_id' => $assessmentId,
-            'student_id' => $studentId,
-            'topic_id' => $topicId,
-            'previous_grade' => $previousGrade, // Save the current grade before updating
-            'previous_level' => $previousLevel, // Save the current level before updating
-            'grade' => $proficiencyScore * 100, // Convert to percentage
-            'current_level' => $this->determineProficiencyLevel($proficiencyScore),
-        ]);
+        // StudentAssessmentTopicProficiencies::create([
+        //     'assessment_id' => $assessmentId,
+        //     'student_id' => $studentId,
+        //     'topic_id' => $topicId,
+        //     'previous_grade' => $previousGrade, // Save the current grade before updating
+        //     'previous_level' => $previousLevel, // Save the current level before updating
+        //     'grade' => $proficiencyScore * 100, // Convert to percentage
+        //     'current_level' => $this->determineProficiencyLevel($proficiencyScore),
+        // ]);
     
         // Update the current proficiency record
         $newTotalScore = ($proficiency->average_score * $proficiency->attempts) + ($proficiencyScore * 100);
