@@ -239,7 +239,7 @@ class StudentPracticeAssessmentController extends Controller
             }
 
             // Log questions per level
-            //::info("Questions per level for topic $topicId:", ['questionsPerLevel' => $questionsPerLevel]);
+            //Log::info("Questions per level for topic $topicId:", ['questionsPerLevel' => $questionsPerLevel]);
 
             // Retrieve questions per Bloom level
             $topicQuestions = collect();
@@ -251,6 +251,7 @@ class StudentPracticeAssessmentController extends Controller
                         $query->where('student_id', $studentId)
                             ->where('is_used', true);
                     })
+                    ->whereNotIn('id', $topicQuestions->pluck('id')) // Ensure no duplication
                     ->inRandomOrder()
                     ->take($questionsPerLevel[$level])
                     ->get();
@@ -270,6 +271,7 @@ class StudentPracticeAssessmentController extends Controller
                         $query->where('student_id', $studentId)
                             ->where('is_used', true);
                     })
+                    ->whereNotIn('id', $topicQuestions->pluck('id')) // Ensure no duplication
                     ->inRandomOrder()
                     ->take($remaining)
                     ->get();
@@ -288,6 +290,7 @@ class StudentPracticeAssessmentController extends Controller
                             $query->where('student_id', $studentId)
                                 ->where('is_used', true);
                         })
+                        ->whereNotIn('id', $topicQuestions->pluck('id')) // Ensure no duplication
                         ->inRandomOrder()
                         ->take($remaining)
                         ->get();
@@ -313,6 +316,7 @@ class StudentPracticeAssessmentController extends Controller
                         $query->where('student_id', $studentId)
                               ->where('is_used', true);
                     })
+                    ->whereNotIn('id', $topicQuestions->pluck('id')) // Ensure no duplication
                     ->inRandomOrder()
                     ->take($remainingQuestionsNeeded)
                     ->get();
@@ -763,28 +767,28 @@ class StudentPracticeAssessmentController extends Controller
         $previousGrade = $proficiency->grade ?? 0.00; // Use 0 if no grade exists
         $previousLevel = $proficiency->proficiency_level ?? 'beginner'; // Use 'beginner' if no level exists
     
-        // Save the current proficiency to the historical table
-        // StudentAssessmentTopicProficiencies::create([
-        //     'assessment_id' => $assessmentId,
-        //     'student_id' => $studentId,
-        //     'topic_id' => $topicId,
-        //     'previous_grade' => $previousGrade, // Save the current grade before updating
-        //     'previous_level' => $previousLevel, // Save the current level before updating
-        //     'grade' => $proficiencyScore * 100, // Convert to percentage
-        //     'current_level' => $this->determineProficiencyLevel($proficiencyScore),
-        // ]);
+        //Save the current proficiency to the historical table
+        StudentAssessmentTopicProficiencies::create([
+            'assessment_id' => $assessmentId,
+            'student_id' => $studentId,
+            'topic_id' => $topicId,
+            'previous_grade' => $previousGrade, // Save the current grade before updating
+            'previous_level' => $previousLevel, // Save the current level before updating
+            'grade' => $proficiencyScore * 100, // Convert to percentage
+            'current_level' => $this->determineProficiencyLevel($proficiencyScore),
+        ]);
     
         // Update the current proficiency record
-        $newTotalScore = ($proficiency->average_score * $proficiency->attempts) + ($proficiencyScore * 100);
-        $proficiency->attempts += 1; // Increment attempts
-        $proficiency->average_score = $proficiency->attempts > 0 ? $newTotalScore / $proficiency->attempts : $proficiencyScore * 100;
-        $proficiency->grade = $proficiencyScore * 100; // Current assessment grade
-        $proficiency->proficiency_level = match (true) {
-            $proficiency->average_score < 60 => 'beginner',
-            $proficiency->average_score >= 60 && $proficiency->average_score <= 80 => 'intermediate',
-            default => 'advanced',
-        };
-        $proficiency->save();
+        // $newTotalScore = ($proficiency->average_score * $proficiency->attempts) + ($proficiencyScore * 100);
+        // $proficiency->attempts += 1; // Increment attempts
+        // $proficiency->average_score = $proficiency->attempts > 0 ? $newTotalScore / $proficiency->attempts : $proficiencyScore * 100;
+        // $proficiency->grade = $proficiencyScore * 100; // Current assessment grade
+        // $proficiency->proficiency_level = match (true) {
+        //     $proficiency->average_score < 60 => 'beginner',
+        //     $proficiency->average_score >= 60 && $proficiency->average_score <= 80 => 'intermediate',
+        //     default => 'advanced',
+        // };
+        // $proficiency->save();
     }
 
     public function viewAssessmentReport($practiceAssessmentId){
