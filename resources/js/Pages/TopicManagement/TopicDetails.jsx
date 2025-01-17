@@ -12,7 +12,7 @@ const TopicDetails = () => {
         subject,
         topics,
         parentTopics = [],
-        subTopics,
+        subTopics = [],
         flash,
     } = usePage().props;
 
@@ -23,9 +23,6 @@ const TopicDetails = () => {
             : Object.values(parentTopics),
         subject_id: subject.id,
     });
-
-    //console.log(parentTopics);
-    //console.log(subTopics);
 
     // Sort topics based on the `order` field
     const sortedTopics = Array.isArray(data.parentTopics)
@@ -76,16 +73,16 @@ const TopicDetails = () => {
         router.reload({ only: ["parentTopics"] }); // Ensure the topics are reloaded
     };
 
-    //console.log(parentTopics);
-    //console.log(data.parentTopics);
-
     // Keep `data.parentTopics` in sync with `parentTopics` from props
     useEffect(() => {
-        setData(
-            "parentTopics",
-            Array.isArray(parentTopics) ? parentTopics : []
-        );
+        if (Array.isArray(parentTopics) && parentTopics.length > 0) {
+            setData("parentTopics", parentTopics);
+        }
     }, [parentTopics]);
+
+    useEffect(() => {
+        console.log("Updated Parent Topics:", data.parentTopics);
+    }, [data.parentTopics]);
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen">
@@ -113,6 +110,7 @@ const TopicDetails = () => {
                 subTopics={subTopics}
                 isLoading={isLoading}
                 onDragEnd={onDragEnd}
+                maxHeight="500px" // Add maxHeight prop
             />
 
             {/* AddTopicsModal */}

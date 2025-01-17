@@ -10,17 +10,21 @@ const DetailsTable = ({
     subTopics = [],
 }) => {
     const sortedParentTopics = Array.isArray(parentTopics)
-        ? parentTopics.sort((a, b) => a.order - b.order)
-        : Object.values(parentTopics).sort((a, b) => a.order - b.order);
+        ? parentTopics.sort((a, b) => (a.order ?? a.id) - (b.order ?? b.id))
+        : Object.values(parentTopics).sort(
+              (a, b) => (a.order ?? a.id) - (b.order ?? b.id)
+          );
 
     const subTopicsArray = Array.isArray(subTopics)
         ? subTopics
         : Object.values(subTopics);
 
-    //console.log(parentTopics);
-    // console.log("Rendering DetailsTable");
-    //console.log("Parent Topics:", sortedParentTopics);
-    // console.log("Sub Topics:", subTopicsArray);
+    console.log("Parent Topics:", sortedParentTopics);
+    console.log("Number of Parent Topics:", sortedParentTopics.length);
+
+    if (sortedParentTopics.length === 0) {
+        return <p className="text-gray-500 italic">Loading topics...</p>;
+    }
 
     return (
         <DragDropContext onDragEnd={!isLoading ? onDragEnd : () => {}}>
@@ -64,23 +68,12 @@ const DetailsTable = ({
                                                         Manage Subtopics
                                                     </Link>
                                                 </button>
-                                                <button className="btn border-none bg-[#303030] text-white hover:bg-[#42604C] mt-2">
-                                                    <Link
-                                                        href={`/topics/edit/${topic.id}`}
-                                                        className="text-white"
-                                                    >
-                                                        Manage Subtopics
-                                                    </Link>
-                                                </button>
                                             </div>
                                             <hr className="my-4 border-t-2 border-gray-400" />
                                             <div className="mt-2 pl-6 text-slate-800">
                                                 {/* Check if subtopics exist for the current parent topic */}
                                                 {subTopicsArray.length > 0 &&
                                                 subTopicsArray.some((st) => {
-                                                    // console.log(
-                                                    //     `Checking subtopic ${st.id} with parent_id ${st.parent_id} against topic ${topic.id}`
-                                                    // );
                                                     return (
                                                         st.parent_id ===
                                                         topic.id
@@ -88,13 +81,10 @@ const DetailsTable = ({
                                                 }) ? (
                                                     subTopicsArray
                                                         .filter((st) => {
-                                                            const match =
+                                                            return (
                                                                 st.parent_id ===
-                                                                topic.id;
-                                                            // console.log(
-                                                            //     `Subtopic ${st.id} with parent_id ${st.parent_id} matches topic ${topic.id}: ${match}`
-                                                            // );
-                                                            return match;
+                                                                topic.id
+                                                            );
                                                         })
                                                         .map((subtopic) => (
                                                             <div

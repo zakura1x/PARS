@@ -19,11 +19,11 @@ class Assessment extends Model
         'title',
         'description',
         'status',
-        'time_limit',
         'access_code',
         'approved',
         'approved_by',
         'rejection_reason',
+        'time_limit',
         'started_at',
         'ended_at',
     ];

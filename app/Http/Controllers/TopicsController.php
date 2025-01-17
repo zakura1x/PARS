@@ -38,6 +38,8 @@ class TopicsController extends Controller
     
         // Get subtopics (or empty if no topics)
         $subTopics = $topics->whereNotNull('parent_id');
+
+        //dd($subTopics);
     
         return Inertia::render('TopicManagement/TopicDetails', [
             'subject' => $subject,

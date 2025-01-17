@@ -32,6 +32,7 @@ return new class extends Migration
             $table->timestamp('ended_at')->nullable();
             
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
