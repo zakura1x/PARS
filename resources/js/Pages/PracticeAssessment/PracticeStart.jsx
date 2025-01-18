@@ -1,14 +1,15 @@
 import React from "react";
 import { router, usePage } from "@inertiajs/react";
+import { FaClock } from "react-icons/fa";
 
 const PracticeStart = () => {
-    const { practiceAssessmentId } = usePage().props;
+    const { practiceAssessmentId, timeLimit } = usePage().props;
 
-    console.log(practiceAssessmentId);
+    //console.log(practiceAssessmentId);
 
     const startAssessment = () => {
         router.post(
-            `/student-practice-assessments/answer/${practiceAssessmentId.id}`
+            `/student-practice-assessments/answer/${practiceAssessmentId}`
         );
     };
 
@@ -24,6 +25,10 @@ const PracticeStart = () => {
                 Disclaimer: This will affect your proficiency for every topic,
                 make sure to answer each question carefully
             </p>
+            <div className="flex items-center mb-6 text-gray-700">
+                <FaClock className="mr-2" />
+                <span>Time Limit: {timeLimit} minutes</span>
+            </div>
             <button
                 className="btn btn-primary hover:bg-green-900 hover:text-white"
                 onClick={startAssessment}

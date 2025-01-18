@@ -32,12 +32,12 @@ class StudentPracticeAssessmentController extends Controller
     
         $assessments = StudentPracticeAssessment::where('student_id', $userId)
             ->with('subject') // Eager load the 'subject' relationship
-            ->get();
+            ->paginate(10); // Implement pagination with 10 items per page
 
-        //dd($assessments);
-    
         // Pass the collection as an array to Inertia
-        return inertia('PracticeAssessment/PracticeIndex', ['assessments' => $assessments]);
+        return inertia('PracticeAssessment/PracticeIndex', [
+            'assessments' => $assessments,
+        ]);
     }
     
 
@@ -189,8 +189,8 @@ class StudentPracticeAssessmentController extends Controller
             ]);
         }
 
-        return inertia('PracticeAssessment/PracticeStart', ['practiceAssessmentId' => $assessment]);
-
+        // return inertia('PracticeAssessment/PracticeStart', ['practiceAssessmentId' => $assessment]);
+        return to_route('practice-assessment.start', $assessment->id);
 
         //Generate the questions based on the type
         //if the type is proficiency, generate question based on the StudentTopicProficiency
@@ -537,15 +537,25 @@ class StudentPracticeAssessmentController extends Controller
     /**
      * Taking the Practice assessment
      */
-    public function startIndex($practiceAssessmentId){
-        return inertia('PracticeAssessment/PracticeStart', ['practiceAssessmentId' => $practiceAssessmentId]);
+    public function startIndex($practiceAssessmentId)
+    {
+        $assessment = StudentPracticeAssessment::findOrFail($practiceAssessmentId);
+
+        // Get the time limit of the assessment
+        $timeLimit = $assessment->time_limit;
+        //dd($timeLimit);
+
+        return inertia('PracticeAssessment/PracticeStart', [
+            'practiceAssessmentId' => $practiceAssessmentId,
+            'timeLimit' => $timeLimit,
+        ]);
     }
 
     public function startAssessment($practiceAssessmentId){
         $assessment = StudentPracticeAssessment::findOrFail($practiceAssessmentId);
 
         if($assessment->status !== 'active'){
-            return back()->withErrors(['message' => 'This assessment has already started']);
+            return to_route('practice-assessment-generator.index', ['message' => 'The assessment was already done']);
         } 
 
         $assessment->update([
@@ -560,7 +570,7 @@ class StudentPracticeAssessmentController extends Controller
         $assessment = StudentPracticeAssessment::findOrFail($practiceAssessmentId);
         
         if($assessment->status !== 'on_going' ){
-            return back()->with(['message' => 'The assessment is not yet available or have been completed']);
+            return to_route('practice-assessment-generator.index', ['message' => 'The assessment was already done']);
         } 
 
         $cacheKey = 'practice_assessment_' . $practiceAssessmentId . '_shuffled';
@@ -656,7 +666,7 @@ class StudentPracticeAssessmentController extends Controller
         }
 
         // Grade the assessment (regardless of whether time expired or student submitted manually)
-        $this->gradeAssessment($practiceAssessmentId);
+        $this->gradeAssessment(practiceAssessmentId: $practiceAssessmentId);
 
         // Return the Inertia component with the assessment report
         return to_route('practice-assessment.view-result', $assessment->id);
@@ -778,17 +788,19 @@ class StudentPracticeAssessmentController extends Controller
             'current_level' => $this->determineProficiencyLevel($proficiencyScore),
         ]);
     
-        // Update the current proficiency record
-        // $newTotalScore = ($proficiency->average_score * $proficiency->attempts) + ($proficiencyScore * 100);
-        // $proficiency->attempts += 1; // Increment attempts
-        // $proficiency->average_score = $proficiency->attempts > 0 ? $newTotalScore / $proficiency->attempts : $proficiencyScore * 100;
-        // $proficiency->grade = $proficiencyScore * 100; // Current assessment grade
-        // $proficiency->proficiency_level = match (true) {
-        //     $proficiency->average_score < 60 => 'beginner',
-        //     $proficiency->average_score >= 60 && $proficiency->average_score <= 80 => 'intermediate',
-        //     default => 'advanced',
-        // };
-        // $proficiency->save();
+        //Update the current proficiency record
+        $newTotalScore = ($proficiency->average_score * $proficiency->attempts) + ($proficiencyScore * 100);
+        $proficiency->attempts += 1; // Increment attempts
+        $proficiency->average_score = $proficiency->attempts > 0 ? $newTotalScore / $proficiency->attempts : $proficiencyScore * 100;
+        $proficiency->grade = $proficiencyScore * 100; // Current assessment grade
+        $proficiency->proficiency_level = match (true) {
+            $proficiency->average_score < 60 => 'beginner',
+            $proficiency->average_score >= 60 && $proficiency->average_score <= 80 => 'intermediate',
+            default => 'advanced',
+        };
+        $proficiency->save();
+
+        
     }
 
     public function viewAssessmentReport($practiceAssessmentId){

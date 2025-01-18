@@ -7,7 +7,9 @@ const studentMenu = [
             {
                 title: "Dashboard",
                 icon: <TbCloudQuestion size={26} />,
-                items: [{ label: "Dashboard", href: "/dashboard", key: 5 }],
+                items: [
+                    { label: "Dashboard", href: "/dashboard/student", key: 5 },
+                ],
             },
         ],
     },

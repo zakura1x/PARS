@@ -1,0 +1,57 @@
+Dashboard:
+    Student:
+        ☐ Fix the Ui
+
+    Professor:
+
+    Program Head:
+    
+
+Study Materials:
+    Student:
+        ☐ Add a view for the student materials
+    
+    Professor:
+        ☐ Professor can only add their own subject
+
+    Program Head:
+
+Practice Assessment:
+    Student:
+
+    Professor:
+        ☐ Professor can view the Students statistics of the practice assessments of the student
+
+    Program Head:
+        ☐ Program Head can view the statistics of all the students in the program
+
+
+
+Assessment:
+    Student:
+
+    Professor:
+
+    Program Head:
+
+Question:
+    Professor:
+
+    Program Head:
+
+
+Topic Grading Criteria:
+    ☐ Remove this @critical
+
+Topics:
+    Professor:
+
+    Program Head:
+
+Subject:
+    Professor:
+
+    Program Head:
+        ☐ Create an Assignment of subject to the professor
+
+

@@ -1,9 +1,11 @@
 import React from "react";
 import { usePage, router } from "@inertiajs/react";
 import FlashMessage from "../../components/Notifications/FlashMessage";
+import Pagination from "../../components/misc/Pagination";
 
-const PracticeIndex = () => {
+const PracticeIndex = (message) => {
     const { assessments, flash } = usePage().props;
+    console.log(message);
 
     const handleClick = (assessment) => {
         const { id, status } = assessment;
@@ -41,6 +43,12 @@ const PracticeIndex = () => {
         }
     };
 
+    const handlePageChange = (url) => {
+        if (url) {
+            router.get(url);
+        }
+    };
+
     return (
         <div className="container mx-auto p-4">
             <FlashMessage message={flash.message}></FlashMessage>
@@ -58,7 +66,7 @@ const PracticeIndex = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {assessments.map((assessment) => (
+                        {assessments.data.map((assessment) => (
                             <tr
                                 key={assessment.id}
                                 onClick={() => handleClick(assessment)}
@@ -79,6 +87,7 @@ const PracticeIndex = () => {
                     </tbody>
                 </table>
             </div>
+            <Pagination data={assessments} onPageChange={handlePageChange} />
         </div>
     );
 };

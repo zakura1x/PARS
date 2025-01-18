@@ -3,6 +3,7 @@ import { useForm, router } from "@inertiajs/react";
 
 const TakeAssessment = ({ practiceAssessment }) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [showModal, setShowModal] = useState(false);
 
     const { data, setData, post, processing, reset } = useForm({
         answers: practiceAssessment.questions.map(() => []),
@@ -65,17 +66,20 @@ const TakeAssessment = ({ practiceAssessment }) => {
         }
     };
 
-    const handleSubmit = () => {
-        saveAnswer();
-        // Submit the assessment
-        // post(`/student-practice-assessments/${practiceAssessment.id}/save`, {
-        //     onSuccess: () => {
-        //         console.log("Assessment submitted successfully!");
-        //     },
-        // });
+    const handleSubmit = async () => {
+        await saveAnswer();
         router.post(
             `/student-practice-assessments/${practiceAssessment.id}/save`
         );
+    };
+
+    const handleConfirmSubmit = () => {
+        document.getElementById("confirm_modal").showModal();
+    };
+
+    const handleModalSubmit = async () => {
+        document.getElementById("confirm_modal").close();
+        await handleSubmit();
     };
 
     return (
@@ -172,7 +176,7 @@ const TakeAssessment = ({ practiceAssessment }) => {
                 {currentQuestionIndex ===
                 practiceAssessment.questions.length - 1 ? (
                     <button
-                        onClick={handleSubmit}
+                        onClick={handleConfirmSubmit}
                         disabled={processing}
                         className="btn btn-success hover:bg-green-800 hover:text-white "
                     >
@@ -192,6 +196,31 @@ const TakeAssessment = ({ practiceAssessment }) => {
             {processing && (
                 <p className="mt-2 text-blue-500">Saving your answer...</p>
             )}
+
+            <dialog id="confirm_modal" className="modal">
+                <div className="modal-box">
+                    <h3 className="font-bold text-lg">Confirm Submission</h3>
+                    <p className="py-4">
+                        Are you sure you want to submit your answers?
+                    </p>
+                    <div className="modal-action">
+                        <button
+                            className="btn"
+                            onClick={() =>
+                                document.getElementById("confirm_modal").close()
+                            }
+                        >
+                            Close
+                        </button>
+                        <button
+                            className="btn btn-success hover:bg-green-800 hover:text-white"
+                            onClick={handleModalSubmit}
+                        >
+                            Submit
+                        </button>
+                    </div>
+                </div>
+            </dialog>
         </div>
     );
 };

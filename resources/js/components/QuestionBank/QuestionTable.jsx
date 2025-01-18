@@ -19,7 +19,7 @@ const QuestionTable = ({ questions }) => {
             router.delete(`/questions/${id}`);
         }
     };
-
+    
     return (
         <div className="my-2 overflow-x-auto lg:mx-4">
             <table className="w-full border-collapse bg-white shadow-md rounded-md">

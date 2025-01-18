@@ -159,9 +159,9 @@ const PracticeGeneratorForm = () => {
                             <option value="proficiency">
                                 Based on your Proficiency
                             </option>
-                            <option value="criteria">
+                            {/* <option value="criteria">
                                 Based on Pre-defined criteria for the topic
-                            </option>
+                            </option> */}
                             <option value="exam">
                                 Based on Examination (Simulate board exam)
                             </option>

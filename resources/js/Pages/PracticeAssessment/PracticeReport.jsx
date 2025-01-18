@@ -105,30 +105,43 @@ const PracticeReport = () => {
                             key={index}
                             className="flex flex-col mt-2 min-w-[90%] bg-slate-100 text-black rounded-lg p-4 space-y-4"
                         >
-                            <p>Topic name: {proficiency.topic_name}</p>
-                            <p>Level of Proficiency:</p>
-                            <p>
-                                {proficiency.previous_level} to{" "}
-                                {proficiency.current_level}{" "}
+                            <p className="text-lg font-semibold">
+                                Topic: {proficiency.topic_name}
                             </p>
                             <div className="flex flex-col space-y-2">
-                                <div className="flex flex-row space-x-4 items-center">
+                                <div className="flex flex-row justify-between items-center">
                                     <p>Previous Grade</p>
-                                    <progress
-                                        className="progress w-56 h-6 bg-black progress-success"
-                                        value={proficiency.previous_grade}
-                                        max="100"
-                                    ></progress>
+                                    <div className="w-full bg-gray-200 rounded-full h-6">
+                                        <div
+                                            className="bg-green-800 h-6 rounded-full"
+                                            style={{
+                                                width: `${proficiency.previous_grade}%`,
+                                            }}
+                                        ></div>
+                                    </div>
+                                    <span className="ml-2">
+                                        {proficiency.previous_grade}%
+                                    </span>
                                 </div>
-                                <div className="flex flex-row space-x-5 items-center">
+                                <div className="flex flex-row justify-between items-center">
                                     <p>Current Grade</p>
-                                    <progress
-                                        className="progress w-56 h-6 bg-black progress-success"
-                                        value={proficiency.grade}
-                                        max="100"
-                                    ></progress>
+                                    <div className="w-full bg-gray-200 rounded-full h-6">
+                                        <div
+                                            className="bg-black h-6 rounded-full"
+                                            style={{
+                                                width: `${proficiency.grade}%`,
+                                            }}
+                                        ></div>
+                                    </div>
+                                    <span className="ml-2">
+                                        {proficiency.grade}%
+                                    </span>
                                 </div>
                             </div>
+                            <p className="text-sm text-gray-600">
+                                Proficiency Level: {proficiency.previous_level}{" "}
+                                to {proficiency.current_level}
+                            </p>
                         </div>
                     ))}
                 </div>
