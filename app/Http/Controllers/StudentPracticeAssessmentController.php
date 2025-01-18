@@ -470,7 +470,7 @@ class StudentPracticeAssessmentController extends Controller
 
         // Step 2: Calculate the total items based on ToS
         foreach ($tableOfSpecifications as $tos) {
-            $totalItems += $tos->total_items;
+            $totalItems += $tos->num_questions;
         }
 
         // Step 3: Generate questions for each topic based on ToS difficulty
@@ -485,7 +485,7 @@ class StudentPracticeAssessmentController extends Controller
                 ->whereDoesntHave('studentQuestionUsages', function ($query) use ($studentId) {
                     $query->where('student_id', $studentId)
                           ->where('is_used', true);
-                })
+                }) 
                 ->inRandomOrder()
                 ->take($questionsForTopic)
                 ->get();
@@ -509,6 +509,7 @@ class StudentPracticeAssessmentController extends Controller
                         $query->where('student_id', $studentId)
                               ->where('is_used', true);
                     })
+                    ->whereNotIn('id', $topicQuestions->pluck('id')) // Ensure no duplication
                     ->inRandomOrder()
                     ->take($remainingQuestionsNeeded)
                     ->get();

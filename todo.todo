@@ -3,9 +3,12 @@ Dashboard:
         ☐ Fix the Ui
 
     Professor:
+        ☐ Fix the dashboard of the professor
 
     Program Head:
     
+Student Management:
+    ☐ Mass Upload of the Student
 
 Study Materials:
     Student:
@@ -17,6 +20,8 @@ Study Materials:
     Program Head:
 
 Practice Assessment:
+    ☐ Remove the topicGrading Criteria when generating assessment @critical 
+
     Student:
 
     Professor:
@@ -31,13 +36,16 @@ Assessment:
     Student:
 
     Professor:
-
+        ☐ They can only add assessments based on their subject
     Program Head:
+        ☐ 
 
 Question:
+    ☐ Mass upload of the questions
     Professor:
 
     Program Head:
+        ☐ Fix the ui
 
 
 Topic Grading Criteria:
@@ -54,4 +62,8 @@ Subject:
     Program Head:
         ☐ Create an Assignment of subject to the professor
 
+Table of Specification:
+    ☐ 
 
+Customize Assessments:
+    ☐ Add a customize Assessments (These are chapter assessments, or other assessments)
