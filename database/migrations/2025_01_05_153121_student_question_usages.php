@@ -15,8 +15,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('student_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('question_id')->constrained('questions')->onDelete('cascade');
-            $table->boolean('is_used')->default(false);
-            $table->boolean('is_correct')->nullable(); //Tracks if the student answered the question correctly
+            $table->decimal('selection_percentage', 5,2)->default(100);
+
+            //Track attempts
+            $table->unsignedInteger('correct_attempts')->default(0);
+            $table->unsignedInteger('wrong_attempts')->default(0);
 
             $table->timestamps();
             //Implement a softDelete

@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useForm, router } from "@inertiajs/react";
 
-const TakeAssessment = ({ practiceAssessment }) => {
+const PracticeTakeAssessment = ({ practiceAssessment }) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [showModal, setShowModal] = useState(false);
 
-    const { data, setData, post, processing, reset } = useForm({
-        answers: practiceAssessment.questions.map(() => []),
+    const { data, setData } = useForm({
+        answers: practiceAssessment.questions.map(
+            (q) => q.student_answer || [] // Use saved answer if available
+        ),
     });
 
     const currentQuestion = practiceAssessment.questions[currentQuestionIndex];
@@ -37,18 +39,30 @@ const TakeAssessment = ({ practiceAssessment }) => {
         setData("answers", updatedAnswers);
     };
 
-    const saveAnswer = () => {
-        console.log("Saving answer for question:", currentQuestion.question.id);
-        console.log("Answer data:", data.answers[currentQuestionIndex]);
+    const saveAnswer = async () => {
+        // console.log("Saving answer for question:", currentQuestion.question.id);
+        // console.log("Answer data:", data.answers[currentQuestionIndex]);
 
         const selectedOption = data.answers[currentQuestionIndex];
 
-        router.post(
-            `/student-practice-assessments/${practiceAssessment.id}/questions/${currentQuestion.question.id}/save`,
-            {
-                selected_option: selectedOption,
+        try {
+            await router.post(
+                `/student-practice-assessments/${practiceAssessment.id}/questions/${currentQuestion.question.id}/save`,
+                {
+                    selected_option: selectedOption,
+                },
+                {
+                    preserveState: true,
+                }
+            );
+            console.log("Answer saved Successfully");
+        } catch (error) {
+            if (error.response && error.response.status === 422) {
+                alert("Time limit exceeded. Your answer could not be saved");
+            } else {
+                console.error(error);
             }
-        );
+        }
     };
 
     const handleNext = () => {
@@ -225,4 +239,4 @@ const TakeAssessment = ({ practiceAssessment }) => {
     );
 };
 
-export default TakeAssessment;
+export default PracticeTakeAssessment;

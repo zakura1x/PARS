@@ -247,19 +247,47 @@ class StudentPracticeAssessmentController extends Controller
                 $levelQuestions = Question::where('topic_id', $topicId)
                     ->where('purpose_type', 'practice')
                     ->where('difficulty', $level)
-                    ->whereDoesntHave('studentQuestionUsages', function ($query) use ($studentId) {
-                        $query->where('student_id', $studentId)
-                            ->where('is_used', true);
-                    })
-                    ->whereNotIn('id', $topicQuestions->pluck('id')) // Ensure no duplication
-                    ->inRandomOrder()
-                    ->take($questionsPerLevel[$level])
+                    ->with(['studentQuestionUsages' => function ($query) use ($studentId){
+                        $query->where('student_id', $studentId);
+                    }])
                     ->get();
 
-                // Log retrieved questions
-                //Log::info("Retrieved questions for topic $topicId and level $level:", ['questions' => $levelQuestions]);
+                //Randomization rules
+                $weightedQuestions = $levelQuestions->map(function ($question){
+                    $usage = $question->studentQuestionUsages->first();
+                    $selectionPercentage = $usage?->selection_percentage ?? 100;
+                    return [
+                        'question' => $question,
+                        'weight' => $selectionPercentage/100,
+                    ];
+                });
 
-                $topicQuestions = $topicQuestions->merge($levelQuestions);
+                //Normalize weights
+                $totalWeight = $weightedQuestions->sum('weight');
+                $normalizedQuestions = $weightedQuestions->map(function ($item) use ($totalWeight){
+                    return [
+                        'question' => $item['question'],
+                        'normalizedWeight' => $totalWeight > 0 ? $item['weight'] / $totalWeight : 0,
+                    ];
+                });
+
+                //Random Selection based on weights
+                $selected = collect();
+                $needed = $questionsPerLevel[$level];
+                for ($i = 0; $i < $needed; $i++){
+                    $random = mt_rand() / mt_getrandmax();
+                    $cumulativeWeight = 0;
+
+                    foreach ($normalizedQuestions as $item){
+                        $cumulativeWeight += $item['normalizedWeight'];
+                        if($random <= $cumulativeWeight){
+                            $selected->push($item['question']);
+                            break;
+                        }
+                    }
+                }
+
+                $topicQuestions = $topicQuestions->merge($selected);
             }
 
              // Handle fallback if questions are insufficient
@@ -267,10 +295,6 @@ class StudentPracticeAssessmentController extends Controller
                 $remaining = $questionsPerTopic - $topicQuestions->count();
                 $additionalQuestions = Question::where('topic_id', $topicId)
                     ->where('purpose_type', 'practice')
-                    ->whereDoesntHave('studentQuestionUsages', function ($query) use ($studentId) {
-                        $query->where('student_id', $studentId)
-                            ->where('is_used', true);
-                    })
                     ->whereNotIn('id', $topicQuestions->pluck('id')) // Ensure no duplication
                     ->inRandomOrder()
                     ->take($remaining)
@@ -280,61 +304,20 @@ class StudentPracticeAssessmentController extends Controller
                 //Log::info("Additional questions for topic $topicId:", ['questions' => $additionalQuestions]);
 
                 $topicQuestions = $topicQuestions->merge($additionalQuestions);
-                }
-            // Step 6: If still not enough questions, get random questions regardless of difficulty
-            if ($topicQuestions->count() < $questionsPerTopic) {
-                    $remaining = $questionsPerTopic - $topicQuestions->count();
-                    $randomQuestions = Question::where('topic_id', $topicId)
-                        ->where('purpose_type', 'practice')
-                        ->whereDoesntHave('studentQuestionUsages', function ($query) use ($studentId) {
-                            $query->where('student_id', $studentId)
-                                ->where('is_used', true);
-                        })
-                        ->whereNotIn('id', $topicQuestions->pluck('id')) // Ensure no duplication
-                        ->inRandomOrder()
-                        ->take($remaining)
-                        ->get();
-
-                    // Log random questions
-                    //Log::info("Random questions for topic $topicId:", ['questions' => $randomQuestions]);
-
-                    $topicQuestions = $topicQuestions->merge($randomQuestions);
             }
 
-            // New logic to reset used questions and re-fetch them
-            if ($topicQuestions->count() < $questionsPerTopic) {
-                // Reset all used questions for this topic
-                StudentQuestionUsage::where('student_id', $studentId)
-                    ->whereIn('question_id', Question::where('topic_id', $topicId)->pluck('id'))
-                    ->update(['is_used' => false]);
-
-                // Re-fetch questions after reset
-                $remainingQuestionsNeeded = $questionsPerTopic - $topicQuestions->count();
-                $additionalQuestions = Question::where('topic_id', $topicId)
-                    ->where('purpose_type', 'practice')
-                    ->whereDoesntHave('studentQuestionUsages', function ($query) use ($studentId) {
-                        $query->where('student_id', $studentId)
-                              ->where('is_used', true);
-                    })
-                    ->whereNotIn('id', $topicQuestions->pluck('id')) // Ensure no duplication
-                    ->inRandomOrder()
-                    ->take($remainingQuestionsNeeded)
-                    ->get();
-
-                // Log additional questions
-                //Log::info("Additional questions for topic $topicId after reset:", ['questions' => $additionalQuestions]);
-
-                $topicQuestions = $topicQuestions->merge($additionalQuestions);
-            }
-
-            // Step 5: Mark fetched questions as used
-            foreach ($topicQuestions as $question) {
-                StudentQuestionUsage::updateOrCreate(
+            //Update the selection percentage for the selected questions
+            foreach($topicQuestions as $question){
+                $studentUsage = StudentQuestionUsage::updateOrCreate(
                     ['student_id' => $studentId, 'question_id' => $question->id],
-                    ['is_used' => true, 'updated_at' => now()]
+                    ['updated_at' => now()]
                 );
-            }
 
+                //Reduce selection percentage for correct answers
+                $studentUsage->selection_percentage = $studentUsage->selection_percentage ?? 100;
+                $studentUsage->save();
+            }
+            
             $questions = $questions->merge($topicQuestions);
         }
 
@@ -579,7 +562,7 @@ class StudentPracticeAssessmentController extends Controller
             $assessment = StudentPracticeAssessment::with([
                 'questions' => function ($query) {
                     $query->with('question:id,question_text,options,topic_id,format_type')
-                        ->select('id', 'practice_assessment_id', 'question_id', 'answered', 'is_correct', 'student_answer');
+                        ->select('id', 'practice_assessment_id', 'question_id', 'student_answer');
                 },
             ])
             ->where('id', $practiceAssessmentId)
@@ -603,7 +586,7 @@ class StudentPracticeAssessmentController extends Controller
             return $assessment;
         });
 
-        return inertia('PracticeAssessment/TakeAssessment', [
+        return inertia('PracticeAssessment/PracticeTakeAssessment', [
             'practiceAssessment' => $practiceAssessment,
         ]);
     }
@@ -627,7 +610,7 @@ class StudentPracticeAssessmentController extends Controller
         $timeLimit = strtotime($assessment->time_limit) - strtotime('TODAY');
 
         if ($elapsedTime > $timeLimit) {
-            return response()->json(['message' => 'Time limit exceeded. Answer cannot be saved.'], 422);
+            return response()->json(['message' => 'Time limit exceeded. Answer cannot be saved. Please submit your work'], 422);
         }
 
         // Check if the selected option is correct
@@ -640,6 +623,8 @@ class StudentPracticeAssessmentController extends Controller
             'student_answer' => $validated['selected_option'],
             'is_correct' => $isCorrect
         ]);
+
+        Cache::forget('practice_assessment_' . $practiceAssessmentId . '_shuffled');
 
         return back();
 
@@ -664,6 +649,35 @@ class StudentPracticeAssessmentController extends Controller
                 'status' => 'completed',
                 'submitted_at' => now(),
             ]);
+        }
+
+        //Process the question_usage of the questions on the assessment
+        foreach($assessment->questions as $assessmentQuestion){
+            $question = $assessmentQuestion->question;
+
+            //Checker if the student answered the question correctly
+            $isCorrect = $assessmentQuestion->is_correct;
+
+            //Update the StudentQuestionUsage
+            $studentUsage = StudentQuestionUsage::firstOrNew(
+                ['student_id' => $assessment->student_id, 'question_id' => $assessmentQuestion->question_id]
+            );
+            
+            if($isCorrect){
+                $studentUsage->correct_attempts = ($studentUsage->correct_attempts ?? 0) + 1;
+
+                //Decrease the selection percentage by 20% with a minimum of 5%
+                $studentUsage->selection_percentage = max(
+                    5,
+                    ($studentUsage->selection_percentage ?? 100) * 0.8
+                );
+            } else{
+                $studentUsage->wrong_attempts = ($studentUsage->wrong_attempts ?? 0) + 1;
+
+                //Keep the selection percentage unchanged
+                $studentUsage->selection_percentage = $studentUsage->selection_percentage ?? 100;
+            }
+            $studentUsage->save();
         }
 
         // Grade the assessment (regardless of whether time expired or student submitted manually)
