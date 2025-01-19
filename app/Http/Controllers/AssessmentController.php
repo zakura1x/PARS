@@ -614,8 +614,8 @@ class AssessmentController extends Controller
     {
         return match ($question->bloom_taxonomy_level) {
             'remembering', 'understanding' => 1, // Easy
-            'applying', 'analyzing' => 2,        // Moderate
-            'evaluating', 'create' => 3,       // Advanced
+            'applying' => 2,        // Moderate
+            'analyzing', 'evaluating', 'create' => 3,       // Advanced
             default => 1,                        // Default to easy
         };
     }

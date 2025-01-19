@@ -25,7 +25,8 @@ Practice Assessment:
 
     Student:
         ☐ Fix the issue of saving the last question
-        ☐ Fix the ui when answering assessment, when the website restarts, the answer is not being updated
+        ✔ Fix the ui when answering assessment, when the website restarts, the answer is not being updated @done (1/19/2025, 1:38:37 AM)
+            ☐ Need some testing
         ☐ Add a review answer for answering assessment
 
     Professor:
@@ -38,7 +39,8 @@ Practice Assessment:
 
 Assessment:
     Student:
-
+        ☐ Ui for answering assessment
+        ☐ Ui for viewing the assessment result
     Professor:
         ☐ They can only add assessments based on their subject
     Program Head:
@@ -46,6 +48,8 @@ Assessment:
 
 Question:
     ☐ Mass upload of the questions
+        ☐ Create a csv file for uploading new questions
+        ☐ CSV File upload
     Professor:
 
     Program Head:
@@ -75,3 +79,6 @@ Customize Assessments:
 Study Materials:
     Student:
         ☐ Create a ui for viewing of the study materials
+    Professor:
+        ☐ Create a form for adding title of the attachments
+        ☐ The title should be the name of the attachment

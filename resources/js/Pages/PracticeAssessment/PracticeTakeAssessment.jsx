@@ -125,7 +125,6 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
                                         checked={data.answers[
                                             currentQuestionIndex
                                         ].includes(option)}
-                                        disabled={processing}
                                     />
                                     <label htmlFor={`option-${index}`}>
                                         {option}
@@ -149,7 +148,6 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
                                     checked={data.answers[
                                         currentQuestionIndex
                                     ].includes(option)}
-                                    disabled={processing}
                                 />
                                 <label htmlFor={`option-${index}`}>
                                     {option}
@@ -163,7 +161,6 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
                         className="textarea textarea-bordered w-full"
                         value={data.answers[currentQuestionIndex][0] || ""}
                         onChange={handleEssayChange}
-                        disabled={processing}
                     ></textarea>
                 )}
             </div>
@@ -178,7 +175,7 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
             <div className="flex flex-row space-x-2 justify-between mt-2">
                 <button
                     onClick={handlePrevious}
-                    disabled={currentQuestionIndex === 0 || processing}
+                    disabled={currentQuestionIndex === 0}
                     className={`btn ${
                         currentQuestionIndex === 0
                             ? "btn-disabled text-black"
@@ -191,7 +188,6 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
                 practiceAssessment.questions.length - 1 ? (
                     <button
                         onClick={handleConfirmSubmit}
-                        disabled={processing}
                         className="btn btn-success hover:bg-green-800 hover:text-white "
                     >
                         Submit
@@ -199,17 +195,12 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
                 ) : (
                     <button
                         onClick={handleNext}
-                        disabled={processing}
                         className="btn btn-success hover:bg-green-800 hover:text-white"
                     >
                         Next Question
                     </button>
                 )}
             </div>
-
-            {processing && (
-                <p className="mt-2 text-blue-500">Saving your answer...</p>
-            )}
 
             <dialog id="confirm_modal" className="modal">
                 <div className="modal-box">
