@@ -6,21 +6,26 @@ Dashboard:
         ☐ Fix the dashboard of the professor
 
     Program Head:
-    
+
 Student Management:
     ☐ Mass Upload of the Student
+
+User Management:
+    ☐ Added Program Head/Dean is being stored in professors table
+    ☐ Admin role option is invalid
 
 Study Materials:
     Student:
         ☐ Add a view for the student materials
-    
+
     Professor:
         ☐ Professor can only add their own subject
 
     Program Head:
 
 Practice Assessment:
-    ☐ Remove the topicGrading Criteria when generating assessment @critical 
+    ☐ Remove the time limit in generating prac assessment, just record the start and end time
+    ☐ Remove the topicGrading Criteria when generating assessment @critical
     ✔ Create a rules for generating questions @high @done (1/18/2025, 9:54:03 PM)
 
     Student:
@@ -44,7 +49,7 @@ Assessment:
     Professor:
         ☐ They can only add assessments based on their subject
     Program Head:
-        ☐ 
+        ☐
 
 Question:
     ☐ Mass upload of the questions
