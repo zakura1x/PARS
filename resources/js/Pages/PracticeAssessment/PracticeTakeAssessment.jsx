@@ -93,10 +93,10 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
     };
 
     const handlePrevious = async () => {
-        if (currentQuestionIndex < questions.length - 1) {
+        if (currentQuestionIndex > 0) {
             try {
                 await saveAnswer(); // Wait for the save to complete
-                setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+                setCurrentQuestionIndex((prevIndex) => prevIndex - 1);
             } catch (error) {
                 console.error("Failed to save answer:", error);
             }

@@ -587,16 +587,19 @@ class StudentPracticeAssessmentController extends Controller
             return to_route('practice-assessment-generator.index', ['message' => 'The assessment was already done.']);
         }
 
+        // Set the cache key
         $cacheKey = 'practice_assessment_' . $practiceAssessmentId . '_shuffled';
 
+        // Check if shuffled questions are already cached
         $practiceAssessment = Cache::remember($cacheKey, now()->addMinutes(60), function () use ($practiceAssessmentId, $assessment) {
             $shuffledQuestionIds = Session::get('shuffled_questions_' . $practiceAssessmentId);
 
+            // If no shuffled question IDs are found in the session, shuffle and store them
             if (!$shuffledQuestionIds) {
                 abort(500, 'Shuffled questions not found. Please restart the assessment.');
             }
 
-            // Load questions with the `question` relationship
+            // Load questions with the `question` relationship, including student answers
             $assessment = StudentPracticeAssessment::with([
                 'questions' => function ($query) use ($shuffledQuestionIds) {
                     $query->with('question:id,question_text,options,topic_id,format_type') // Load related `question`
@@ -608,18 +611,21 @@ class StudentPracticeAssessmentController extends Controller
             ->where('student_id', Auth::id())
             ->firstOrFail();
 
+            // Ensure questions are shuffled once based on the session state
             $shuffledQuestions = $assessment->questions->sortBy(function ($question) use ($shuffledQuestionIds) {
                 return array_search($question->id, $shuffledQuestionIds);
             });
 
+            // Only shuffle options once per session
             foreach ($shuffledQuestions as $question) {
                 $options = $question->question->options;
 
-                if (!is_array($options)) {
-                    $options = json_decode($options, true);
+                // If the options haven't been shuffled already, shuffle them
+                if (!Session::has('shuffled_options_' . $question->id)) {
+                    //$options = json_decode($options, true);
+                    $question->question->options = collect($options)->shuffle()->toArray();
+                    Session::put('shuffled_options_' . $question->id, true); // Mark this question as shuffled
                 }
-
-                $question->question->options = collect($options)->shuffle()->toArray();
             }
 
             $assessment->setRelation('questions', $shuffledQuestions);
@@ -627,12 +633,12 @@ class StudentPracticeAssessmentController extends Controller
             return $assessment;
         });
 
-        //dd($practiceAssessment->questions);
-
+        // Pass the practice assessment to the front-end
         return inertia('PracticeAssessment/PracticeTakeAssessment', [
             'practiceAssessment' => $practiceAssessment,
         ]);
     }
+
 
     
 
@@ -651,13 +657,13 @@ class StudentPracticeAssessmentController extends Controller
         //dd($validated['selected_option']);
 
         // Check if the assessment is still within the time limit
-        $assessment = StudentPracticeAssessment::findOrFail($practiceAssessmentId);
-        $elapsedTime = now()->diffInSeconds($assessment->started_at);
-        $timeLimit = strtotime($assessment->time_limit) - strtotime('TODAY');
+        // $assessment = StudentPracticeAssessment::findOrFail($practiceAssessmentId);
+        // $elapsedTime = now()->diffInSeconds($assessment->started_at);
+        // $timeLimit = strtotime($assessment->time_limit) - strtotime('TODAY');
 
-        if ($elapsedTime > $timeLimit) {
-            return response()->json(['message' => 'Time limit exceeded. Answer cannot be saved. Please submit your work'], 422);
-        }
+        // if ($elapsedTime > $timeLimit) {
+        //     return response()->json(['message' => 'Time limit exceeded. Answer cannot be saved. Please submit your work'], 422);
+        // }
 
         // Check if the selected option is correct
         $question = $practiceAssessmentQuestion->question;
@@ -670,6 +676,8 @@ class StudentPracticeAssessmentController extends Controller
             'is_correct' => $isCorrect
         ]);
 
+        $cacheKey = 'practice_assessment_' . $practiceAssessmentId . '_shuffled';
+        Cache::forget($cacheKey); // Clear the cache to reload fresh data
 
         return back();
 
