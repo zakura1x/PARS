@@ -17,7 +17,11 @@ const programHeadMenu = [
                     { label: "Add Question", href: "/questionDetails", key: 1 },
                     { label: "Question List", href: "/questionBank", key: 2 },
                     { label: "Approve Question", href: "", key: 3 },
-                    { label: "Mass Upload Question", href: "", key: 4 },
+                    {
+                        label: "Mass Upload Question",
+                        href: "/question/mass-upload",
+                        key: 4,
+                    },
                 ],
             },
             {

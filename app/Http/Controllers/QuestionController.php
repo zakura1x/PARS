@@ -10,6 +10,9 @@ use App\Models\Topics;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use League\Csv\Reader;
+use Maatwebsite\Excel\Facades\Excel;
 
 class QuestionController extends Controller
 {
@@ -109,10 +112,83 @@ class QuestionController extends Controller
             'correct_answer' => $validate['correct_answer'],
             'weight' => $validate['weight'],
             'attachment_path' => $validate['attachment_path'],
-            'status' => 'inactive'
         ]);
 
         return redirect()->route('questionIndex')->with('message', 'Question was Created Successfully');
+    }
+
+    public function uploadIndex(){
+        return inertia('QuestionBank/QuestionUpload');
+    }
+
+    public function uploadQuestions(Request $request){
+        $request-> validate([
+            'csv_file' => 'required|mimes:xlsx,xls|max:2048',
+        ]);
+
+        //Load the uploaded Excel File
+        $file = $request->file('file');
+        $rows = Excel::toArray(null, $file); // Read all rows into an array
+
+        //Extract rows from the first sheet
+        $data = $rows[0] ?? [];
+
+        
+        //Validate
+        foreach ($data as $key => $row){
+            //SKip the header row
+            if($key === 0) continue;
+
+            //Map the excel columns
+            $rowData = [
+                'subject_name'   => $row[0] ?? null,
+                'topic_name'     => $row[1] ?? null,
+                'format_type'    => $row[2] ?? null,
+                'purpose_type'   => $row[3] ?? null,
+                'difficulty'     => $row[4] ?? null,
+                'question_text'  => $row[5] ?? null,
+                'options'        => $row[6] ?? null,
+                'correct_answer' => $row[7] ?? null,
+                'weight'         => $row[8] ?? null,
+            ];
+
+             // Validate the row data
+            $validator = Validator::make($rowData, [
+                'subject_name'   => 'required|exists:subjects,name',
+                'topic_name'     => 'required|exists:topics,name',
+                'format_type'    => 'required|in:multiple_choice,enumeration,true_or_false,fill_in_the_blank',
+                'purpose_type'   => 'required|in:practice,assessment,examination',
+                'difficulty'     => 'required|in:remembering,understanding,applying,analyzing,evaluating,create',
+                'question_text'  => 'required|string|max:255',
+                'options'        => 'nullable|json', // Options should be JSON format
+                'correct_answer' => 'required|json',
+                'weight'         => 'required|integer|min:1',
+            ]);
+
+            if($validator->fails()){
+                continue;
+            }
+
+            // Convert subject_name and topic_name to their respective IDs
+            $subject = Subject::where('name', $rowData['subject_name'])->first();
+            $topic = Topics::where('name', $rowData['topic_name'])->first();
+
+            Question::create([
+                'user_id'        => Auth::id(),
+                'subject_id'     => $subject->id,
+                'topic_id'       => $topic->id,
+                'format_type'    => $rowData['format_type'],
+                'purpose_type'   => $rowData['purpose_type'],
+                'difficulty'     => $rowData['difficulty'],
+                'question_text'  => $rowData['question_text'],
+                'options'        => $rowData['options'],
+                'correct_answer' => $rowData['correct_answer'],
+                'weight'         => $rowData['weight'],
+            ]);
+        }
+
+        return to_route('questionIndex')->with(['message' => 'Questions were uploaded successfully']);
+
     }
 
     /**
@@ -179,7 +255,7 @@ class QuestionController extends Controller
             'correct_answer' => $validate['correct_answer'],
             'weight' => $validate['weight'],
             'attachment_path' => $validate['attachment_path'] ?? $question->attachment_path,
-            'status' => 'inactive'
+            
         ]);
 
         //dd($question);

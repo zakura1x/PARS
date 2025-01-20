@@ -19,7 +19,7 @@ Study Materials:
         ☐ Add a view for the student materials
 
     Professor:
-        ☐ Professor can only add their own subject
+        ☐ Professor can only add their material of own subject
 
     Program Head:
 
@@ -29,10 +29,12 @@ Practice Assessment:
     ✔ Create a rules for generating questions @high @done (1/18/2025, 9:54:03 PM)
 
     Student:
-        ☐ Fix the issue of saving the last question
+        ✔ Fix the issue of saving the last question @done (1/20/2025, 9:45:15 AM)
         ✔ Fix the ui when answering assessment, when the website restarts, the answer is not being updated @done (1/19/2025, 1:38:37 AM)
             ☐ Need some testing
+
         ☐ Add a review answer for answering assessment
+        ☐ Add a timer of the assessment
 
     Professor:
         ☐ Professor can view the Students statistics of the practice assessments of the student
@@ -49,7 +51,7 @@ Assessment:
     Professor:
         ☐ They can only add assessments based on their subject
     Program Head:
-        ☐
+        ☐ Approval for the assessment
 
 Question:
     ☐ Mass upload of the questions
@@ -70,6 +72,9 @@ Topics:
     Program Head:
 
 Subject:
+    ☐ Remove the active and inactive
+    ☐ Add delete function
+    ☐ Fix the form for adding subject
     Professor:
 
     Program Head:

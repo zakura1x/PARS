@@ -1,5 +1,6 @@
 <?php
 
+use App\Exports\QuestionTemplateExport;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\QuestionController;
@@ -16,8 +17,7 @@ use App\Http\Middleware\RoleMiddleware;
 use App\Models\Student;
 use App\Models\TopicMaster;
 use Illuminate\Support\Facades\Route;
-
-
+use Maatwebsite\Excel\Facades\Excel;
 
 Route::get('/', [AuthController::class, 'login'])->name('login');
 Route::post('/login', [AuthController::class, 'signIn'])->name('auth.signin');
@@ -61,6 +61,12 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::get('/questions/{id}/edit', [QuestionController::class, 'edit'])->name('questions.edit');
     Route::put('/questions/{id}',[QuestionController::class, 'update'])->name('questions.update');
     Route::delete('/questions/{question}', [QuestionController::class, 'destroy'])->name('questions.delete');
+    //Mass Upload
+    Route::get('/question/mass-upload', [QuestionController::class, 'uploadIndex'])->name('question-mass.form');
+    //Download Question
+    Route::get('/download-question-template', function () {
+        return Excel::download(new QuestionTemplateExport, 'question_template.xlsx');
+    });
 
     //TopicGradingCriteria
     Route::get('/topic-grading-criteria/index', [TopicGradingCriteriaController::class, 'index'])->name('topic-grading-criteria.index');
