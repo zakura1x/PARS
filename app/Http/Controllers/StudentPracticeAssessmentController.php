@@ -536,68 +536,106 @@ class StudentPracticeAssessmentController extends Controller
         ]);
     }
 
-    public function startAssessment($practiceAssessmentId){
-        $assessment = StudentPracticeAssessment::findOrFail($practiceAssessmentId);
+    public function startAssessment($practiceAssessmentId)
+    {
+        $assessment = StudentPracticeAssessment::with(['questions.question:id,question_text,options,topic_id,format_type'])
+            ->where('id', $practiceAssessmentId)
+            ->where('student_id', Auth::id())
+            ->firstOrFail();
 
-        if($assessment->status !== 'active'){
+        // Ensure the assessment is active
+        if ($assessment->status !== 'active') {
             return to_route('practice-assessment-generator.index', ['message' => 'The assessment was already done']);
-        } 
-
-        //Shuffle the questions and save the shuffled order
-        $shuffledQuestions = $assessment->questions->shuffle();
-
-        foreach($shuffledQuestions as $question){
-            $options = $question->question->options;
-
-            //Shuffle the options
-            $question->question->options = collect ($options)->shuffle()->toArray();
         }
 
-        //Update the shuffled question
-        Session::put('shuffled_questions_'. $practiceAssessmentId, $shuffledQuestions->pluck('id')->toArray());
+        // Shuffle questions
+        $shuffledQuestions = $assessment->questions->shuffle();
 
+        foreach ($shuffledQuestions as $question) {
+            $options = $question->question->options;
+
+            // Decode options if they are stored as JSON
+            if (!is_array($options)) {
+                $options = json_decode($options, true);
+            }
+
+            // Shuffle the options
+            $shuffledOptions = collect($options)->shuffle()->toArray();
+            $question->question->options = $shuffledOptions;
+        }
+
+        // Save shuffled question IDs in the session
+        Session::put('shuffled_questions_' . $practiceAssessmentId, $shuffledQuestions->pluck('id')->toArray());
+
+        // Update assessment status
         $assessment->update([
             'status' => 'on_going',
-            'started_at' => now()
+            'started_at' => now(),
         ]);
 
         return to_route('practice-assessment.take', $practiceAssessmentId);
     }
 
-    public function takePracticeAssessment($practiceAssessmentId){
+
+
+    public function takePracticeAssessment($practiceAssessmentId)
+    {
         $assessment = StudentPracticeAssessment::findOrFail($practiceAssessmentId);
-        
-        if($assessment->status !== 'on_going' ){
-            return to_route('practice-assessment-generator.index', ['message' => 'The assessment was already done']);
-        }elseif($assessment->status === 'active'){
-            return to_route('practice-assessment.start', $practiceAssessmentId);
+
+        // Ensure the assessment is ongoing
+        if ($assessment->status !== 'on_going') {
+            return to_route('practice-assessment-generator.index', ['message' => 'The assessment was already done.']);
         }
 
         $cacheKey = 'practice_assessment_' . $practiceAssessmentId . '_shuffled';
-        $practiceAssessment = Cache::remember($cacheKey, now()->addMinutes(60), function () use ($practiceAssessmentId, $assessment){
-            $shuffledQuestionIds = Session::get('shuffled_questions_'. $practiceAssessmentId);
 
-            if(!$shuffledQuestionIds){
-                abort(500, 'Shuffled questions not found, Please restart the assessment');
+        $practiceAssessment = Cache::remember($cacheKey, now()->addMinutes(60), function () use ($practiceAssessmentId, $assessment) {
+            $shuffledQuestionIds = Session::get('shuffled_questions_' . $practiceAssessmentId);
+
+            if (!$shuffledQuestionIds) {
+                abort(500, 'Shuffled questions not found. Please restart the assessment.');
             }
 
-            $shuffledQuestions = $assessment->questions->whereIn('id', $shuffledQuestionIds);
+            // Load questions with the `question` relationship
+            $assessment = StudentPracticeAssessment::with([
+                'questions' => function ($query) use ($shuffledQuestionIds) {
+                    $query->with('question:id,question_text,options,topic_id,format_type') // Load related `question`
+                        ->whereIn('id', $shuffledQuestionIds)
+                        ->select('id', 'practice_assessment_id', 'question_id', 'student_answer');
+                },
+            ])
+            ->where('id', $practiceAssessmentId)
+            ->where('student_id', Auth::id())
+            ->firstOrFail();
 
-            foreach($shuffledQuestions as $question){
-                $question->student_answer = $question->student_answer
-                ? json_decode($question->student_answer, true)
-                : [] ;
+            $shuffledQuestions = $assessment->questions->sortBy(function ($question) use ($shuffledQuestionIds) {
+                return array_search($question->id, $shuffledQuestionIds);
+            });
+
+            foreach ($shuffledQuestions as $question) {
+                $options = $question->question->options;
+
+                if (!is_array($options)) {
+                    $options = json_decode($options, true);
+                }
+
+                $question->question->options = collect($options)->shuffle()->toArray();
             }
 
             $assessment->setRelation('questions', $shuffledQuestions);
+
             return $assessment;
         });
 
+        //dd($practiceAssessment->questions);
+
         return inertia('PracticeAssessment/PracticeTakeAssessment', [
             'practiceAssessment' => $practiceAssessment,
-            'shuffledQuestions' => $practiceAssessment->questions
         ]);
     }
+
+    
+
 
     public function saveAnswer(Request $request, $practiceAssessmentId, $questionId){
         $practiceAssessmentQuestion = StudentPracticeAssessmentQuestion::where('practice_assessment_id', $practiceAssessmentId)

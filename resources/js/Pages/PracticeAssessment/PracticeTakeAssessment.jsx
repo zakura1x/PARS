@@ -1,23 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { useForm, router } from "@inertiajs/react";
 
-const PracticeTakeAssessment = ({ practiceAssessment, shuffledQuestions}) => {
+const PracticeTakeAssessment = ({ practiceAssessment }) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    //console.log(practiceAssessment.questions);
+
+    const questions = Array.isArray(practiceAssessment.questions)
+        ? practiceAssessment.questions
+        : Object.values(practiceAssessment.questions);
+
     const { data, setData } = useForm({
-        answers: shuffledQuestions.map(
-            (q) => q.student_answer || [] // Use saved answer if available
-        ),
+        answers: questions.map((q) => q.student_answer || []),
     });
 
-    const currentQuestion = shuffledQuestions[currentQuestionIndex];
+    const currentQuestion = questions[currentQuestionIndex];
+
+    //console.log(currentQuestion);
+    //console.log(currentQuestion);
 
     // Progress calculation
-    const progress =
-        ((currentQuestionIndex + 1) / shuffledQuestions.length) *
-        100;
+    const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
     const handleOptionChange = (option) => {
         const updatedOptions = data.answers[currentQuestionIndex].includes(
@@ -41,17 +46,15 @@ const PracticeTakeAssessment = ({ practiceAssessment, shuffledQuestions}) => {
     };
 
     const saveAnswer = async () => {
-        // console.log("Saving answer for question:", currentQuestion.question.id);
-        // console.log("Answer data:", data.answers[currentQuestionIndex]);
         setLoading(true);
         setError(null);
 
         const selectedOption = data.answers[currentQuestionIndex];
 
-        if (!selectedOption || selectedOption.length == 0) {
+        if (!selectedOption || selectedOption.length === 0) {
             setError("You must select or provide an answer");
             setLoading(false);
-            return; // Exit early if no answer selected
+            return Promise.reject("No answer selected");
         }
 
         try {
@@ -64,54 +67,76 @@ const PracticeTakeAssessment = ({ practiceAssessment, shuffledQuestions}) => {
                     preserveState: true,
                 }
             );
-            console.log("Answer saved Successfully");
+            console.log("Answer saved successfully");
+            return Promise.resolve();
         } catch (error) {
             if (error.response && error.response.status === 422) {
                 setError("Time limit exceeded. Your answer could not be saved");
             } else {
                 console.error(error);
             }
+            return Promise.reject(error);
         } finally {
             setLoading(false);
         }
     };
 
     const handleNext = async () => {
-        if (currentQuestionIndex < shuffledQuestions.length - 1) {
-            //console.log(answers);
-            await saveAnswer();
-            setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+        if (currentQuestionIndex < questions.length - 1) {
+            try {
+                await saveAnswer(); // Wait for the save to complete
+                setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+            } catch (error) {
+                console.error("Failed to save answer:", error);
+            }
         }
     };
 
     const handlePrevious = async () => {
-        if (currentQuestionIndex > 0) {
-            await saveAnswer();
-            setCurrentQuestionIndex((prevIndex) => prevIndex - 1);
+        if (currentQuestionIndex < questions.length - 1) {
+            try {
+                await saveAnswer(); // Wait for the save to complete
+                setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+            } catch (error) {
+                console.error("Failed to save answer:", error);
+            }
         }
     };
 
     const handleSubmit = async () => {
         setLoading(true);
-        await saveAnswer();
+        setError(null);
+
         try {
-            router.post(
-                `/student-practice-assessments/${practiceAssessment.id}/save`
+            // Wait for the current answer to be saved
+            //await saveAnswer();
+
+            // Submit the entire assessment
+            await router.post(
+                `/student-practice-assessments/${practiceAssessment.id}/save`,
+                {},
+                {
+                    preserveState: true,
+                }
             );
+
+            console.log("Assessment submitted successfully");
         } catch (error) {
-            setError("Failed to submit assessment, Please try again");
+            console.error("Error submitting assessment:", error);
+            setError("Failed to submit assessment. Please try again.");
         } finally {
             setLoading(false);
         }
     };
 
     const handleConfirmSubmit = () => {
+        saveAnswer();
         document.getElementById("confirm_modal").showModal();
     };
 
-    const handleModalSubmit = async () => {
+    const handleModalSubmit = () => {
         document.getElementById("confirm_modal").close();
-        await handleSubmit();
+        handleSubmit();
     };
 
     //Prevent accidental navigation
@@ -132,8 +157,7 @@ const PracticeTakeAssessment = ({ practiceAssessment, shuffledQuestions}) => {
         <div className="p-4 flex flex-col min-h-[90%] justify-center items-center">
             <div className="border p-4 rounded-md shadow w-[95%] bg-white">
                 <p className="text-sm mb-2">
-                    Question {currentQuestionIndex + 1} of{" "}
-                    {shuffledQuestions.length}
+                    Question {currentQuestionIndex + 1} of {questions.length}
                 </p>
                 <h2 className="text-lg font-medium mb-4">
                     {currentQuestion.question.question_text}
@@ -215,7 +239,7 @@ const PracticeTakeAssessment = ({ practiceAssessment, shuffledQuestions}) => {
                 >
                     Previous Question
                 </button>
-                {currentQuestionIndex === shuffledQuestions.length - 1 ? (
+                {currentQuestionIndex === questions.length - 1 ? (
                     <button
                         onClick={handleConfirmSubmit}
                         className="btn btn-success"
