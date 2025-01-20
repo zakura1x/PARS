@@ -19,6 +19,7 @@ use App\Models\Topics;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
 
 class StudentPracticeAssessmentController extends Controller
 {
@@ -542,6 +543,19 @@ class StudentPracticeAssessmentController extends Controller
             return to_route('practice-assessment-generator.index', ['message' => 'The assessment was already done']);
         } 
 
+        //Shuffle the questions and save the shuffled order
+        $shuffledQuestions = $assessment->questions->shuffle();
+
+        foreach($shuffledQuestions as $question){
+            $options = $question->question->options;
+
+            //Shuffle the options
+            $question->question->options = collect ($options)->shuffle()->toArray();
+        }
+
+        //Update the shuffled question
+        Session::put('shuffled_questions_'. $practiceAssessmentId, $shuffledQuestions->pluck('id')->toArray());
+
         $assessment->update([
             'status' => 'on_going',
             'started_at' => now()
@@ -555,39 +569,33 @@ class StudentPracticeAssessmentController extends Controller
         
         if($assessment->status !== 'on_going' ){
             return to_route('practice-assessment-generator.index', ['message' => 'The assessment was already done']);
-        } 
+        }elseif($assessment->status === 'active'){
+            return to_route('practice-assessment.start', $practiceAssessmentId);
+        }
 
         $cacheKey = 'practice_assessment_' . $practiceAssessmentId . '_shuffled';
-        $practiceAssessment = Cache::remember($cacheKey, now()->addMinutes(60), function () use ($practiceAssessmentId) {
-            $assessment = StudentPracticeAssessment::with([
-                'questions' => function ($query) {
-                    $query->with('question:id,question_text,options,topic_id,format_type')
-                        ->select('id', 'practice_assessment_id', 'question_id', 'student_answer');
-                },
-            ])
-            ->where('id', $practiceAssessmentId)
-            ->where('student_id', Auth::id())
-            ->firstOrFail();
+        $practiceAssessment = Cache::remember($cacheKey, now()->addMinutes(60), function () use ($practiceAssessmentId, $assessment){
+            $shuffledQuestionIds = Session::get('shuffled_questions_'. $practiceAssessmentId);
 
-            // Shuffle questions
-            $shuffledQuestions = $assessment->questions->shuffle();
+            if(!$shuffledQuestionIds){
+                abort(500, 'Shuffled questions not found, Please restart the assessment');
+            }
 
-            // Shuffle options for each question
-            foreach ($shuffledQuestions as $question) {
-                $options = $question->question->options;
-                if (!is_array($options)) {
-                    $options = json_decode($options, true);
-                }
-                $question->question->options = collect($options)->shuffle()->toArray();
+            $shuffledQuestions = $assessment->questions->whereIn('id', $shuffledQuestionIds);
+
+            foreach($shuffledQuestions as $question){
+                $question->student_answer = $question->student_answer
+                ? json_decode($question->student_answer, true)
+                : [] ;
             }
 
             $assessment->setRelation('questions', $shuffledQuestions);
-
             return $assessment;
         });
 
         return inertia('PracticeAssessment/PracticeTakeAssessment', [
             'practiceAssessment' => $practiceAssessment,
+            'shuffledQuestions' => $practiceAssessment->questions
         ]);
     }
 
@@ -624,7 +632,6 @@ class StudentPracticeAssessmentController extends Controller
             'is_correct' => $isCorrect
         ]);
 
-        Cache::forget('practice_assessment_' . $practiceAssessmentId . '_shuffled');
 
         return back();
 

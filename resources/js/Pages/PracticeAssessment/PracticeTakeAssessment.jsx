@@ -1,21 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { useForm, router } from "@inertiajs/react";
 
-const PracticeTakeAssessment = ({ practiceAssessment }) => {
+const PracticeTakeAssessment = ({ practiceAssessment, shuffledQuestions}) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [showModal, setShowModal] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     const { data, setData } = useForm({
-        answers: practiceAssessment.questions.map(
+        answers: shuffledQuestions.map(
             (q) => q.student_answer || [] // Use saved answer if available
         ),
     });
 
-    const currentQuestion = practiceAssessment.questions[currentQuestionIndex];
+    const currentQuestion = shuffledQuestions[currentQuestionIndex];
 
     // Progress calculation
     const progress =
-        ((currentQuestionIndex + 1) / practiceAssessment.questions.length) *
+        ((currentQuestionIndex + 1) / shuffledQuestions.length) *
         100;
 
     const handleOptionChange = (option) => {
@@ -42,8 +43,16 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
     const saveAnswer = async () => {
         // console.log("Saving answer for question:", currentQuestion.question.id);
         // console.log("Answer data:", data.answers[currentQuestionIndex]);
+        setLoading(true);
+        setError(null);
 
         const selectedOption = data.answers[currentQuestionIndex];
+
+        if (!selectedOption || selectedOption.length == 0) {
+            setError("You must select or provide an answer");
+            setLoading(false);
+            return; // Exit early if no answer selected
+        }
 
         try {
             await router.post(
@@ -58,33 +67,42 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
             console.log("Answer saved Successfully");
         } catch (error) {
             if (error.response && error.response.status === 422) {
-                alert("Time limit exceeded. Your answer could not be saved");
+                setError("Time limit exceeded. Your answer could not be saved");
             } else {
                 console.error(error);
             }
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleNext = () => {
-        if (currentQuestionIndex < practiceAssessment.questions.length - 1) {
+    const handleNext = async () => {
+        if (currentQuestionIndex < shuffledQuestions.length - 1) {
             //console.log(answers);
-            saveAnswer();
+            await saveAnswer();
             setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
         }
     };
 
-    const handlePrevious = () => {
+    const handlePrevious = async () => {
         if (currentQuestionIndex > 0) {
-            saveAnswer();
+            await saveAnswer();
             setCurrentQuestionIndex((prevIndex) => prevIndex - 1);
         }
     };
 
     const handleSubmit = async () => {
+        setLoading(true);
         await saveAnswer();
-        router.post(
-            `/student-practice-assessments/${practiceAssessment.id}/save`
-        );
+        try {
+            router.post(
+                `/student-practice-assessments/${practiceAssessment.id}/save`
+            );
+        } catch (error) {
+            setError("Failed to submit assessment, Please try again");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleConfirmSubmit = () => {
@@ -96,14 +114,26 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
         await handleSubmit();
     };
 
+    //Prevent accidental navigation
+    useEffect(() => {
+        const handleBeforeUnload = (event) => {
+            event.preventDefault();
+            event.returnValue =
+                "You have unsaved changes. Are you sure you want to leave?";
+        };
+        window.addEventListener("beforeunload", handleBeforeUnload);
+
+        return () => {
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+        };
+    }, []);
+
     return (
         <div className="p-4 flex flex-col min-h-[90%] justify-center items-center">
-            {/* <h1 className="text-xl font-bold mb-4">Practice Assessment</h1> */}
-
             <div className="border p-4 rounded-md shadow w-[95%] bg-white">
                 <p className="text-sm mb-2">
                     Question {currentQuestionIndex + 1} of{" "}
-                    {practiceAssessment.questions.length}
+                    {shuffledQuestions.length}
                 </p>
                 <h2 className="text-lg font-medium mb-4">
                     {currentQuestion.question.question_text}
@@ -163,10 +193,11 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
                         onChange={handleEssayChange}
                     ></textarea>
                 )}
+                {error && <p className="text-red-500 mt-2">{error}</p>}
             </div>
             <div className="mt-4">
                 <progress
-                    className="progress w-96 bg-gray-300 [&::-webkit-progress-bar]:bg-gray-300 [&::-webkit-progress-value]:bg-green-500 [&::-moz-progress-bar]:bg-green-500"
+                    className="progress w-96"
                     value={progress}
                     max="100"
                 ></progress>
@@ -175,27 +206,28 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
             <div className="flex flex-row space-x-2 justify-between mt-2">
                 <button
                     onClick={handlePrevious}
-                    disabled={currentQuestionIndex === 0}
+                    disabled={currentQuestionIndex === 0 || loading}
                     className={`btn ${
-                        currentQuestionIndex === 0
-                            ? "btn-disabled text-black"
-                            : "btn bg-transparent text-black hover:bg-black hover:text-white"
+                        currentQuestionIndex === 0 || loading
+                            ? "btn-disabled"
+                            : "btn"
                     }`}
                 >
                     Previous Question
                 </button>
-                {currentQuestionIndex ===
-                practiceAssessment.questions.length - 1 ? (
+                {currentQuestionIndex === shuffledQuestions.length - 1 ? (
                     <button
                         onClick={handleConfirmSubmit}
-                        className="btn btn-success hover:bg-green-800 hover:text-white "
+                        className="btn btn-success"
+                        disabled={loading}
                     >
                         Submit
                     </button>
                 ) : (
                     <button
                         onClick={handleNext}
-                        className="btn btn-success hover:bg-green-800 hover:text-white"
+                        className="btn btn-success"
+                        disabled={loading}
                     >
                         Next Question
                     </button>
@@ -218,8 +250,9 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
                             Close
                         </button>
                         <button
-                            className="btn btn-success hover:bg-green-800 hover:text-white"
+                            className="btn btn-success"
                             onClick={handleModalSubmit}
+                            disabled={loading}
                         >
                             Submit
                         </button>
