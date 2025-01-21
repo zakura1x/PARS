@@ -123,7 +123,7 @@ class QuestionController extends Controller
 
     public function uploadQuestions(Request $request){
         $request-> validate([
-            'csv_file' => 'required|mimes:xlsx,xls|max:2048',
+            'file' => 'required|mimes:xlsx,xls|max:2048',
         ]);
 
         //Load the uploaded Excel File

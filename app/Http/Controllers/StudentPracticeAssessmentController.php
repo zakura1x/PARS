@@ -130,15 +130,15 @@ class StudentPracticeAssessmentController extends Controller
         $timeLimitFormatted = sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
 
         // Check if TopicGradingCriteria is available for the selected topics
-        if ($type === 'criteria') {
-            foreach ($topics as $topicId) {
-                $criteria = TopicGradingCriteria::where('topic_id', $topicId)->exists();
-                if (!$criteria) {
-                    return response()->json(['message' => 'Assessment cannot be created because TopicGradingCriteria is not yet set by the faculty for topic ID: ' . $topicId], 422);
-                }
-            }
-        }
-        // Check if TableOfSpecification is available for the selected subject
+        // if ($type === 'criteria') {
+        //     foreach ($topics as $topicId) {
+        //         $criteria = TopicGradingCriteria::where('topic_id', $topicId)->exists();
+        //         if (!$criteria) {
+        //             return response()->json(['message' => 'Assessment cannot be created because TopicGradingCriteria is not yet set by the faculty for topic ID: ' . $topicId], 422);
+        //         }
+        //     }
+        // }
+        // // Check if TableOfSpecification is available for the selected subject
         if ($type === 'exam') {
             $tableOfSpecifications = TableOfSpecification::where('subject_id', $subjectId)->exists();
             if (!$tableOfSpecifications) {
@@ -282,7 +282,9 @@ class StudentPracticeAssessmentController extends Controller
                     foreach ($normalizedQuestions as $item){
                         $cumulativeWeight += $item['normalizedWeight'];
                         if($random <= $cumulativeWeight){
-                            $selected->push($item['question']);
+                            if (!$selected->contains('id', $item['question']->id)) {
+                                $selected->push($item['question']);
+                            }
                             break;
                         }
                     }

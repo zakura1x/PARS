@@ -40,12 +40,33 @@ class TemplateSheet implements WithEvents
                 $sheet->setCellValue('H1', 'correct_answer');
                 $sheet->setCellValue('I1', 'weight');
 
+                // Example entries
+                // $sheet->setCellValue('A2', 'Mathematics');
+                // $sheet->setCellValue('B2', 'Algebra');
+                // $sheet->setCellValue('C2', 'multiple_choice');
+                // $sheet->setCellValue('D2', 'practice');
+                // $sheet->setCellValue('E2', 'understanding');
+                // $sheet->setCellValue('F2', 'What is 2 + 2?');
+                // $sheet->setCellValue('G2', '4,5,6,7');
+                // $sheet->setCellValue('H2', '4');
+                // $sheet->setCellValue('I2', '1');
+
+                // $sheet->setCellValue('A3', 'Science');
+                // $sheet->setCellValue('B3', 'Biology');
+                // $sheet->setCellValue('C3', 'true_or_false');
+                // $sheet->setCellValue('D3', 'assessment');
+                // $sheet->setCellValue('E3', 'remembering');
+                // $sheet->setCellValue('F3', 'The heart is a muscle.');
+                // $sheet->setCellValue('G3', 'true,false');
+                // $sheet->setCellValue('H3', 'true');
+                // $sheet->setCellValue('I3', '1');
+
                 // Apply dropdowns for specific columns
-                $this->applyDropdown($sheet, 'C2:C1000', 'Dropdowns!A2:A5'); // format_type
-                $this->applyDropdown($sheet, 'D2:D1000', 'Dropdowns!B2:B4'); // purpose_type
-                $this->applyDropdown($sheet, 'E2:E1000', 'Dropdowns!C2:C7'); // difficulty
-                $this->applyDropdown($sheet, 'A2:A1000', 'Dropdowns!D2:D100'); // subject_name
-                $this->applyDropdown($sheet, 'B2:B1000', 'Dropdowns!E2:E100'); // topic_name
+                $this->applyDropdown($sheet, 'C2:C1000', "'Worksheet 1'!A2:A5"); // format_type
+                $this->applyDropdown($sheet, 'D2:D1000', "'Worksheet 1'!B2:B4"); // purpose_type
+                $this->applyDropdown($sheet, 'E2:E1000', "'Worksheet 1'!C2:C7"); // difficulty
+                $this->applyDropdown($sheet, 'A2:A1000', "'Worksheet 1'!D2:D20"); // subject_name
+                $this->applyDropdown($sheet, 'B2:B1000', "'Worksheet 1'!E2:E20"); // topic_name
             },
         ];
     }
@@ -54,8 +75,6 @@ class TemplateSheet implements WithEvents
     {
         // Create a data validation object
         $validation = new DataValidation();
-        
-        // Configure the validation properties
         $validation->setType(DataValidation::TYPE_LIST);
         $validation->setErrorStyle(DataValidation::STYLE_STOP);
         $validation->setAllowBlank(false);
@@ -64,7 +83,13 @@ class TemplateSheet implements WithEvents
         $validation->setErrorTitle('Invalid Input');
         $validation->setError('Please select a value from the dropdown.');
         $validation->setFormula1($source); // The source for the dropdown (e.g., 'Dropdowns!A2:A5')
+
+        // Apply the data validation to each cell in the range
+        foreach (\PhpOffice\PhpSpreadsheet\Cell\Coordinate::extractAllCellReferencesInRange($range) as $cellReference) {
+            $sheet->getCell($cellReference)->setDataValidation(clone $validation);
+        }
     }
+
 
 }
 

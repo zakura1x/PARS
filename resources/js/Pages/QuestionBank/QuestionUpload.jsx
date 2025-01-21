@@ -13,7 +13,9 @@ const QuestionUpload = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(router.post("question.upload"));
+        post(route("question-mass.upload"), {
+            onSuccess: () => reset(),
+        });
     };
 
     const handleDownloadTemplate = () => {

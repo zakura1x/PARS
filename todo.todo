@@ -24,7 +24,7 @@ Study Materials:
     Program Head:
 
 Practice Assessment:
-    ☐ Remove the time limit in generating prac assessment, just record the start and end time
+    ✔ Remove the time limit in generating prac assessment, just record the start and end time @done (1/21/2025, 10:12:48 AM)
     ☐ Remove the topicGrading Criteria when generating assessment @critical
     ✔ Create a rules for generating questions @high @done (1/18/2025, 9:54:03 PM)
 
@@ -34,7 +34,7 @@ Practice Assessment:
             ☐ Need some testing
 
         ☐ Add a review answer for answering assessment
-        ☐ Add a timer of the assessment
+        ☐ Add a timer of the assessment in the ui
 
     Professor:
         ☐ Professor can view the Students statistics of the practice assessments of the student
@@ -54,9 +54,9 @@ Assessment:
         ☐ Approval for the assessment
 
 Question:
-    ☐ Mass upload of the questions
-        ☐ Create a csv file for uploading new questions
-        ☐ CSV File upload
+    ✔ Mass upload of the questions @done (1/21/2025, 10:50:39 AM)
+        ✔ Create a csv file for uploading new questions @done (1/21/2025, 10:50:41 AM)
+        ✔ CSV File upload @done (1/21/2025, 10:50:42 AM)
     Professor:
 
     Program Head:

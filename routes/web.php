@@ -63,6 +63,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::delete('/questions/{question}', [QuestionController::class, 'destroy'])->name('questions.delete');
     //Mass Upload
     Route::get('/question/mass-upload', [QuestionController::class, 'uploadIndex'])->name('question-mass.form');
+    Route::post('/question/mass-upload/upload', [QuestionController::class, 'uploadQuestions'])->name('question-mass.upload');
     //Download Question
     Route::get('/download-question-template', function () {
         return Excel::download(new QuestionTemplateExport, 'question_template.xlsx');
