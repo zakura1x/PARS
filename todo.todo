@@ -57,6 +57,12 @@ Question:
     ✔ Mass upload of the questions @done (1/21/2025, 10:50:39 AM)
         ✔ Create a csv file for uploading new questions @done (1/21/2025, 10:50:41 AM)
         ✔ CSV File upload @done (1/21/2025, 10:50:42 AM)
+        
+    ☐ Mass uploaded questions cannot be edited - the edit ui is not displaying anything due to (data.options.map is not a function error)
+    ☐ Much better to remove the import questions button in the question list
+    ☐ The stored mass uploaded questions has a different stored data in the db e.g in options "[\"0%\", \"5%\", \"10%\", \"15%\"]". it has backslashes and quotation marks
+    ☐ Delete action in the question list works only in frontend, data is still in db
+
     Professor:
 
     Program Head:
