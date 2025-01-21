@@ -181,11 +181,10 @@ class QuestionController extends Controller
                 'purpose_type'   => $rowData['purpose_type'],
                 'difficulty'     => $rowData['difficulty'],
                 'question_text'  => $rowData['question_text'],
-                'options'        => json_decode($rowData['options'], true), // Decode JSON
-                'correct_answer' => json_decode($rowData['correct_answer'], true), // Decode JSON
+                'options'        => $rowData['options'],
+                'correct_answer' => $rowData['correct_answer'],
                 'weight'         => $rowData['weight'],
             ]);
-            
         }
 
         return to_route('questionIndex')->with(['message' => 'Questions were uploaded successfully']);

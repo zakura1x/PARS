@@ -1,7 +1,6 @@
 <?php
 
 use App\Exports\QuestionTemplateExport;
-use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\QuestionController;
@@ -89,9 +88,6 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::post('/study-materials-attachment/add/new/{studyMaterialId}', [StudyMaterialAttachmentController::class, 'store'])->name('study-materials-attachment.store');
     Route::delete('/study-materials-attachment/delete/{studyMaterialId}', [StudyMaterialAttachmentController::class, 'destroy'])->name('study-materials-attachment.delete');
 
-    //Assessment
-    Route::get('/assessment/generator/form', [AssessmentController::class, 'create'])->name('assessment-generator.form');
-    Route::get('/assessment/index', [AssessmentController::class, 'index'])->name('assessment.index');
 
 });
 
