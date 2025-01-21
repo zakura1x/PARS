@@ -20,6 +20,8 @@ const AssessmentGeneratorForm = () => {
         total_items: "",
         topics: [], // Only topic IDs
         time_limit: "",
+        title: "", // New field for title
+        description: "", // New field for description
     });
     const [selectedTopics, setSelectedTopics] = useState(data.topics || []); // Initialize with form data topics
     const [topics, setTopics] = useState(initialTopics?.data || []);
@@ -111,7 +113,9 @@ const AssessmentGeneratorForm = () => {
 
     return (
         <div className="m-4 p-6 rounded-lg bg-white relative">
-            <h1 className="text-2xl font-bold mb-4">Assessment Generator Form</h1>
+            <h1 className="text-2xl font-bold mb-4">
+                Assessment Generator Form
+            </h1>
             <hr className="border-t-2 border-black my-4" />
             {/* Confirmation Dialog */}
             {showConfirmation && (
@@ -140,6 +144,37 @@ const AssessmentGeneratorForm = () => {
             {/* Loading Spinner */}
             {processing && <LoadingSpinner />}
             <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="flex flex-col">
+                    <label className="block mb-2">Title</label>
+                    <input
+                        type="text"
+                        id="title"
+                        value={data.title}
+                        onChange={(e) => setData("title", e.target.value)}
+                        placeholder="Enter assessment title"
+                        className="input input-bordered w-full bg-transparent"
+                    />
+                    {errors.title && (
+                        <span className="text-red-500 text-sm">
+                            {errors.title}
+                        </span>
+                    )}
+                </div>
+                <div className="flex flex-col">
+                    <label className="block mb-2">Description</label>
+                    <textarea
+                        id="description"
+                        value={data.description}
+                        onChange={(e) => setData("description", e.target.value)}
+                        placeholder="Enter assessment description"
+                        className="textarea textarea-bordered w-full bg-transparent"
+                    />
+                    {errors.description && (
+                        <span className="text-red-500 text-sm">
+                            {errors.description}
+                        </span>
+                    )}
+                </div>
                 <div className="flex flex-row space-x-4">
                     <div className="flex flex-col">
                         <label className="block mb-2">
@@ -160,7 +195,7 @@ const AssessmentGeneratorForm = () => {
                                 {errors.type}
                             </span>
                         )}
-                    </div>   
+                    </div>
 
                     <div className="flex flex-col">
                         <label className="block mb-2">
@@ -189,133 +224,96 @@ const AssessmentGeneratorForm = () => {
                         )}
                     </div>
                 </div>
-                <div className="flex flex-row space-x-4">
-                    <div className="flex flex-col">
-                        <label className="block mb-2">
-                            Total Number of Items
-                        </label>
-                        <input
-                            type="number"
-                            id="total_items"
-                            value={data.total_items}
-                            onChange={(e) =>
-                                setData("total_items", e.target.value)
-                            }
-                            placeholder="Minimum of 1"
-                            className="input input-bordered w-full bg-transparent"
-                        />
-                        {errors.total_items && (
-                            <span className="text-red-500 text-sm">
-                                {errors.total_items}
-                            </span>
-                        )}
-                    </div>
-                    <div className="flex flex-col">
-                        <label className="block mb-2">Set time limit</label>
-                        <input
-                            type="text"
-                            id="time_limit"
-                            value={data.time_limit}
-                            onChange={(e) =>
-                                setData("time_limit", e.target.value)
-                            }
-                            list="timeLimitOptions"
-                            placeholder="Select or enter time in minutes"
-                            className="input input-bordered w-full"
-                        />
-                        <datalist id="timeLimitOptions">
-                            <option value="15">15 minutes</option>
-                            <option value="30">30 minutes</option>
-                            <option value="45">45 minutes</option>
-                            <option value="60">60 minutes</option>
-                            <option value="90">90 minutes</option>
-                            <option value="120">120 minutes</option>
-                        </datalist>
-                        {errors.time_limit && (
-                            <span className="text-red-500 text-sm">
-                                {errors.time_limit}
-                            </span>
-                        )}
-                    </div>
-                </div>
-
-                <div className="flex flex-row space-x-4">
-                    <div>
-                        <label htmlFor="Topics" className="block mb-2">
-                            Search Topics:
-                        </label>
-                        <input
-                            type="text"
-                            id="search"
-                            value={search}
-                            onChange={handleSearchChange}
-                            placeholder="Search topics..."
-                            className="input input-bordered w-full"
-                        />
-                    </div>
-                </div>
-
-                {/* Topics Table containing name and id */}
-                <div className="my-2 overflow-x-auto lg:mx-4 max-h-96">
-                    <table className="table w-full bg-white shadow-md rounded-md">
-                        <thead>
-                            <tr className="bg-gray-200 text-gray-700 text-sm">
-                                <th className="py-3 px-4 text-left">Name</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {Array.isArray(topics) && topics.length > 0 ? (
-                                topics.map((topic) => (
-                                    <tr
-                                        key={topic.id}
-                                        className="border-b text-gray-700 cursor-pointer hover:bg-gray-50"
-                                        onClick={() => handleTopicClick(topic)}
-                                    >
-                                        <td className="py-3 px-4">
-                                            {topic.name}
-                                        </td>
+                {data.type !== "exam" && (
+                    <>
+                        <div className="flex flex-row space-x-4">
+                            <div>
+                                <label htmlFor="Topics" className="block mb-2">
+                                    Search Topics:
+                                </label>
+                                <input
+                                    type="text"
+                                    id="search"
+                                    value={search}
+                                    onChange={handleSearchChange}
+                                    placeholder="Search topics..."
+                                    className="input input-bordered w-full"
+                                />
+                            </div>
+                        </div>
+                        {/* Topics Table containing name and id */}
+                        <div className="my-2 overflow-x-auto lg:mx-4 max-h-96">
+                            <table className="table w-full bg-white shadow-md rounded-md">
+                                <thead>
+                                    <tr className="bg-gray-200 text-gray-700 text-sm">
+                                        <th className="py-3 px-4 text-left">
+                                            Name
+                                        </th>
                                     </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td
-                                        colSpan="2"
-                                        className="text-center py-6 text-gray-500"
-                                    >
-                                        No topics found...
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                <div>
-                    <h2 className="text-xl font-semibold mb-2">
-                        Topics for assessment:
-                    </h2>
-                    <div className="flex flex-wrap">
-                        {selectedTopics.map((topicId) => {
-                            const topic = topics.find((t) => t.id === topicId);
-                            return (
-                                <span
-                                    key={topicId}
-                                    onClick={() => handleRemoveTopic(topicId)}
-                                    className="badge badge-accent cursor-pointer"
-                                >
-                                    {topic ? `${topic.name}` : `${topicId}`}{" "}
-                                    &times;
+                                </thead>
+                                <tbody>
+                                    {Array.isArray(topics) &&
+                                    topics.length > 0 ? (
+                                        topics.map((topic) => (
+                                            <tr
+                                                key={topic.id}
+                                                className="border-b text-gray-700 cursor-pointer hover:bg-gray-50"
+                                                onClick={() =>
+                                                    handleTopicClick(topic)
+                                                }
+                                            >
+                                                <td className="py-3 px-4">
+                                                    {topic.name}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td
+                                                colSpan="2"
+                                                className="text-center py-6 text-gray-500"
+                                            >
+                                                No topics found...
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-semibold mb-2">
+                                Topics for assessment:
+                            </h2>
+                            <div className="flex flex-wrap">
+                                {selectedTopics.map((topicId) => {
+                                    const topic = topics.find(
+                                        (t) => t.id === topicId
+                                    );
+                                    return (
+                                        <span
+                                            key={topicId}
+                                            onClick={() =>
+                                                handleRemoveTopic(topicId)
+                                            }
+                                            className="badge badge-accent cursor-pointer"
+                                        >
+                                            {topic
+                                                ? `${topic.name}`
+                                                : `${topicId}`}{" "}
+                                            &times;
+                                        </span>
+                                    );
+                                })}
+                            </div>
+                            {errors.topics && (
+                                <span className="text-red-500 text-sm">
+                                    Please include a topic to generate the
+                                    assessment
                                 </span>
-                            );
-                        })}
-                    </div>
-                    {errors.topics && (
-                        <span className="text-red-500 text-sm">
-                            Please include a topic to generate the assessment
-                        </span>
-                    )}
-                </div>
-
+                            )}
+                        </div>
+                    </>
+                )}
                 <button
                     type="submit"
                     className="btn bg-black w-full hover:bg-green-800 hover:text-white"
