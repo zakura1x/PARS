@@ -19,6 +19,10 @@ class TableOfSpecification extends Model
         'num_questions',
     ];
 
+    protected $casts = [
+        'difficulty' => 'array'
+    ];
+
     public function topic(){
         return $this->belongsTo(Topics::class);
     }

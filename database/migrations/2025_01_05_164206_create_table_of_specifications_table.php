@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('topic_id')->constrained('topics')->onDelete('cascade');
             $table->foreignId('subject_id')->constrained('subjects')->onDelete('cascade');
-            $table->enum('difficulty', ['remembering', 'understanding', 'applying', 'analyzing', 'evaluating', 'creating']);
+            $table->json('difficulty');
             $table->integer('num_questions');
             $table->decimal('percentage', 5, 2)->default(0.00);
             $table->timestamps();

@@ -9,12 +9,14 @@ use App\Http\Controllers\StudentPracticeAssessmentController;
 use App\Http\Controllers\StudyMaterialAttachmentController;
 use App\Http\Controllers\StudyMaterialController;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\TableOfSpecificationController;
 use App\Http\Controllers\TopicGradingCriteriaController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\TopicMasterController;
 use App\Http\Controllers\TopicsController;
 use App\Http\Middleware\RoleMiddleware;
 use App\Models\Student;
+use App\Models\TableOfSpecification;
 use App\Models\TopicMaster;
 use Illuminate\Support\Facades\Route;
 use Maatwebsite\Excel\Facades\Excel;
@@ -88,6 +90,11 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::post('/study-materials-attachment/add/new/{studyMaterialId}', [StudyMaterialAttachmentController::class, 'store'])->name('study-materials-attachment.store');
     Route::delete('/study-materials-attachment/delete/{studyMaterialId}', [StudyMaterialAttachmentController::class, 'destroy'])->name('study-materials-attachment.delete');
 
+    //Table of Specification
+    Route::get('/table-of-specification/index', [TableOfSpecificationController::class, 'index'])->name('tos.index');
+    Route::get('/table-of-specification/forms/{subjectId}', [TableOfSpecificationController::class, 'createOrEditForm'])->name('tos.form');
+    Route::post('/table-of-specification/save/form', [TableOfSpecificationController::class, 'store'])->name('tos.store');
+    Route::get('/table-of-specification/view/{subjectId}', [TableOfSpecificationController::class, 'show'])->name('tos.show');
 
 });
 

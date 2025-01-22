@@ -77,6 +77,11 @@ const programHeadMenu = [
                         href: "/topic-grading-criteria/index",
                         key: 12,
                     },
+                    {
+                        label: "Table of Specification (TOS)",
+                        href: "/table-of-specification/index",
+                        key: 13,
+                    },
                 ],
             },
         ],
