@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreAssessmentRequest;
-use App\Http\Requests\UpdateAssessmentRequest;
+
 use App\Models\Assessment;
 use App\Models\AssessmentQuestion;
 use App\Models\Question;
@@ -14,7 +13,7 @@ use App\Models\Subject;
 use App\Models\TableOfSpecification;
 use App\Models\TopicGradingCriteria;
 use App\Models\Topics;
-use Illuminate\Http\Client\Request;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
@@ -23,10 +22,23 @@ class AssessmentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function indexForPH()
+    {
+        // Fetch all assessments with status 'pending', excluding those with status 'draft'
+        $assessments = Assessment::where('status', 'pending')
+            ->where('status', '!=', 'draft') // Exclude assessments with status 'draft'
+            ->orderBy('created_at', 'desc')
+            ->paginate(10); // Paginate the results (10 items per page)
+    
+        return inertia('Assessment/AssessmentIndex', ['assessments' => $assessments]);
+    }
+    
+
+    public function indexForProf()
     {
         // Fetch all the assessments in descending order
-        $assessments = Assessment::orderBy('created_at', 'desc')->get();
+        $assessments = Assessment::orderBy('created_at', 'desc')
+        ->paginate(10);
 
         return inertia('Assessment/AssessmentIndex', ['assessments' => $assessments]);
     }
@@ -34,33 +46,43 @@ class AssessmentController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(Request $request)
-    {
-        // Get all the Subjects for the dropdown
-        $subjects = Subject::all();
+    // public function create(Request $request)
+    // {
+    //     // Get all the Subjects for the dropdown
+    //     $subjects = Subject::all();
 
-        // Get the search query and subject ID
-        $search = $request->input('search');
-        $subjectId = $request->input('subject_id');
+    //     // Get the search query and subject ID
+    //     $search = $request->input('search');
+    //     $subjectId = $request->input('subject_id');
 
     
-        // Get all the Topics with search functionality
-        $topics = Topics::when($subjectId, function ($query, $subjectId) {
-            return $query->where('subject_id', $subjectId);
-        })
-        ->when($search, function ($query, $search) {
-            return $query->where('name', 'like', "%{$search}%");
-        })
-        ->latest() // Orders by created_at in descending order
-        ->get(); // Remove pagination
+    //     // Get all the Topics with search functionality
+    //     $topics = Topics::when($subjectId, function ($query, $subjectId) {
+    //         return $query->where('subject_id', $subjectId);
+    //     })
+    //     ->when($search, function ($query, $search) {
+    //         return $query->where('name', 'like', "%{$search}%");
+    //     })
+    //     ->latest() // Orders by created_at in descending order
+    //     ->get(); // Remove pagination
 
-        return inertia('Assessment/AssessmentGenerateForm', [
-            'subjects' => $subjects,
-            'topics' => $topics,
-            'search' => $search,
-            'subjectId' => $subjectId,
+    //     return inertia('Assessment/AssessmentGenerateForm', [
+    //         'subjects' => $subjects,
+    //         'topics' => $topics,
+    //         'search' => $search,
+    //         'subjectId' => $subjectId,
+    //     ]);
+    // }  
+    
+    public function create()
+    {
+        // Fetch all subjects (or any other data needed for the form)
+        $subjects = Subject::all();
+
+        return inertia('Assessment/AssessmentGeneratorForm', [
+            'subjects' => $subjects, // Send subjects to the form
         ]);
-    }   
+    }
 
     /**
      * Store a newly created resource in storage.
@@ -213,64 +235,105 @@ class AssessmentController extends Controller
         return $questions;
     }
 
+    public function storeExam(Request $request){
+        $validatedData = $request->validate([
+            'subject_id' => 'required|exists:subjects,id',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'time_limit' => 'nullable|integer|min:1'
+        ]);
+
+        //Generate the exam
+        try{
+            $questions = $this->generateExamQuestions($validatedData['subject_id']);
+
+            if($questions->isEmpty()){
+                return back()->withErrors(['message' => 'No questions available to generate from this Subject']);
+            }
+
+            //Create the assessment Record
+            $assessment = Assessment::create([
+                'created_by' => Auth::id(),
+                'type' => 'exam',
+                'subject_id' => $validatedData['subject_id'],
+                'title' => $validatedData['title'],
+                'description' => $validatedData['description'] ?? null,
+                'status' => 'draft',
+                'time_limit' => $validatedData['time_limit'] ?? null
+            ]);
+
+            //Attach the questions to the assessment
+            foreach ($questions as $question){
+                $assessment->questions()->attach($question->id);
+            }
+
+            return to_route('');
+
+        }catch(\Exception $e){
+            return back()->withErrors(['message' => $e->getMessage()]);
+        }
+    }
+
     private function generateExamQuestions($subjectId)
     {
-        $questions = collect(); // Use collection instead of array
-        $totalItems = 0;
+        $questions = collect();
+        $selectedQuestionIds = [];
 
-        // Step 1: Fetch the Table of Specification (ToS) for the subject
-        $tableOfSpecifications = TableOfSpecification::where('subject_id', $subjectId)->get();
+        //Fetch the TOS for the subject
+        $tableOfSpecification = TableOfSpecification::where('subject_id', $subjectId);
 
-        if ($tableOfSpecifications->isEmpty()) {
-            throw new \Exception('No Table of Specification defined for this subject.');
-        }
-
-        // Step 2: Calculate the total items based on ToS
-        foreach ($tableOfSpecifications as $tos) {
-            $totalItems += $tos->total_items;
-        }
-
-        // Step 3: Generate questions for each topic based on ToS difficulty
-        foreach ($tableOfSpecifications as $tos) {
+        //Generate the questions based on the TOS
+        foreach($tableOfSpecification as $tos){
             $topicId = $tos->topic_id;
-            $questionsForTopic = $tos->total_items;
+            $difficultyDistribution = json_decode($tos->difficulty, true);
+            $totalQuestionsForTopic = $tos->num_questions;
 
-            // Step 4: Fetch unused questions based on ToS difficulty
-            $topicQuestions = Question::where('topic_id', $topicId)
-                ->where('purpose_type', 'exam') // Only fetch exam-related questions
-                ->where('difficulty', $tos->difficulty) // Use the difficulty from the ToS (Bloom's level)
+            //Fetch the questions for each difficulty level
+            foreach($difficultyDistribution as $difficultyLevel => $count){
+                if($count <= 0){
+                    continue; //SKip if no questions required for the difficulty
+                }
+
+                $questionsForDifficulty = Question::where('topic_id', $topicId)
+                ->where('purpose_type', 'exam')
+                ->where('difficulty', $difficultyLevel)
                 ->where('is_used', false)
+                ->whereNotIn('id', $selectedQuestionIds)
                 ->inRandomOrder()
-                ->take($questionsForTopic)
+                ->take($count)
                 ->get();
 
-            // Step 5: If all questions are used, reset usage
-            if ($topicQuestions->count() < $questionsForTopic) {
-                // Reset all used questions for this topic
-                Question::where('topic_id', $topicId)
+                //If insufficient questions for the difficulty level
+                if($questionsForDifficulty->count() < $count){
+                    $remainingQUestionsNeeded = $count - $questionsForDifficulty->count();
+
+                    //Reset used questions for this difficulty level
+                    Question::where('topic_id', $topicId)
                     ->where('purpose_type', 'exam')
+                    ->where('difficulty', $difficultyLevel)
                     ->update(['is_used' => false]);
 
-                // Re-fetch questions after reset
-                $remainingQuestionsNeeded = $questionsForTopic - $topicQuestions->count();
-                $additionalQuestions = Question::where('topic_id', $topicId)
+                    //Re-fetch additional questions after reset
+                    $additionalQuestions = Question::where('topic_id', $topicId)
                     ->where('purpose_type', 'exam')
-                    ->where('difficulty', $tos->difficulty) // Use the same difficulty level
-                    ->where('is_used', false)
+                    ->where('difficulty', $difficultyLevel)
+                    ->whereNotIn('id', $selectedQuestionIds)
                     ->inRandomOrder()
-                    ->take($remainingQuestionsNeeded)
+                    ->take($remainingQUestionsNeeded)
                     ->get();
 
-                $topicQuestions = $topicQuestions->merge($additionalQuestions);
-            }
+                    $questionsForDifficulty = $questionsForDifficulty->merge($additionalQuestions);
+                }
 
-            // Step 6: Mark fetched questions as used
-            foreach ($topicQuestions as $question) {
-                $question->update(['is_used' => true, 'updated_at' => now()]);
-            }
+                //Mark fetched questions as used and track ids
+                foreach ($questionsForDifficulty as $question){
+                    $question->update(['is_used' => true, 'updated_at'=> now()]);
+                    $selectedQuestionIds[] = $question->id;
+                }
 
-            // Add the questions to the main list
-            $questions = $questions->merge($topicQuestions);
+                //add the question now to the main collection
+                $questions = $questions->merge($questionsForDifficulty);
+            }
         }
 
         return $questions;
@@ -301,17 +364,81 @@ class AssessmentController extends Controller
         ]);
     }
 
-    public function replaceQuestion($questionId)
+    public function replaceQuestion($questionId, $assessmentId)
     {
-        
-        $replacement = Question::replaceQuestion($questionId);
 
-        if ($replacement) {
-            return back()->with(['message' => 'Question replaced successfully.', 'replacement' => $replacement]);
+        //FInd the old question
+        $oldQuestion = Question::findOrFail($questionId);
+
+        if(!$oldQuestion->assessments()->where('assessment_id', $assessmentId)->exists()){
+            return back()->withErrors(['message' => 'Question is not part of this assessment']);
         }
 
-        return back()->with(['message' => 'No replacement question found.']);
+        $oldQuestion->update(['is_used' => false]);
+        
+        //Replace the question
+        $replacement = Question::where('topic_id', $oldQuestion->topic_id)
+        ->where('difficulty', $oldQuestion->difficulty)
+        ->where('purpose_type', 'exam')
+        ->where('is_used', false)
+        ->inRandomOrder()
+        ->first();
+
+        if ($replacement) {
+            $oldQuestion->update(['is_used' => true]);
+            return back()->withErrors(['message' => 'No replacement found']);
+        }
+
+        //Mark the replacement question as used
+        $replacement->update(['is_used' => true]);
+
+        $oldQuestion->assessments()->updateExistingPivot($assessmentId, [
+            'question_id' => $replacement->id,
+            'updated_at'=> now()
+        ]);
+
+        return back()->with([
+            'message' => 'Question replaced successfully.',
+            'replacement' => $replacement,
+        ]);
     }
+
+    public function updateForApproval($assessmentId)
+    {
+        $assessment = Assessment::findOrFail($assessmentId);
+
+        // Check if the assessment has already been approved
+        if ($assessment->approved) {
+            return back()->withErrors(['message' => 'This assessment has already been approved.']);
+        }
+
+        // Update the status to 'pending' and set the updated_at timestamp
+        $assessment->update([
+            'status' => 'pending',
+            'updated_at' => now(),
+        ]);
+
+        return back()->with([
+            'message' => 'Assessment status updated to pending.',
+        ]);
+    }
+
+
+    public function assessmentApprovalForm($assessmentId)
+    {
+        $assessment = Assessment::findOrFail($assessmentId);
+
+        // Check if the assessment is already approved
+        if ($assessment->approved) {
+            return back()->withErrors(['message' => 'This assessment has already been approved.']);
+        }
+
+        // Show the approval form if the assessment is not approved yet
+        return inertia('Assessment/AssessmentApprovalForm', [
+            'assessment' => $assessment,
+        ]);
+    }
+
 
     public function approveAssessment(Request $request, $assessmentId){
         $assessment = Assessment::findOrFail($assessmentId);
@@ -339,7 +466,7 @@ class AssessmentController extends Controller
         $assessment = Assessment::findOrFail($assessmentId);
 
         $validated = $request->validate([
-            'rejection_reason' => 'required'
+            'rejection_reason' => 'required|string|max:255'
         ]);
 
         if(Auth::user()->role !== 'program_head'){
@@ -352,9 +479,12 @@ class AssessmentController extends Controller
         }
 
         $assessment->update([
+            'approved' => false,
             'approved_by' => Auth::user()->id,
             'rejection_reason' => $validated['rejection_reason']
         ]);
+
+        return inertia('assessment-PH.index', ['message' => 'The assessment was successfully rejected']);
     }
     
     public function destroy($assessmentId)

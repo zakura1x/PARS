@@ -1,39 +1,108 @@
 import React from "react";
-import { Link } from "@inertiajs/react";
+import { Link, router } from "@inertiajs/react";
+import Pagination from "../../components/misc/Pagination"; // Import Pagination
 
 const AssessmentIndex = ({ assessments }) => {
+    const handlePageChange = (url) => {
+        if (url) {
+            router.get(url);
+        }
+    };
+
     return (
-        <div>
-            <h1>Assessments</h1>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Subject</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {assessments.map((assessment) => (
-                        <tr key={assessment.id}>
-                            <td>{assessment.title}</td>
-                            <td>{assessment.subject.name}</td>
-                            <td>{assessment.status}</td>
-                            <td>
-                                <Link
-                                    href={`/assessments/${assessment.id}/edit`}
-                                >
-                                    Edit
-                                </Link>
-                                <Link href={`/assessments/${assessment.id}`}>
-                                    View
-                                </Link>
+        <div className="container mx-auto p-6">
+            <h1 className="text-2xl font-bold mb-6">Assessments</h1>
+
+            {assessments.data.length === 0 ? (
+                <table className="table table-auto w-full border-collapse border border-gray-300">
+                    <thead>
+                        <tr className="bg-gray-100">
+                            <th className="border border-gray-300 p-2">
+                                Title
+                            </th>
+                            <th className="border border-gray-300 p-2">
+                                Status
+                            </th>
+                            <th className="border border-gray-300 p-2">
+                                Created At
+                            </th>
+                            <th className="border border-gray-300 p-2">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td
+                                className="border border-gray-300 p-2"
+                                colSpan="4"
+                            >
+                                No assessments found.
                             </td>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            ) : (
+                <>
+                    <table className="table table-auto w-full border-collapse border border-gray-300">
+                        <thead>
+                            <tr className="bg-gray-100">
+                                <th className="border border-gray-300 p-2">
+                                    Title
+                                </th>
+                                <th className="border border-gray-300 p-2">
+                                    Status
+                                </th>
+                                <th className="border border-gray-300 p-2">
+                                    Created At
+                                </th>
+                                <th className="border border-gray-300 p-2">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {assessments.data.map((assessment) => (
+                                <tr key={assessment.id}>
+                                    <td className="border border-gray-300 p-2">
+                                        {assessment.title}
+                                    </td>
+                                    <td className="border border-gray-300 p-2">
+                                        {assessment.status}
+                                    </td>
+                                    <td className="border border-gray-300 p-2">
+                                        {new Date(
+                                            assessment.created_at
+                                        ).toLocaleString()}
+                                    </td>
+                                    <td className="border border-gray-300 p-2">
+                                        <Link
+                                            href={`/assessment/${assessment.id}`}
+                                            className="btn btn-primary btn-sm"
+                                        >
+                                            View/Edit
+                                        </Link>
+                                        <Link
+                                            href={`/assessment/${assessment.id}`}
+                                            className="btn btn-primary btn-sm"
+                                        >
+                                            Submit for Approval
+                                        </Link>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+
+                    {/* Pagination Component */}
+                    <div className="mt-4">
+                        <Pagination
+                            data={assessments}
+                            onPageChange={handlePageChange}
+                        />
+                    </div>
+                </>
+            )}
         </div>
     );
 };

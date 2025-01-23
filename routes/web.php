@@ -1,6 +1,7 @@
 <?php
 
 use App\Exports\QuestionTemplateExport;
+use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\QuestionController;
@@ -95,6 +96,17 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::get('/table-of-specification/forms/{subjectId}', [TableOfSpecificationController::class, 'createOrEditForm'])->name('tos.form');
     Route::post('/table-of-specification/save/form', [TableOfSpecificationController::class, 'store'])->name('tos.store');
     Route::get('/table-of-specification/view/{subjectId}', [TableOfSpecificationController::class, 'show'])->name('tos.show');
+    
+    //Assessment
+    Route::get('/assessment/index/program-head', [AssessmentController::class, 'indexForPH'])->name('assessment-PH.index');
+    Route::get('/assessment/index/professor', [AssessmentController::class, 'indexForProf'])->name('assessment-prof.index');
+    Route::get('/assessment/generator/form/exam', [AssessmentController::class, 'create'])->name('assessment-generator.form');
+    Route::post('/assessment/exam/create', [AssessmentController::class, 'storeExam'])->name('assessment-exam.store');
+    Route::get('/assessment/edit/form/exam', [AssessmentController::class, 'edit'])->name('assessment-edit.form');
+    Route::post('/assessment/replace-question/{questionId}/{assessmentId}', [AssessmentController::class, 'replaceQuestion'])->name('assessment-question.replace');
+    Route::put('/assessment/update/approval/{assessmentId}', [AssessmentController::class,'updateForApproval'])->name('assessment-update.approval');
+    Route::put('/assessment/update/approve/{assessmentId}', [AssessmentController::class,'approveAssessment'])->name('assessment.approve');
+    Route::put('/assessment/update/reject/{assessmentId}', [AssessmentController::class,'rejectAssessment'])->name('assessment.reject');
 
 });
 

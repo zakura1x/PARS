@@ -28,8 +28,8 @@ const programHeadMenu = [
                 title: "Assessment",
                 icon: <MdOutlineAssessment size={26} />,
                 items: [
-                    { label: "Generate Assessment", href: "", key: 5 },
-                    { label: "View Assessments", href: "", key: 6 },
+                    { label: "Generate Exam Assessment", href: "/assessment/generator/form/exam", key: 5 },
+                    { label: "View Assessments", href: "/assessment/index/program-head", key: 6 },
                     { label: "Assessment Dashboard", href: "", key: 7 },
                     //{ label: "Assessment Repository", href: "", key: 4 },
                 ],
