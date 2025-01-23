@@ -45,9 +45,28 @@ Practice Assessment:
 
 
 Assessment:
+    Needs testing:
+        ☐ Generate Assessment
+        ☐ Edit Assessment
+        ☐ Replace Question
+        ☐ Delete Assessment @low
+        ☐ Approve Assessment 
+    
+    Need to do:
+        ☐ Initialization of Assessment
+            ☐ Faculty can start the assessment
+            ☐ Student can join the assessment
+        ☐ Faculty set the start of the assessment
+        ☐ Student answering assessment
+        ☐ Grading of assessment
+        ☐ Report for the assessment
+            ☐ Report for student
+            ☐ Report for faculty
+        ☐ Faculty can end the assessment
+
     Student:
         ☐ Ui for answering assessment
-        ☐ Ui for viewing the assessment result
+        ✔ Ui for viewing the assessment result @done (1/23/2025, 10:43:35 PM)
     Professor:
         ☐ They can only add assessments based on their subject
     Program Head:

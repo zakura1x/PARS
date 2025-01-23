@@ -254,7 +254,7 @@ class AssessmentController extends Controller
             //Create the assessment Record
             $assessment = Assessment::create([
                 'created_by' => Auth::id(),
-                'type' => 'exam',
+                'type' => 'examination',
                 'subject_id' => $validatedData['subject_id'],
                 'title' => $validatedData['title'],
                 'description' => $validatedData['description'] ?? null,
@@ -295,7 +295,7 @@ class AssessmentController extends Controller
                 }
 
                 $questionsForDifficulty = Question::where('topic_id', $topicId)
-                ->where('purpose_type', 'exam')
+                ->where('purpose_type', 'examination')
                 ->where('difficulty', $difficultyLevel)
                 ->where('is_used', false)
                 ->whereNotIn('id', $selectedQuestionIds)
@@ -309,13 +309,13 @@ class AssessmentController extends Controller
 
                     //Reset used questions for this difficulty level
                     Question::where('topic_id', $topicId)
-                    ->where('purpose_type', 'exam')
+                    ->where('purpose_type', 'examination')
                     ->where('difficulty', $difficultyLevel)
                     ->update(['is_used' => false]);
 
                     //Re-fetch additional questions after reset
                     $additionalQuestions = Question::where('topic_id', $topicId)
-                    ->where('purpose_type', 'exam')
+                    ->where('purpose_type', 'examination')
                     ->where('difficulty', $difficultyLevel)
                     ->whereNotIn('id', $selectedQuestionIds)
                     ->inRandomOrder()
