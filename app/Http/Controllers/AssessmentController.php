@@ -426,12 +426,21 @@ class AssessmentController extends Controller
 
     public function assessmentApprovalForm($assessmentId)
     {
-        $assessment = Assessment::findOrFail($assessmentId);
+        $assessment = Assessment::with('questions')->findOrFail($assessmentId);
 
         // Check if the assessment is already approved
         if ($assessment->approved) {
             return back()->withErrors(['message' => 'This assessment has already been approved.']);
         }
+
+        $assessment->questions->map(function ($question) {
+            // Ensure correct_answer is accessible and formatted correctly
+            $question->correct_answer_text = collect($question->options)->filter(function ($option) use ($question) {
+                return in_array($option, $question->correct_answer); // Match correct answers
+            });
+    
+            return $question;
+        });
 
         // Show the approval form if the assessment is not approved yet
         return inertia('Assessment/AssessmentApprovalForm', [

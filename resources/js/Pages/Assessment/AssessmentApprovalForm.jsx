@@ -22,7 +22,7 @@ const AssessmentApprovalForm = ({ assessment }) => {
 
         // Determine action based on whether it's rejection or approval
         if (isRejection) {
-            post(`/assessment/update/reject/{assessmentId}${assessment.id}`, {
+            post(`/assessment/update/reject/${assessment.id}`, {
                 data: { rejection_reason: data.rejection_reason },
             });
         } else {
@@ -42,6 +42,7 @@ const AssessmentApprovalForm = ({ assessment }) => {
                 </div>
             ) : (
                 <form onSubmit={handleSubmit}>
+                    {/* Assessment Details */}
                     <div className="mb-4">
                         <label
                             htmlFor="title"
@@ -77,8 +78,53 @@ const AssessmentApprovalForm = ({ assessment }) => {
                         </select>
                     </div>
 
-                    <div className="flex space-x-4">
-                        {/* Toggle between approval and rejection */}
+                    {/* Questions Display */}
+                    <div className="mb-6">
+                        <h2 className="text-lg font-semibold mb-2">
+                            Questions for Review
+                        </h2>
+                        <ul className="space-y-4">
+                            {assessment.questions.map((question, index) => (
+                                <li
+                                    key={question.id}
+                                    className="border p-4 rounded-lg shadow-sm"
+                                >
+                                    <div className="mb-2">
+                                        <strong>Question {index + 1}:</strong>{" "}
+                                        {question.question_text}
+                                    </div>
+                                    <div className="mb-2">
+                                        <strong>Options:</strong>
+                                        <ul className="list-disc ml-6">
+                                            {question.options.map(
+                                                (option, i) => (
+                                                    <li
+                                                        key={i}
+                                                        className={
+                                                            question.correct_answer.includes(
+                                                                option
+                                                            )
+                                                                ? "font-bold text-green-600"
+                                                                : ""
+                                                        }
+                                                    >
+                                                        {option}
+                                                    </li>
+                                                )
+                                            )}
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <strong>Correct Answer:</strong>{" "}
+                                        {question.correct_answer.join(", ")}
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    {/* Toggle between approval and rejection */}
+                    <div className="flex space-x-4 mb-4">
                         <div>
                             <label className="flex items-center space-x-2">
                                 <input
@@ -103,7 +149,7 @@ const AssessmentApprovalForm = ({ assessment }) => {
                         </div>
                     </div>
 
-                    {/* If rejecting, show rejection reason input */}
+                    {/* Rejection Reason Input */}
                     {isRejection && (
                         <div className="mb-4">
                             <label
@@ -129,7 +175,7 @@ const AssessmentApprovalForm = ({ assessment }) => {
                         </div>
                     )}
 
-                    {/* Action button */}
+                    {/* Action Button */}
                     <div className="mb-4">
                         <button
                             type="submit"

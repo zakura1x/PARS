@@ -1,8 +1,9 @@
 import React from "react";
-import { Link, router } from "@inertiajs/react";
+import { Link, router, usePage } from "@inertiajs/react";
 import Pagination from "../../components/misc/Pagination"; // Import Pagination
 
 const AssessmentIndex = ({ assessments }) => {
+    const { auth } = usePage().props;
     const handlePageChange = (url) => {
         if (url) {
             router.get(url);
@@ -82,12 +83,14 @@ const AssessmentIndex = ({ assessments }) => {
                                         >
                                             View/Edit
                                         </Link>
-                                        <Link
-                                            href={`/assessment/${assessment.id}`}
-                                            className="btn btn-primary btn-sm"
-                                        >
-                                            Submit for Approval
-                                        </Link>
+                                        {auth.user.role === "program_head" && (
+                                            <Link
+                                                href={`/assessment/${assessment.id}/approve`}
+                                                className="btn btn-primary btn-sm"
+                                            >
+                                                Approve
+                                            </Link>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
