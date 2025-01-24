@@ -99,7 +99,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     
     //Assessment
     Route::get('/assessment/index/program-head', [AssessmentController::class, 'indexForProf'])->name('assessment-PH.index');
-    Route::get('/assessment/index/professor', [AssessmentController::class, 'indexForProf'])->name('assessment-prof.index');
+    //Route::get('/assessment/index/professor', [AssessmentController::class, 'indexForProf'])->name('assessment-prof.index');
     Route::get('/assessment/generator/form/exam', [AssessmentController::class, 'create'])->name('assessment-generator.form');
     Route::post('/assessment/exam/create', [AssessmentController::class, 'storeExam'])->name('assessment-exam.store');
     Route::get('/assessment/edit/form/exam/{assessmentId}', [AssessmentController::class, 'edit'])->name('assessment-edit.form');

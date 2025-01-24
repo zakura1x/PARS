@@ -448,12 +448,21 @@ class AssessmentController extends Controller
         // Check if the assessment is already approved
         if ($assessment->approved) {
             return back()->withErrors(['message' => 'This assessment has already been approved.']);
-        }   
+        }else if($assessment->status === 'draft'){
+            return back()->withErrors(['message'=> 'Submit the assessment for approval first']);
+        }
 
         $assessment->questions->map(function ($question) {
-            // Ensure correct_answer is accessible and formatted correctly
-            $question->correct_answer_text = collect($question->options)->filter(function ($option) use ($question) {
-                return in_array($option, $question->correct_answer); // Match correct answers
+            // Decode correct_answer if it's JSON string
+            $correctAnswers = is_string($question->correct_answer) 
+            ? json_decode($question->correct_answer, true) 
+            : $question->correct_answer;
+
+            // Ensure correct_answer is an array
+            $correctAnswers = is_array($correctAnswers) ? $correctAnswers : [];
+
+            $question->correct_answer_text = collect($question->options)->filter(function ($option) use ($correctAnswers) {
+                return in_array($option, $correctAnswers);
             });
     
             return $question;
@@ -483,9 +492,10 @@ class AssessmentController extends Controller
         $assessment->update([
             'approved' => true,
             'approved_by' => Auth::user()->id,
+            'status' => 'active'
         ]);
 
-        return inertia('Assessment/AssessmentIndex', ['message' => 'Assessment is Approved']);
+        return to_route('assessment-PH.index')->with(['message' => 'Assessment approved successfully']);
     }
 
     public function rejectAssessment(Request $request, $assessmentId){
@@ -510,7 +520,7 @@ class AssessmentController extends Controller
             'rejection_reason' => $validated['rejection_reason']
         ]);
 
-        return inertia('assessment-PH.index', ['message' => 'The assessment was successfully rejected']);
+        return to_route('assessment-PH.index')->with(['message' => 'Assessment was successfully rejected']);
     }
     
     public function destroy($assessmentId)

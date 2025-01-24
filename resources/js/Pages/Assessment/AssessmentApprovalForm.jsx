@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useForm } from "@inertiajs/react";
+import { useForm, router } from "@inertiajs/react";
 
 const AssessmentApprovalForm = ({ assessment }) => {
     const { data, setData, post, processing, errors } = useForm({
@@ -26,7 +26,7 @@ const AssessmentApprovalForm = ({ assessment }) => {
                 data: { rejection_reason: data.rejection_reason },
             });
         } else {
-            post(`/assessment/update/approve/${assessment.id}`);
+            router.put(`/assessment/update/approve/${assessment.id}`);
         }
     };
 

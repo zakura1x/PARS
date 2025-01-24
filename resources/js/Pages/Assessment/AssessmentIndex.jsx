@@ -1,17 +1,23 @@
 import React from "react";
 import { Link, router, usePage } from "@inertiajs/react";
 import Pagination from "../../components/misc/Pagination"; // Import Pagination
+import FlashMessage from "../../components/Notifications/FlashMessage"; // Import FlashMessage
 
 const AssessmentIndex = ({ assessments }) => {
-    const { auth } = usePage().props;
+    const { auth, flash } = usePage().props;
     const handlePageChange = (url) => {
         if (url) {
             router.get(url);
         }
     };
 
+    const handleSubmitForApproval = (assessmentId) => {
+        router.put(`/assessment/update/approval/${assessmentId}`);
+    };
+
     return (
         <div className="container mx-auto p-6">
+            <FlashMessage message={flash.message} />
             <h1 className="text-2xl font-bold mb-6">Assessments</h1>
 
             {assessments.data.length === 0 ? (
@@ -91,13 +97,18 @@ const AssessmentIndex = ({ assessments }) => {
                                                 Approve
                                             </Link>
                                         )}
-                                        {auth.user.role === "professor" && (
-                                            <Link
-                                                href={`/assessment/update/approval/${assessment.id}`}
+                                        {auth.user.role === "program_head" && (
+                                            <button
+                                                type="button"
                                                 className="btn btn-primary btn-sm"
+                                                onClick={() =>
+                                                    handleSubmitForApproval(
+                                                        assessment.id
+                                                    )
+                                                }
                                             >
                                                 Submit for approval
-                                            </Link>
+                                            </button>
                                         )}
                                     </td>
                                 </tr>
