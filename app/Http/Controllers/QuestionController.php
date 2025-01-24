@@ -181,8 +181,8 @@ class QuestionController extends Controller
                 'purpose_type'   => $rowData['purpose_type'],
                 'difficulty'     => $rowData['difficulty'],
                 'question_text'  => $rowData['question_text'],
-                'options'        => $rowData['options'],
-                'correct_answer' => $rowData['correct_answer'],
+                'options'        => json_decode($rowData['options'], true),
+                'correct_answer' => json_decode($rowData['correct_answer'], true),
                 'weight'         => $rowData['weight'],
             ]);
         }
