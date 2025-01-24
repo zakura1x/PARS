@@ -68,7 +68,7 @@ const AssessmentEditForm = ({ assessment, questions }) => {
                     {questions.map((question) => (
                         <tr key={question.id}>
                             <td className="border border-gray-300 p-2">
-                                {question.text}
+                                {question.question_text}
                             </td>
                             <td className="border border-gray-300 p-2">
                                 {question.topic_name}
