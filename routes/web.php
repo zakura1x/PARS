@@ -98,11 +98,11 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::get('/table-of-specification/view/{subjectId}', [TableOfSpecificationController::class, 'show'])->name('tos.show');
     
     //Assessment
-    Route::get('/assessment/index/program-head', [AssessmentController::class, 'indexForPH'])->name('assessment-PH.index');
+    Route::get('/assessment/index/program-head', [AssessmentController::class, 'indexForProf'])->name('assessment-PH.index');
     Route::get('/assessment/index/professor', [AssessmentController::class, 'indexForProf'])->name('assessment-prof.index');
     Route::get('/assessment/generator/form/exam', [AssessmentController::class, 'create'])->name('assessment-generator.form');
     Route::post('/assessment/exam/create', [AssessmentController::class, 'storeExam'])->name('assessment-exam.store');
-    Route::get('/assessment/edit/form/exam', [AssessmentController::class, 'edit'])->name('assessment-edit.form');
+    Route::get('/assessment/edit/form/exam/{assessmentId}', [AssessmentController::class, 'edit'])->name('assessment-edit.form');
     Route::post('/assessment/replace-question/{questionId}/{assessmentId}', [AssessmentController::class, 'replaceQuestion'])->name('assessment-question.replace');
     Route::put('/assessment/update/approval/{assessmentId}', [AssessmentController::class,'updateForApproval'])->name('assessment-update.approval');
     Route::put('/assessment/update/approve/{assessmentId}', [AssessmentController::class,'approveAssessment'])->name('assessment.approve');

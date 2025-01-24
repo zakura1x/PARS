@@ -78,7 +78,7 @@ const AssessmentIndex = ({ assessments }) => {
                                     </td>
                                     <td className="border border-gray-300 p-2">
                                         <Link
-                                            href={`/assessment/${assessment.id}`}
+                                            href={`/assessment/edit/form/exam/${assessment.id}`}
                                             className="btn btn-primary btn-sm"
                                         >
                                             View/Edit

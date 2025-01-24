@@ -29,7 +29,8 @@ class Assessment extends Model
     ];
 
     public function questions(){
-        return $this->hasMany(Question::class, 'assessment_questions');
+        return $this->belongsToMany(Question::class, 'student_assessment_questions', 'assessment_id', 'question_id')
+                ->withTimestamps();
     }
 
     public function assessmentQuestions()

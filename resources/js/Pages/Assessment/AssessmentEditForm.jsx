@@ -22,11 +22,15 @@ const AssessmentEditForm = ({ assessment, questions }) => {
             },
             onError: (err) => {
                 // Handle errors
-                setMessages({ error: err.message || "Failed to replace question." });
+                setMessages({
+                    error: err.message || "Failed to replace question.",
+                });
                 setReplacingQuestionId(null);
             },
         });
     };
+
+    console.log(questions);
 
     return (
         <div className="container mx-auto p-6">
@@ -35,7 +39,9 @@ const AssessmentEditForm = ({ assessment, questions }) => {
                     Back to Assessments
                 </Link>
             </div>
-            <h1 className="text-2xl font-bold mb-6">Edit Assessment: {assessment.title}</h1>
+            <h1 className="text-2xl font-bold mb-6">
+                Edit Assessment: {assessment.title}
+            </h1>
 
             {/* Display success or error messages */}
             {messages.success && (
@@ -44,9 +50,7 @@ const AssessmentEditForm = ({ assessment, questions }) => {
                 </div>
             )}
             {messages.error && (
-                <div className="alert alert-error mb-4">
-                    {messages.error}
-                </div>
+                <div className="alert alert-error mb-4">{messages.error}</div>
             )}
 
             <table className="table table-auto w-full border-collapse border border-gray-300">
@@ -54,16 +58,24 @@ const AssessmentEditForm = ({ assessment, questions }) => {
                     <tr className="bg-gray-100">
                         <th className="border border-gray-300 p-2">Question</th>
                         <th className="border border-gray-300 p-2">Topic</th>
-                        <th className="border border-gray-300 p-2">Difficulty</th>
+                        <th className="border border-gray-300 p-2">
+                            Difficulty
+                        </th>
                         <th className="border border-gray-300 p-2">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {questions.map((question) => (
                         <tr key={question.id}>
-                            <td className="border border-gray-300 p-2">{question.text}</td>
-                            <td className="border border-gray-300 p-2">{question.topic_name}</td>
-                            <td className="border border-gray-300 p-2">{question.difficulty}</td>
+                            <td className="border border-gray-300 p-2">
+                                {question.text}
+                            </td>
+                            <td className="border border-gray-300 p-2">
+                                {question.topic_name}
+                            </td>
+                            <td className="border border-gray-300 p-2">
+                                {question.difficulty}
+                            </td>
                             <td className="border border-gray-300 p-2 text-center">
                                 {/* Replace Button */}
                                 <button
@@ -75,7 +87,10 @@ const AssessmentEditForm = ({ assessment, questions }) => {
                                     onClick={() =>
                                         handleReplaceQuestion(question.id)
                                     }
-                                    disabled={replacingQuestionId === question.id || processing}
+                                    disabled={
+                                        replacingQuestionId === question.id ||
+                                        processing
+                                    }
                                 >
                                     {replacingQuestionId === question.id
                                         ? "Replacing..."

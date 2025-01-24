@@ -263,9 +263,8 @@ class AssessmentController extends Controller
             ]);
 
             //Attach the questions to the assessment
-            foreach ($questions as $question){
-                $assessment->questions()->attach($question->id);
-            }
+            $assessment->questions()->attach($questions->pluck('id')->toArray());
+
 
             return to_route('');
 
@@ -280,12 +279,23 @@ class AssessmentController extends Controller
         $selectedQuestionIds = [];
 
         //Fetch the TOS for the subject
-        $tableOfSpecification = TableOfSpecification::where('subject_id', $subjectId);
+        $tableOfSpecification = TableOfSpecification::where('subject_id', $subjectId)->get();
+
+        if ($tableOfSpecification->isEmpty()) {
+            throw new \Exception("No Table of Specification found for the selected subject.");
+        }
+        
+        //\Log::info("Processing TOS for subject ID: {$subjectId}");
+        //\Log::info("TOS found: " . $tableOfSpecification->count());
 
         //Generate the questions based on the TOS
         foreach($tableOfSpecification as $tos){
+            //\Log::info("Processing topic ID: {$tos->topic_id}");
+            //\Log::info("Difficulty distribution: " . json_encode($tos->difficulty));
+
             $topicId = $tos->topic_id;
-            $difficultyDistribution = json_decode($tos->difficulty, true);
+            //$difficultyDistribution = json_decode($tos->difficulty, true);
+            $difficultyDistribution = $tos->difficulty;
             $totalQuestionsForTopic = $tos->num_questions;
 
             //Fetch the questions for each difficulty level
@@ -304,26 +314,31 @@ class AssessmentController extends Controller
                 ->get();
 
                 //If insufficient questions for the difficulty level
-                if($questionsForDifficulty->count() < $count){
-                    $remainingQUestionsNeeded = $count - $questionsForDifficulty->count();
-
-                    //Reset used questions for this difficulty level
+                if ($questionsForDifficulty->count() < $count) {
+                    $remainingQuestionsNeeded = $count - $questionsForDifficulty->count();
+                
+                    // Reset used questions for this difficulty level
                     Question::where('topic_id', $topicId)
-                    ->where('purpose_type', 'examination')
-                    ->where('difficulty', $difficultyLevel)
-                    ->update(['is_used' => false]);
-
-                    //Re-fetch additional questions after reset
+                        ->where('purpose_type', 'examination')
+                        ->where('difficulty', $difficultyLevel)
+                        ->update(['is_used' => false]);
+                
+                    // Re-fetch additional questions after reset
                     $additionalQuestions = Question::where('topic_id', $topicId)
-                    ->where('purpose_type', 'examination')
-                    ->where('difficulty', $difficultyLevel)
-                    ->whereNotIn('id', $selectedQuestionIds)
-                    ->inRandomOrder()
-                    ->take($remainingQUestionsNeeded)
-                    ->get();
-
+                        ->where('purpose_type', 'examination')
+                        ->where('difficulty', $difficultyLevel)
+                        ->whereNotIn('id', $selectedQuestionIds)
+                        ->inRandomOrder()
+                        ->take($remainingQuestionsNeeded)
+                        ->get();
+                
+                    if ($additionalQuestions->isEmpty()) {
+                        throw new \Exception("Insufficient questions available for topic ID: {$topicId} and difficulty: {$difficultyLevel}.");
+                    }
+                
                     $questionsForDifficulty = $questionsForDifficulty->merge($additionalQuestions);
                 }
+                
 
                 //Mark fetched questions as used and track ids
                 foreach ($questionsForDifficulty as $question){
@@ -353,14 +368,16 @@ class AssessmentController extends Controller
      */
     public function edit($assessmentId)
     {
-        $assessment = Assessment::findOrFail($assessmentId);
+        $assessment = Assessment::with('questions')->findOrFail($assessmentId);
 
         // Get all the questions related to the assessment
-        $questions = $assessment->questions;
+        //$questions = $assessment->questions;
+
+        //dd($assessment->questions);
 
         return inertia('Assessment/AssessmentEditForm', [
             'assessment' => $assessment,
-            'questions' => $questions,
+            'questions' => $assessment->questions
         ]);
     }
 
@@ -807,9 +824,10 @@ class AssessmentController extends Controller
 
         return inertia('Assessment/AssessmentWaitingProf', [
             'assessment' => $assessment,
-            'waitingStudents' => $waitingStudents,
+            'initialWaitingStudents' => $waitingStudents,
             'assessmentCode' => $assessment->access_code,
         ]);
+        
     }
 
     public function startAssessmentNow($assessmentId)
