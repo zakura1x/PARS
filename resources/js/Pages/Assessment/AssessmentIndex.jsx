@@ -85,10 +85,18 @@ const AssessmentIndex = ({ assessments }) => {
                                         </Link>
                                         {auth.user.role === "program_head" && (
                                             <Link
-                                                href={`/assessment/${assessment.id}/approve`}
+                                                href={`/assessment/approval/form/${assessment.id}`}
                                                 className="btn btn-primary btn-sm"
                                             >
                                                 Approve
+                                            </Link>
+                                        )}
+                                        {auth.user.role === "professor" && (
+                                            <Link
+                                                href={`/assessment/update/approval/${assessment.id}`}
+                                                className="btn btn-primary btn-sm"
+                                            >
+                                                Submit for approval
                                             </Link>
                                         )}
                                     </td>

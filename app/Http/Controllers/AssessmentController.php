@@ -448,7 +448,7 @@ class AssessmentController extends Controller
         // Check if the assessment is already approved
         if ($assessment->approved) {
             return back()->withErrors(['message' => 'This assessment has already been approved.']);
-        }
+        }   
 
         $assessment->questions->map(function ($question) {
             // Ensure correct_answer is accessible and formatted correctly

@@ -104,6 +104,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::post('/assessment/exam/create', [AssessmentController::class, 'storeExam'])->name('assessment-exam.store');
     Route::get('/assessment/edit/form/exam/{assessmentId}', [AssessmentController::class, 'edit'])->name('assessment-edit.form');
     Route::post('/assessment/replace-question/{questionId}/{assessmentId}', [AssessmentController::class, 'replaceQuestion'])->name('assessment-question.replace');
+    Route::get('/assessment/approval/form/{assessmentId}', [AssessmentController::class, 'assessmentApprovalForm'])->name('assessment-approval.form');
     Route::put('/assessment/update/approval/{assessmentId}', [AssessmentController::class,'updateForApproval'])->name('assessment-update.approval');
     Route::put('/assessment/update/approve/{assessmentId}', [AssessmentController::class,'approveAssessment'])->name('assessment.approve');
     Route::put('/assessment/update/reject/{assessmentId}', [AssessmentController::class,'rejectAssessment'])->name('assessment.reject');

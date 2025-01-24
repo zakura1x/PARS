@@ -31,13 +31,13 @@ const TOSIndex = ({ subjects }) => {
                                     <td className="p-2">
                                         <Link
                                             href={`/table-of-specification/view/${subject.id}`}
-                                            className="btn btn-sm text-white m-1"
+                                            className="btn btn-primary btn-sm text-white m-1"
                                         >
                                             View TOS
                                         </Link>
                                         <Link
                                             href={`/table-of-specification/forms/${subject.id}`}
-                                            className="btn btn-sm m-1 text-white"
+                                            className="btn btn-primary btn-sm m-1 text-white"
                                         >
                                             Update TOS
                                         </Link>
