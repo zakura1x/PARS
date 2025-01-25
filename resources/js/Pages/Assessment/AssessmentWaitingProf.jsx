@@ -1,37 +1,37 @@
 import React, { useEffect, useState } from "react";
-import { router } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
 
 const AssessmentWaitingProf = ({
     assessment,
     initialWaitingStudents,
     assessmentCode,
 }) => {
+    const { flash } = usePage().props;
     const [waitingStudents, setWaitingStudents] = useState(
         initialWaitingStudents
     );
 
     useEffect(() => {
-        // Listen for the "student.joined" event
-        window.Echo.channel(`assessment.${assessment.id}`).listen(
-            ".student.joined",
-            (event) => {
-                setWaitingStudents((prev) => [...prev, event.student]);
-            }
-        );
+        const interval = setInterval(() => {
+            fetch(`/assessment/${assessment.id}/waiting-students`)
+                .then((response) => response.json())
+                .then((data) => setWaitingStudents(data));
+        }, 5000); // Poll every 5 seconds
 
         return () => {
-            window.Echo.leaveChannel(`assessment.${assessment.id}`);
+            clearInterval(interval);
         };
     }, [assessment.id]);
 
     // Function to handle starting the assessment
     const startAssessment = (assessmentId) => {
         router.post(
-            `/api/professor/assessment/${assessmentId}/start`,
+            `assessment/start/${assessmentId}`,
             {},
             {
                 onSuccess: () => {
-                    window.location.reload(); // Reload the page to reflect changes
+                    // Redirect to the assessment status page
+                    //router.visit(`/assessment/${assessmentId}/status`);
                 },
                 onError: (errors) => {
                     console.error("Failed to start the assessment", errors);

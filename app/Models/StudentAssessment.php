@@ -19,7 +19,7 @@ class StudentAssessment extends Model
         'score',
     ];
 
-    public function answers()
+    public function questions()
     {
         return $this->hasMany(StudentAssessmentQuestion::class);
     }

@@ -45,17 +45,18 @@ Practice Assessment:
 
 
 Assessment:
+    @high Need testing
     Needs testing:
-        ☐ Generate Assessment
-        ☐ Edit Assessment
-        ☐ Replace Question
-        ☐ Delete Assessment @low
-        ☐ Approve Assessment 
+        ✔ Generate Assessment @done (1/26/2025, 12:26:46 AM)
+        ☐ Edit Assessment @high 
+        ☐ Replace Question @high 
+        ☐ Delete Assessment @high 
+        ☐ Approve Assessment @high
     
     Need to do:
-        ☐ Initialization of Assessment
-            ☐ Faculty can start the assessment
-            ☐ Student can join the assessment
+        ☐ Initialization of Assessment @high
+            ☐ Faculty can start the assessment @high
+            ☐ Student can join the assessment 
         ☐ Faculty set the start of the assessment
         ☐ Student answering assessment
         ☐ Grading of assessment

@@ -109,6 +109,16 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::put('/assessment/update/approve/{assessmentId}', [AssessmentController::class,'approveAssessment'])->name('assessment.approve');
     Route::put('/assessment/update/reject/{assessmentId}', [AssessmentController::class,'rejectAssessment'])->name('assessment.reject');
 
+    //Assessment Prof View Start of Assessment
+    Route::get('/assessment/initialize/assessment', [AssessmentController::class, 'initializeAssessment'])->name('assessment.initialize');
+    Route::get('/assessment/{assessmentId}/waiting-students', [AssessmentController::class,'getWaitingStudents'])->name('assessment.get-students');
+    Route::post('/assessment/start/{assessmentId}', [AssessmentController::class, 'startAssessmentNow'])->name('assessment.start-now');
+    Route::get('/assessment/{assessmentId}/status', [AssessmentController::class,'assessmentStatus'])->name('assessment.status');
+    Route::get('/assessment/{assessmentId}/student-status', [AssessmentController::class,'getAssessmentStatus'])->name('assessment.get-student-status');
+    Route::post('/assessment/{assessmentId}/end', [AssessmentController::class, 'endAssessment'])->name('assessment.end');
+    Route::get('/assessment/{assessmentId}/results', [AssessmentController::class, 'assessmentResults'])->name('assessment.results');
+    Route::get('/assessment/{assessmentId}/student/{studentId}', [AssessmentController::class, 'showIndividualAssessment'])->name('assessment.student');
+
 });
 
 Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function () {

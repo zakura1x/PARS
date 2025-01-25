@@ -16,6 +16,7 @@ use App\Models\Topics;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use PDO;
 
 class AssessmentController extends Controller
 {
@@ -844,7 +845,6 @@ class AssessmentController extends Controller
     {
         $assessment = Assessment::findOrFail($assessmentId);
 
-
         // Ensure the assessment is approved and pending
         if ($assessment->status !== 'pending' || !$assessment->approved) {
             return back()->withErrors(['error' => 'Assessment must be approved and pending to start.']);
@@ -861,13 +861,50 @@ class AssessmentController extends Controller
             ->wherePivot('status', 'waiting')
             ->update(['status' => 'started']);
 
-        // Broadcast an event to notify students (optional)
-        //event(new AssessmentStarted($assessment));
-
         // Redirect to the professor's dashboard or status view
-        return redirect()->route('professor.assessment-status', $assessmentId)
-            ->with('success', 'Assessment has started.');
+        return redirect()->route('assessment.status', $assessmentId);
     }
+
+    public function assessmentStatus($assessmentId){
+        //Fetch the assessment
+        $assessment = Assessment::findOrFail($assessmentId);
+
+        //Fetch the students with their status for the assessment
+        $students = $assessment->students()->wherePivot('status')->get();
+
+        $studentStatus = $students->map(function ($student){
+            return [
+                'id' => $student->idNumber,
+                'name' => $student->getFullNameAttribute,
+                'status' => $student->pivot->status,
+            ];
+        });
+
+        return inertia('Assessment/AssessmentStatus',[
+            'assessment' => $assessment,
+            'students' => $studentStatus
+        ]);
+    }
+
+    public function getAssessmentStatus($assessmentId)
+    {
+        $assessment = Assessment::findOrFail($assessmentId);
+
+        // Fetch students with their status for this assessment
+        $students = $assessment->students()->withPivot('status')->get();
+
+        // Transform the data to a more frontend-friendly format
+        $studentStatus = $students->map(function ($student) {
+            return [
+                'id' => $student->id,
+                'name' => $student->name,
+                'status' => $student->pivot->status,
+            ];
+        });
+
+        return response()->json($studentStatus);
+    }
+
 
     public function endAssessment($assessmentId)
     {
@@ -879,11 +916,84 @@ class AssessmentController extends Controller
             'ended_at' => now(),
         ]);
 
-        // Notify all students (optional)
-        //event(new AssessmentEnded($assessment));
-
         return redirect()->route('professor.assessment-status', $assessmentId)
             ->with('success', 'Assessment has been completed.');
+    }
+
+    public function getWaitingStudents($assessmentId)
+    {
+        $assessment = Assessment::findOrFail($assessmentId);
+        $waitingStudents = $assessment->students()->wherePivot('status', 'waiting')->get();
+
+        
+
+        return response()->json($waitingStudents);
+    }
+
+    public function assessmentResults($assessmentId){
+        $assessment = Assessment::findOrFail($assessmentId);
+
+        //Class performance metrics
+        $students = $assessment->students->with('results')->get();
+        $totalStudents = $students->count();
+        $averageScore = $students->avg('results.score_percentage');
+        $highestScore = $students->max('results.score_percentage');
+        $lowestScore = $students->min('results.score_percentage');
+
+        //Data for graphs
+        $scoreDistribution = [];
+        foreach ($students as $student){
+            $scoreRange = floor($student->results->score_percentage / 10) * 10;
+            $scoreDistribution[$scoreRange] = ($scoreDistribution[$scoreRange] ?? 0) + 1;
+        }
+
+        return inertia('Assessment/AssessmentResults', [
+            'assessment' => $assessment,
+            'students' => $students,
+            'totalStudents' => $totalStudents,
+            'averageScore' => $averageScore,
+            'highestScore' => $highestScore,
+            'lowestScore' => $lowestScore,
+            'scoreDistribution' => $scoreDistribution,
+        ]);
+    }
+
+    public function showIndividualAssessment($assessmentId, $studentId){
+        //Fetch the students assessment
+        $assessment = StudentAssessment::with('results', 'questions.question')
+        ->where('assessment_id', $assessmentId)
+        ->where('student_id', $studentId)
+        ->firstOrFail();
+
+        //Get the current topic proficiency for the assessment
+        $topicProficiencies = StudentTopicProficiency::where('student_id', $studentId)
+        ->with('topic')
+        ->get();
+
+        return inertia('Assessment/IndividualAssessmentReport', [
+            'assessment' => $assessment,
+            'result' => $assessment->results,
+            'questions' => $assessment->questions->map(function ($question) {
+                return [
+                    'question_text' => $question->question->question_text,
+                    'question_options' => $question->question->options,
+                    'correct_answer' => $question->question->correct_answer,
+                    'student_answer' => $question->student_answer,
+                    'is_correct' => $question->is_correct,
+                    'score' => $question->question->weight,
+                    'solution' => $question->question->solution,
+                ];
+            }),
+            'topicProficiencies' => $topicProficiencies->map(function ($proficiency) {
+                return [
+                    'topic_name' => $proficiency->topic->name,
+                    'grade' => $proficiency->grade,
+                    'current_level' => $proficiency->proficiency_level,
+                ];
+            }),
+        ]);
+
+        
     }
 
 }

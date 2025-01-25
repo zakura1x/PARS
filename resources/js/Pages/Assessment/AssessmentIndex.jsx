@@ -5,14 +5,22 @@ import FlashMessage from "../../components/Notifications/FlashMessage"; // Impor
 
 const AssessmentIndex = ({ assessments }) => {
     const { auth, flash } = usePage().props;
+
+    // Handle pagination
     const handlePageChange = (url) => {
         if (url) {
             router.get(url);
         }
     };
 
+    // Handle submitting for approval
     const handleSubmitForApproval = (assessmentId) => {
         router.put(`/assessment/update/approval/${assessmentId}`);
+    };
+
+    // Handle starting the assessment
+    const handleStartAssessment = (assessmentId) => {
+        router.post(`/assessment/start/${assessmentId}`);
     };
 
     return (
@@ -82,32 +90,72 @@ const AssessmentIndex = ({ assessments }) => {
                                             assessment.created_at
                                         ).toLocaleString()}
                                     </td>
-                                    <td className="border border-gray-300 p-2">
+                                    <td className="border border-gray-300 p-2 space-x-2">
+                                        {/* View/Edit Button */}
                                         <Link
                                             href={`/assessment/edit/form/exam/${assessment.id}`}
                                             className="btn btn-primary btn-sm"
                                         >
                                             View/Edit
                                         </Link>
+
+                                        {/* Start Assessment Button (for pending assessments) */}
+                                        {assessment.status === "pending" && (
+                                            <button
+                                                type="button"
+                                                className="btn btn-success btn-sm"
+                                                onClick={() =>
+                                                    handleStartAssessment(
+                                                        assessment.id
+                                                    )
+                                                }
+                                            >
+                                                Start Assessment
+                                            </button>
+                                        )}
+
+                                        {/* View Status Button (for ongoing assessments) */}
+                                        {assessment.status === "on_going" && (
+                                            <Link
+                                                href={`/assessment/${assessment.id}/status`}
+                                                className="btn btn-info btn-sm"
+                                            >
+                                                View Status
+                                            </Link>
+                                        )}
+
+                                        {/* View Results Button (for completed assessments) */}
+                                        {assessment.status === "completed" && (
+                                            <Link
+                                                href={`/assessment/${assessment.id}/results`}
+                                                className="btn btn-info btn-sm"
+                                            >
+                                                View Results
+                                            </Link>
+                                        )}
+
+                                        {/* Approve Button (for program heads) */}
                                         {auth.user.role === "program_head" && (
                                             <Link
                                                 href={`/assessment/approval/form/${assessment.id}`}
-                                                className="btn btn-primary btn-sm"
+                                                className="btn btn-warning btn-sm"
                                             >
                                                 Approve
                                             </Link>
                                         )}
+
+                                        {/* Submit for Approval Button (for program heads) */}
                                         {auth.user.role === "program_head" && (
                                             <button
                                                 type="button"
-                                                className="btn btn-primary btn-sm"
+                                                className="btn btn-secondary btn-sm"
                                                 onClick={() =>
                                                     handleSubmitForApproval(
                                                         assessment.id
                                                     )
                                                 }
                                             >
-                                                Submit for approval
+                                                Submit for Approval
                                             </button>
                                         )}
                                     </td>
