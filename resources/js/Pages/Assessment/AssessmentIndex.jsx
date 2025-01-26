@@ -100,7 +100,7 @@ const AssessmentIndex = ({ assessments }) => {
                                         </Link>
 
                                         {/* Start Assessment Button (for pending assessments) */}
-                                        {assessment.status === "pending" && (
+                                        {assessment.status === "active" && (
                                             <button
                                                 type="button"
                                                 className="btn btn-success btn-sm"
