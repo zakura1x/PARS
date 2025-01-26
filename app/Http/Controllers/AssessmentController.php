@@ -653,9 +653,9 @@ class AssessmentController extends Controller
         $assessment = Assessment::findOrFail($assessmentId);
 
         // Ensure the assessment is ongoing
-        if ($assessment->status !== 'on_going') {
-            return back()->with(['message' => 'The assessment is not yet available or has been completed']);
-        }
+        // if ($assessment->status !== 'on_going') {
+        //     return back()->with(['message' => 'The assessment is not yet available or has been completed']);
+        // }
 
         // Get the student's shuffled questions and options from the pivot table
         $student = Auth::user();
