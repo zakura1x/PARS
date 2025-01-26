@@ -56,22 +56,22 @@ Assessment:
     Need to do:
         ☐ Initialization of Assessment @high
             ☐ Faculty can start the assessment @high
-            ☐ Student can join the assessment 
+            ☐ Student can join the assessment @high
         ☐ Faculty set the start of the assessment
-        ☐ Student answering assessment
-        ☐ Grading of assessment
-        ☐ Report for the assessment
-            ☐ Report for student
+        ☐ Student answering assessment @high
+        ☐ Grading of assessment @high
+        ☐ Report for the assessment @high
+            ☐ Report for student @high
             ☐ Report for faculty @high
         ☐ Faculty can end the assessment @high
 
     Student:
-        ☐ Ui for answering assessment
+        ✔ Ui for answering assessment @done (1/26/2025, 7:08:18 PM)
         ✔ Ui for viewing the assessment result @done (1/23/2025, 10:43:35 PM)
     Professor:
         ☐ They can only add assessments based on their subject
     Program Head:
-        ☐ Approval for the assessment
+        ✔ Approval for the assessment @done (1/26/2025, 7:08:26 PM)
 
 Question:
     ✔ Mass upload of the questions @done (1/21/2025, 10:50:39 AM)

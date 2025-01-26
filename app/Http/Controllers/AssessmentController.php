@@ -593,7 +593,7 @@ class AssessmentController extends Controller
         $student = Auth::user();
 
         // Check if the student has already joined
-        $alreadyJoined = $assessment->students()->wherePivot('student_id', $student->id)->exists();
+        $alreadyJoined = $assessment->students()->wherePivot('user_id', $student->id)->exists();
 
         if (!$alreadyJoined) {
             // Set the status to 'started' for ongoing assessments
