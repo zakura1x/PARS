@@ -578,7 +578,7 @@ class AssessmentController extends Controller
         }
 
         // Ensure the assessment is active or ongoing
-        if (!in_array($assessment->status, ['active', 'on_going'])) {
+        if (!in_array($assessment->status, ['waiting', 'on_going'])) {
             return back()->withErrors(['code' => 'Assessment is not available for joining.']);
         }
 
@@ -653,9 +653,9 @@ class AssessmentController extends Controller
         $assessment = Assessment::findOrFail($assessmentId);
 
         // Ensure the assessment is ongoing
-        // if ($assessment->status !== 'on_going') {
-        //     return back()->with(['message' => 'The assessment is not yet available or has been completed']);
-        // }
+        if ($assessment->status !== 'on_going') {
+            return back()->with(['message' => 'The assessment is not yet available or has been completed']);
+        }
 
         // Get the student's shuffled questions and options from the pivot table
         $student = Auth::user();
