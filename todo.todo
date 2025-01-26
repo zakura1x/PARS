@@ -62,8 +62,8 @@ Assessment:
         ☐ Grading of assessment
         ☐ Report for the assessment
             ☐ Report for student
-            ☐ Report for faculty
-        ☐ Faculty can end the assessment
+            ☐ Report for faculty @high
+        ☐ Faculty can end the assessment @high
 
     Student:
         ☐ Ui for answering assessment

@@ -134,6 +134,23 @@ Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function 
     Route::post('/student-practice-assessments/{practiceAssessmentId}/questions/{questionId}/save', [StudentPracticeAssessmentController::class,'saveAnswer'])->name('practice-assessment.save');
     Route::post('/student-practice-assessments/{practiceAssessmentId}/save',[StudentPracticeAssessmentController::class,'submitAssessment'])->name('practice-assessment.submit');
     Route::get('/student-practice-assessments/result/{practiceAssessmentId}', [StudentPracticeAssessmentController::class,'viewAssessmentReport'])->name('practice-assessment.view-result');
+
+    //Assessment
+    // Route for the input code view
+    Route::get('/assessment/join', [AssessmentController::class, 'inputCode'])->name('assessment.inputCode');
+    // Route for joining the assessment
+    Route::post('/assessment/join', [AssessmentController::class, 'joinAssessment'])->name('assessment.join');
+    // Route for the waiting list view
+    Route::get('/assessment/waiting-list', [AssessmentController::class, 'waitingList'])->name('assessment.waitingList');
+    //Route for the taking of assessment
+    Route::get('/assessment/take/{assessmentId}', [AssessmentController::class,'takeAssessment'])->name('assessment.take-assessment');
+    // Save answer for a question
+    Route::post('/assessment/{assessmentId}/questions/{questionId}/save', [AssessmentController::class, 'saveAnswer']);
+    // Submit the entire assessment
+    Route::post('/assessment/{assessmentId}/submit', [AssessmentController::class, 'submitAssessment']);
+    //View the assessment result
+    Route::get('/assessment/{assessmentId}/student/{studentId}', [AssessmentController::class, 'showIndividualAssessment'])->name('assessment.student-result');
+
 });
 
 //TEster
