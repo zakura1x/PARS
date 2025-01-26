@@ -123,7 +123,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
 
 Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function () {
     Route::get('/dashboard/student', [StudentDashboardController::class, 'index'])->name('students.dashboard');
-    //Practice Assessment\
+    //Practice Assessment
     Route::get('/student-practice-assessments/index', [StudentPracticeAssessmentController::class, 'index'])->name('practice-assessment-generator.index');
     Route::get('/student-practice-assessments/generator/form', [StudentPracticeAssessmentController::class, 'create'])->name('practice-assessment-generator.form');
     Route::post('/student-practice-assessments/generate/assessment', [StudentPracticeAssessmentController::class, 'store'])->name('practice-assessment-generator.store');

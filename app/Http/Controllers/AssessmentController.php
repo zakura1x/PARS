@@ -1057,8 +1057,6 @@ class AssessmentController extends Controller
         $assessment = Assessment::findOrFail($assessmentId);
         $waitingStudents = $assessment->students()->wherePivot('status', 'waiting')->get();
 
-        
-
         return response()->json($waitingStudents);
     }
 
