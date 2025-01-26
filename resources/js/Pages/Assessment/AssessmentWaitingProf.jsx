@@ -26,7 +26,7 @@ const AssessmentWaitingProf = ({
     // Function to handle starting the assessment
     const startAssessment = (assessmentId) => {
         router.post(
-            `assessment/start/${assessmentId}`,
+            `/assessment/start/${assessmentId}`,
             {},
             {
                 onSuccess: () => {
