@@ -13,6 +13,7 @@ use App\Models\Subject;
 use App\Models\TableOfSpecification;
 use App\Models\TopicGradingCriteria;
 use App\Models\Topics;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -873,6 +874,43 @@ class AssessmentController extends Controller
             default => 'advanced',
         };
         $proficiency->save();
+    }
+
+    public function studentAssessmentResult($studentId)
+    {
+        // Fetch the student
+        $student = User::findOrFail($studentId);
+    
+        // Fetch all assessments the student has answered
+        $assessments = Assessment::whereHas('students', function ($query) use ($studentId) {
+            $query->where('student_id', $studentId);
+        })
+        ->with(['results' => function ($query) use ($studentId) {
+            $query->where('student_id', $studentId);
+        }])
+        ->get();
+    
+        // Transform the data for the frontend
+        $assessmentResults = $assessments->map(function ($assessment) {
+            $timeAnswered = $assessment->started_at && $assessment->ended_at
+                ? round((strtotime($assessment->ended_at) - strtotime($assessment->started_at)) / 60)
+                : null;
+    
+            return [
+                'id' => $assessment->id,
+                'title' => $assessment->title,
+                'status' => $assessment->status,
+                'time_answered' => $timeAnswered,
+                'score' => $assessment->results->first()->score_percentage ?? null,
+                'correct_answers' => $assessment->results->first()->correct_answers ?? null,
+                'total_questions' => $assessment->results->first()->total_questions ?? null,
+            ];
+        });
+    
+        return inertia('Assessment/Student/AssessmentResults', [
+            'student' => $student,
+            'assessments' => $assessmentResults,
+        ]);
     }
 
     /**
