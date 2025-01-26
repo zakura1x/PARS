@@ -110,7 +110,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::put('/assessment/update/reject/{assessmentId}', [AssessmentController::class,'rejectAssessment'])->name('assessment.reject');
 
     //Assessment Prof View Start of Assessment
-    Route::get('/assessment/initialize/assessment', [AssessmentController::class, 'initializeAssessment'])->name('assessment.initialize');
+    Route::put('/assessment/initialize/assessment/{assessmentId}', [AssessmentController::class, 'initializeAssessment'])->name('assessment.initialize');
     Route::get('/assessment/{assessmentId}/waiting-students', [AssessmentController::class,'getWaitingStudents'])->name('assessment.get-students');
     Route::post('/assessment/start/{assessmentId}', [AssessmentController::class, 'startAssessmentNow'])->name('assessment.start-now');
     Route::get('/assessment/{assessmentId}/status', [AssessmentController::class,'assessmentStatus'])->name('assessment.status');
@@ -137,7 +137,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function 
 
     //Assessment
     // Route for the input code view
-    Route::get('/assessment/join', [AssessmentController::class, 'inputCode'])->name('assessment.inputCode');
+    Route::get('/assessment/input/code', [AssessmentController::class, 'inputCode'])->name('assessment.inputCode');
     // Route for joining the assessment
     Route::post('/assessment/join', [AssessmentController::class, 'joinAssessment'])->name('assessment.join');
     // Route for the waiting list view

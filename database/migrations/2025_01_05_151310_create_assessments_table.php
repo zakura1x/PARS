@@ -20,7 +20,7 @@ return new class extends Migration
             //Fillable
             $table->string('title')->nullable();
             $table->text('description')->nullable();
-            $table->enum('status', ['draft','pending', 'active', 'on_going', 'completed'])->default('pending');
+            $table->enum('status', ['draft','pending', 'active', 'waiting', 'on_going', 'completed'])->default('pending');
             $table->string('access_code')->unique();
             $table->boolean('approved')->default(false);
             $table->foreignId('approved_by')->nullable()->constrained('users')->onDelete('set null');

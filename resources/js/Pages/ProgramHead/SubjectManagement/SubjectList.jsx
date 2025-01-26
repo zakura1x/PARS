@@ -11,12 +11,11 @@ const SubjectManagement = () => {
     const [showModal, setShowModal] = useState(false);
 
     // Form state for adding/editing a subject
-    const { data, setData, post, reset, errors, processing } = useForm({
+    const { data, setData, post, put, reset, errors, processing } = useForm({
         id: null,
         subject_id: "",
         name: "",
         created_by: auth.user.id,
-        status: true,
     });
 
     // Filtered subjects based on search query
@@ -36,23 +35,6 @@ const SubjectManagement = () => {
         if (url) {
             router.get(url, {}, { preserveState: true, preserveScroll: true });
         }
-    };
-
-    const handleSave = (e) => {
-        e.preventDefault();
-
-        const url = data.id ? `/subjects/edit/${data.id}` : `/addSubject`;
-
-        post(
-            url,
-            { ...data, _method: data.id ? "PUT" : "POST" },
-            {
-                onSuccess: () => {
-                    setShowModal(false);
-                    reset();
-                },
-            }
-        );
     };
 
     const handleCancel = () => {
@@ -90,12 +72,15 @@ const SubjectManagement = () => {
 
             <AddSubjectModal
                 showModal={showModal}
-                handleSaveChanges={handleSave}
-                handleCancel={handleCancel}
+                setShowModal={setShowModal}
                 data={data}
                 setData={setData}
+                handleCancel={handleCancel}
                 errors={errors}
                 processing={processing}
+                post={post}
+                put={put}
+                reset={reset}
             />
         </div>
     );

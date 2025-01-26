@@ -20,7 +20,7 @@ const AssessmentIndex = ({ assessments }) => {
 
     // Handle starting the assessment
     const handleStartAssessment = (assessmentId) => {
-        router.post(`/assessment/start/${assessmentId}`);
+        router.put(`/assessment/initialize/assessment/${assessmentId}`);
     };
 
     return (

@@ -9,10 +9,39 @@ const AddSubjectModal = ({
     handleCancel,
     errors,
     processing,
+    post,
+    put,
+    reset,
 }) => {
     if (!showModal) return null;
 
     const isEditing = !!data.id;
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        const url = data.id ? `/subjects/edit/${data.id}` : `/addSubject`;
+
+        if (data.id) {
+            // Use PUT for editing
+            put(url, data, {
+                onSuccess: (response) => {
+                    console.log(response);
+                    setShowModal(false); // Close the modal
+                    reset(); // Reset the form
+                },
+            });
+        } else {
+            // Use POST for adding
+            post(url, data, {
+                onSuccess: (response) => {
+                    console.log(response);
+                    setShowModal(false); // Close the modal
+                    reset(); // Reset the form
+                },
+            });
+        }
+    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50">
@@ -20,7 +49,7 @@ const AddSubjectModal = ({
                 <h2 className="text-xl font-semibold mb-4">
                     {isEditing ? "Edit Subject" : "Add New Subject"}
                 </h2>
-                <form onSubmit={handleSaveChanges}>
+                <form onSubmit={handleSubmit} id="subjectForm">
                     {/* Subject ID */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -67,28 +96,6 @@ const AddSubjectModal = ({
                             </p>
                         )}
                     </div>
-                    {/* Active/Inactive */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-600 mb-1">
-                            Status
-                        </label>
-                        <select
-                            value={data.status ? "active" : "inactive"} // Update this line to handle boolean values
-                            onChange={(e) => {
-                                const status = e.target.value === "active"; // Convert to boolean
-                                setData({ ...data, status: status }); // Store as boolean
-                            }}
-                            className={`block w-full rounded-md border p-2 shadow-sm focus:ring-blue-500 ${
-                                errors.status ? "border-red-500 focus:ring-red-500" : "focus:ring-blue-300"
-                            }`}
-                        >
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                        {errors.status && (
-                            <p className="text-red-500 text-sm mt-1">{errors.status}</p>
-                        )}
-                    </div>
                 </form>
 
                 <div className="flex justify-end space-x-2 mt-6">
@@ -99,8 +106,9 @@ const AddSubjectModal = ({
                         Cancel
                     </button>
                     <button
+                        type="submit" // Submit the form
+                        form="subjectForm" // Associate with the form
                         className="btn border-none bg-[#303030] text-white hover:bg-green-600"
-                        onClick={handleSaveChanges}
                         disabled={processing}
                     >
                         Save Changes

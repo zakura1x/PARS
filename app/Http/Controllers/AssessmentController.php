@@ -882,6 +882,11 @@ class AssessmentController extends Controller
     public function initializeAssessment($assessmentId){
         $assessment = Assessment::findOrFail($assessmentId);
 
+        $assessment->update([
+            'status' => 'waiting',
+            'updated_at' => now()
+        ]);
+
         $waitingStudents = $assessment->students()->wherePivot('status', 'waiting')->get();
 
         return inertia('Assessment/AssessmentWaitingProf', [

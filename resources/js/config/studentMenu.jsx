@@ -21,8 +21,8 @@ const studentMenu = [
                 icon: <TbCloudQuestion size={26} />,
                 items: [
                     {
-                        label: "Available Tests",
-                        href: "/student/tests",
+                        label: "Coded Assessment",
+                        href: "/assessment/input/code",
                         key: 1,
                     },
                     { label: "Past Results", href: "/student/results", key: 2 },

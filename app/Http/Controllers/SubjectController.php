@@ -37,7 +37,6 @@ class SubjectController extends Controller
         $validateSubject = $request->validate([
             'subject_id' => 'required|string|max:255|unique:subjects,subject_id',
             'name' => 'required|string|max:255',
-            'status' => 'required|boolean',
         ]);
 
         // Create a new subject
@@ -45,11 +44,10 @@ class SubjectController extends Controller
             'subject_id' => $validateSubject['subject_id'],
             'name' => $validateSubject['name'],
             'created_by' => Auth::id(),
-            'status' =>  $validateSubject['status'],
         ]);
 
         //Send a message to inertia
-        return redirect('subjectList')->with('message', 'The Subject was Created Successfully');
+        return redirect()->back()->with('message', 'The Subject was Created Successfully');
     }
 
     /**
