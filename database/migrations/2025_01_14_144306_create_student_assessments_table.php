@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('student_assessments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('assessment_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('student_id')->constrained('users')->cascadeOnDelete();
-            // $table->json('shuffled_questions')->nullable(); // Stores shuffled question IDs
-            // $table->json('shuffled_options')->nullable();  // Stores shuffled options for each question
-            $table->enum('status', ['not_started', 'in_progress', 'completed', 'timed_out'])->default('not_started');
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->json('shuffled_questions')->nullable(); // Stores shuffled question IDs
+            $table->json('shuffled_options')->nullable();  // Stores shuffled options for each question
+            $table->enum('status', ['not_started','waiting', 'started', 'completed', 'timed_out'])->default('not_started');
             $table->integer('score')->nullable();
             $table->timestamp('started_at')->nullable();
             $table->timestamp('completed_at')->nullable();

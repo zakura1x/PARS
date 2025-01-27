@@ -73,11 +73,23 @@ class Assessment extends Model
         return $this->hasMany(StudentResult::class);
     }
 
+    // public function students()
+    // {
+    //     return $this->belongsToMany(User::class, 'assessment_student')
+    //         ->withPivot('status') // Include the `status` column from the pivot table
+    //         ->withTimestamps();  // Include timestamps if present in the pivot table
+    // }
+    // Access students indirectly through studentAssessments
     public function students()
     {
-        return $this->belongsToMany(User::class, 'assessment_student')
-            ->withPivot('status') // Include the `status` column from the pivot table
-            ->withTimestamps();  // Include timestamps if present in the pivot table
+        return $this->hasManyThrough(
+            User::class,               // Target model (User/Student)
+            StudentAssessment::class,  // Intermediate model (StudentAssessment)
+            'assessment_id',           // Foreign key on StudentAssessment table
+            'id',                      // Foreign key on User table
+            'id',                      // Local key on Assessment table
+            'user_id'                  // Local key on StudentAssessment table
+        );
     }
 
     //Methods

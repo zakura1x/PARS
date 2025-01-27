@@ -12,16 +12,23 @@ class StudentAssessment extends Model
 
     protected $fillable = [
         'assessment_id',
-        'student_id',
+        'user_id',
         'status',
+        'shuffled_questions',
+        'shuffled_options',
         'started_at',
         'completed_at',
         'score',
     ];
 
+    protected $casts =[
+        'shuffled_questions' => 'array',
+        'shuffled_options' => 'array',
+    ];
+
     public function questions()
     {
-        return $this->hasMany(StudentAssessmentQuestion::class);
+        return $this->hasMany(StudentAssessmentQuestion::class, 'student_assessment_id');
     }
 
     public function assessment()
@@ -31,7 +38,7 @@ class StudentAssessment extends Model
 
     public function student()
     {
-        return $this->belongsTo(User::class, 'student_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function results()

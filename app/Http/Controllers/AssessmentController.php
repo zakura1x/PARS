@@ -572,16 +572,16 @@ class AssessmentController extends Controller
     {
         $code = $request->input('code');
         $assessment = Assessment::where('access_code', $code)->first();
-
+    
         if (!$assessment) {
             return back()->withErrors(['code' => 'Invalid access code.']);
         }
-
+    
         // Ensure the assessment is active or ongoing
         if (!in_array($assessment->status, ['waiting', 'on_going'])) {
             return back()->withErrors(['code' => 'Assessment is not available for joining.']);
         }
-
+    
         // Check if the assessment is already due
         if ($assessment->time_limit && $assessment->started_at) {
             $dueTime = $assessment->started_at->addMinutes($assessment->time_limit);
@@ -589,12 +589,12 @@ class AssessmentController extends Controller
                 return back()->withErrors(['code' => 'The assessment has already ended.']);
             }
         }
-
+    
         $student = Auth::user();
-
+    
         // Check if the student has already joined
-        $alreadyJoined = $assessment->students()->wherePivot('user_id', $student->id)->exists();
-
+        $alreadyJoined = $assessment->studentAssessments()->where('user_id', $student->id)->exists();
+    
         if (!$alreadyJoined) {
             // Load questions with the `question` relationship
             $assessment->load([
@@ -612,43 +612,41 @@ class AssessmentController extends Controller
                     );
                 },
             ]);
-
+    
             // Shuffle questions
             $shuffledQuestions = $assessment->questions->shuffle();
-            //dd($shuffledQuestions);
-
+    
             // Shuffle options for each question
             $shuffledOptions = [];
             foreach ($shuffledQuestions as $question) {
                 $options = $question->options;
-
+    
                 // Decode options if they are stored as JSON
                 if (!is_array($options)) {
                     $options = json_decode($options, true);
                 }
-
+    
                 // Shuffle the options
                 $shuffledOptions[$question->id] = collect($options)->shuffle()->toArray();
             }
-            //dd($shuffledQuestions->whereNull('question'));
-            //dd($shuffledOptions);
-
+    
             // Set the status to 'started' for ongoing assessments
             $status = $assessment->status === 'on_going' ? 'started' : 'waiting';
-
-            // Attach the student to the assessment with shuffled data
-            $assessment->students()->attach($student->id, [
+    
+            // Create a new StudentAssessment record
+            $studentAssessment = $assessment->studentAssessments()->create([
+                'user_id' => $student->id,
                 'status' => $status,
                 'shuffled_questions' => json_encode($shuffledQuestions->pluck('id')->toArray()), // Encode as JSON
                 'shuffled_options' => json_encode($shuffledOptions), // Encode as JSON
             ]);
         }
-
+    
         // Redirect based on assessment status
         if ($assessment->status === 'on_going') {
             return to_route('assessment.take-assessment', $assessment->id); // Redirect to the assessment taking page
         }
-
+    
         // Store the assessment ID in the session or query parameters
         return redirect()->route('assessment.waitingList', ['assessment_id' => $assessment->id]);
     }
@@ -692,28 +690,27 @@ class AssessmentController extends Controller
     {
         // Retrieve the assessment
         $assessment = Assessment::findOrFail($assessmentId);
-
+    
         // Ensure the assessment is ongoing
         if ($assessment->status !== 'on_going') {
             return back()->with(['message' => 'The assessment is not yet available or has been completed']);
         }
-
-        // Get the student's shuffled questions and options from the pivot table
+    
+        // Get the student's shuffled questions and options from the student_assessments table
         $student = Auth::user();
-        $shuffledData = DB::table('assessment_student')
-            ->where('assessment_id', $assessmentId)
+        $studentAssessment = StudentAssessment::where('assessment_id', $assessmentId)
             ->where('user_id', $student->id)
-            ->select('shuffled_questions', 'shuffled_options')
             ->first();
-
-        if (!$shuffledData) {
+    
+        if (!$studentAssessment) {
             return back()->with(['message' => 'Shuffled data not found. Please restart the assessment.']);
         }
-
+    
         // Decode the shuffled questions and options
-        $shuffledQuestionIds = json_decode($shuffledData->shuffled_questions, true);
-        $shuffledOptions = json_decode($shuffledData->shuffled_options, true);
-
+        $shuffledQuestionIds = json_decode($studentAssessment->shuffled_questions, true);
+        $shuffledOptions = json_decode($studentAssessment->shuffled_options, true);
+    
+        // Load the assessment questions
         $assessment->load([
             'questions' => function ($query) {
                 $query->select(
@@ -729,21 +726,22 @@ class AssessmentController extends Controller
                 );
             },
         ]);
-
+    
         // Sort questions based on the shuffled order
         $shuffledQuestions = $assessment->questions->sortBy(function ($question) use ($shuffledQuestionIds) {
             return array_search($question->id, $shuffledQuestionIds);
         });
-
+    
         // Apply shuffled options to each question
         foreach ($shuffledQuestions as $question) {
             if (isset($shuffledOptions[$question->id])) {
                 $question->options = $shuffledOptions[$question->id];
             }
         }
-
+    
+        // Set the sorted and shuffled questions back to the assessment
         $assessment->setRelation('questions', $shuffledQuestions);
-
+    
         return inertia('Assessment/Student/TakeAssessment', [
             'assessment' => $assessment,
         ]);
@@ -785,12 +783,15 @@ class AssessmentController extends Controller
         return back();
     }
     
-    public function submitAssessment($assessmentId)
+    public function submitAssessment($assessmentId, $studentId)
     {
+        //dd('reached');
         $assessment = StudentAssessment::where('id', $assessmentId)
-            ->where('student_id', Auth::id()) // Ensure it's scoped to the current student
+            ->where('user_id', $studentId) // Ensure it's scoped to the current student
             ->with('answers.question')
             ->firstOrFail();
+
+        dd($assessment);
     
         DB::transaction(function () use ($assessment) {
             // Prevent multiple submissions
@@ -1028,8 +1029,10 @@ class AssessmentController extends Controller
 
         // Update all waiting students to 'started' status
         $assessment->students()
-            ->wherePivot('status', 'waiting')
-            ->update(['status' => 'started']);
+        ->wherePivot('status', 'waiting')
+        ->update([
+            'status' => 'started',  // Explicitly specify the table name
+        ]);
 
         // Broadcast the AssessmentStarted event
         broadcast(new AssessmentStarted($assessment));

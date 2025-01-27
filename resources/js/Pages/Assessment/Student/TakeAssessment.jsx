@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useForm, router } from "@inertiajs/react";
+import { useForm, router, usePage } from "@inertiajs/react";
 
 const TakeAssessment = ({ assessment }) => {
+    const { auth } = usePage().props;
+    console.log(auth.user);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -101,13 +103,13 @@ const TakeAssessment = ({ assessment }) => {
         }
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = () => {
         setLoading(true);
         setError(null);
 
         try {
-            await router.post(
-                `/assessment/${assessment.id}/submit`,
+            router.put(
+                `/assessment/${assessment.id}/submit/${auth.user.id}`,
                 {},
                 { preserveState: true }
             );

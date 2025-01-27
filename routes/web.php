@@ -148,7 +148,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function 
     // Save answer for a question
     Route::post('/assessment/{assessmentId}/questions/{questionId}/save', [AssessmentController::class, 'saveAnswer']);
     // Submit the entire assessment
-    Route::post('/assessment/{assessmentId}/submit', [AssessmentController::class, 'submitAssessment'])->name('assessment.submit');
+    Route::put('/assessment/{assessmentId}/submit/{studentId}', [AssessmentController::class, 'submitAssessment'])->name('assessment.submit');
     //View the assessment result
     Route::get('/assessment/{assessmentId}/student/{studentId}', [AssessmentController::class, 'showIndividualAssessment'])->name('assessment.student-result');
 
