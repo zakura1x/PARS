@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use PDO;
+use Illuminate\Support\Facades\Log;
 
 class AssessmentController extends Controller
 {
@@ -358,15 +359,6 @@ class AssessmentController extends Controller
         return $questions;
     }
 
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Assessment $assessment)
-    {
-        //
-    }
-
     /**
      * Show the form for editing the specified resource.
      */
@@ -385,51 +377,61 @@ class AssessmentController extends Controller
         ]);
     }
 
+
     public function replaceQuestion($questionId, $assessmentId)
     {
+        DB::beginTransaction();
 
-        //FInd the old question
-        $oldQuestion = Question::findOrFail($questionId);
+        try {
+            // Find the old question
+            $oldQuestion = Question::findOrFail($questionId);
 
-        if(!$oldQuestion->assessments()->where('assessment_id', $assessmentId)->exists()){
-            return back()->withErrors(['message' => 'Question is not part of this assessment']);
+            // Check if the question is part of the assessment
+            if (!$oldQuestion->assessments()->where('assessment_id', $assessmentId)->exists()) {
+                return back()->withErrors(['message' => 'Question is not part of this assessment']);
+            }
+
+            // Mark the old question as unused
+            $oldQuestion->update(['is_used' => false]);
+
+            // Find a replacement question
+            $replacement = Question::where('topic_id', $oldQuestion->topic_id)
+                ->where('difficulty', $oldQuestion->difficulty)
+                ->where('purpose_type', 'examination')
+                ->where('is_used', false)
+                ->inRandomOrder()
+                ->first();
+
+            // If no replacement is found, revert the old question's status and return an error
+            if (!$replacement) {
+                $oldQuestion->update(['is_used' => true]);
+                return back()->withErrors(['message' => 'No replacement found']);
+            }
+
+            // Mark the replacement question as used
+            $replacement->update(['is_used' => true]);
+
+            // Update the pivot table
+            $oldQuestion->assessments()->updateExistingPivot($assessmentId, [
+                'question_id' => $replacement->id,
+                'updated_at' => now(),
+            ]);
+
+            // Commit the transaction
+            DB::commit();
+
+            // Return success message
+            return back()->with([
+                'message' => 'Question replaced successfully.',
+                'replacement' => $replacement,
+            ]);
+        } catch (\Exception $e) {
+            // Rollback the transaction on error
+            DB::rollBack();
+            Log::error('Error replacing question: ' . $e->getMessage());
+            return back()->withErrors(['message' => 'An error occurred while replacing the question.']);
         }
-
-        $oldQuestion->update(['is_used' => false]);
-
-        //dd($oldQuestion);
-        
-        //Replace the question
-        $replacement = Question::where('topic_id', $oldQuestion->topic_id)
-        ->where('difficulty', $oldQuestion->difficulty)
-        ->where('purpose_type', 'examination')
-        ->where('is_used', false)
-        ->inRandomOrder()
-        ->first();
-
-        //dd($replacement);
-
-        if (!$replacement) {
-            $oldQuestion->update(['is_used' => true]);
-            return back()->withErrors(['message' => 'No replacement found']);
-        }
-
-        //Mark the replacement question as used
-        $replacement->update(['is_used' => true]);
-
-        $oldQuestion->assessments()->updateExistingPivot($assessmentId, [
-            'question_id' => $replacement->id,
-            'updated_at'=> now()
-        ]);
-
-        //dd($replacement);
-
-        return back()->with([
-            'message' => 'Question replaced successfully.',
-            'replacement' => $replacement,
-        ]);
     }
-
     public function updateForApproval($assessmentId)
     {
         $assessment = Assessment::findOrFail($assessmentId);
@@ -638,6 +640,7 @@ class AssessmentController extends Controller
     
             // Set the status to 'started' for ongoing assessments
             $status = $assessment->status === 'on_going' ? 'started' : 'waiting';
+            
     
             // Create a new StudentAssessment record
             $studentAssessment = $assessment->studentAssessments()->create([
@@ -646,6 +649,13 @@ class AssessmentController extends Controller
                 'shuffled_questions' => json_encode($shuffledQuestions->pluck('id')->toArray()), // Encode as JSON
                 'shuffled_options' => json_encode($shuffledOptions), // Encode as JSON
             ]);
+
+            foreach($shuffledQuestions as $question){
+                StudentAssessmentQuestion::create([
+                    'student_assessment_id' => $studentAssessment->id,
+                    'question_id' => $question->id,
+                ]);
+            }
         }
     
         // Redirect based on assessment status

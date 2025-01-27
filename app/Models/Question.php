@@ -39,7 +39,7 @@ class Question extends Model
 
     public function assessments()
     {
-        return $this->belongsToMany(StudentAssessmentQuestion::class, 'student_assessment_questions', 'question_id', 'student_assessment_id');
+        return $this->belongsToMany(Assessment::class, 'assessment_questions', 'question_id', 'assessment_id');
     }
 
     public function topic(){

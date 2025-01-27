@@ -40,19 +40,14 @@ class Assessment extends Model
         'updated_at' => 'datetime',
     ];
 
-    // public function questions(){
-    //     return $this->belongsToMany(Question::class, 'student_assessment_questions', 'assessment_id', 'question_id')
-    //             ->withTimestamps();
-    // }
     public function questions()
     {
-        return $this->belongsToMany(Question::class, 'student_assessment_questions')
-            ->withPivot('student_answer', 'is_correct');
+        return $this->belongsToMany(Question::class, 'assessment_questions');
     }
 
     public function assessmentQuestions()
     {
-        return $this->hasMany(StudentAssessmentQuestion::class, 'assessment_id');
+        return $this->hasMany(StudentAssessmentQuestion::class);
     }
 
     public function subject(){
