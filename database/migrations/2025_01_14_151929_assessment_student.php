@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('assessment_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->json('shuffled_questions')->nullable(); // Stores shuffled question IDs
+            $table->json('shuffled_options')->nullable();  // Stores shuffled options for each question
             $table->enum('status', ['waiting', 'started'])->default('waiting');
             $table->timestamps();
         });

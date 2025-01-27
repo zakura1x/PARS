@@ -12,7 +12,7 @@ const StudentDashboard = () => {
         <div className="m-2 p-4 rounded-md bg-white ">
             <h1 className="text-2xl font-bold mb-4">Student Dashboard</h1>
 
-            <section className="mb-8">
+            {/* <section className="mb-8">
                 <h2 className="text-xl font-semibold mb-2">
                     Latest Assessments
                 </h2>
@@ -38,9 +38,9 @@ const StudentDashboard = () => {
                 ) : (
                     <p>No assessments found.</p>
                 )}
-            </section>
+            </section> */}
 
-            <section className="mb-8">
+            {/* <section className="mb-8">
                 <h2 className="text-xl font-semibold mb-2">
                     Latest Practice Assessments
                 </h2>
@@ -54,7 +54,7 @@ const StudentDashboard = () => {
                                 {/* <h3 className="text-lg font-bold">
                                     {practiceAssessment.subject.name}
                                 </h3> */}
-                                <p className="text-sm">
+                                {/* <p className="text-sm">
                                     Grade:{" "}
                                     {practiceAssessment.results
                                         ? practiceAssessment.results.score
@@ -66,9 +66,9 @@ const StudentDashboard = () => {
                 ) : (
                     <p>No practice assessments found.</p>
                 )}
-            </section>
+            </section> */}
 
-            <section>
+            {/* <section>
                 <h2 className="text-xl font-semibold mb-2">
                     Topic Grading Criteria
                 </h2>
@@ -83,7 +83,7 @@ const StudentDashboard = () => {
                 ) : (
                     <p>No topic grading criteria found.</p>
                 )}
-            </section>
+            </section> */}
         </div>
     );
 };

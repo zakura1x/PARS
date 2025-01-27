@@ -28,9 +28,26 @@ class Assessment extends Model
         'ended_at',
     ];
 
-    public function questions(){
-        return $this->belongsToMany(Question::class, 'student_assessment_questions', 'assessment_id', 'question_id')
-                ->withTimestamps();
+    protected $dates =[
+        'started_at',
+        'created_at',
+        'updated_at',
+    ];
+
+    protected $casts = [
+        'started_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+    // public function questions(){
+    //     return $this->belongsToMany(Question::class, 'student_assessment_questions', 'assessment_id', 'question_id')
+    //             ->withTimestamps();
+    // }
+    public function questions()
+    {
+        return $this->belongsToMany(Question::class, 'student_assessment_questions')
+            ->withPivot('student_answer', 'is_correct');
     }
 
     public function assessmentQuestions()

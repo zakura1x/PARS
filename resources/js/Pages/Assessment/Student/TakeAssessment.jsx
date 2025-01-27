@@ -15,13 +15,17 @@ const TakeAssessment = ({ assessment }) => {
         answers: questions.map((q) => q.student_answer || []),
     });
 
+    //console.log(questions);
+
     const currentQuestion = questions[currentQuestionIndex];
 
     // Progress calculation
     const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
     const handleOptionChange = (option) => {
-        const updatedOptions = data.answers[currentQuestionIndex].includes(option)
+        const updatedOptions = data.answers[currentQuestionIndex].includes(
+            option
+        )
             ? data.answers[currentQuestionIndex].filter((opt) => opt !== option)
             : [...data.answers[currentQuestionIndex], option];
 
@@ -49,9 +53,11 @@ const TakeAssessment = ({ assessment }) => {
             return Promise.reject("No answer selected");
         }
 
+        console.log(currentQuestion.id);
+
         try {
             await router.post(
-                `/assessment/${assessment.id}/questions/${currentQuestion.question.id}/save`,
+                `/assessment/${assessment.id}/questions/${currentQuestion.id}/save`,
                 {
                     selected_option: selectedOption,
                 },
@@ -100,21 +106,14 @@ const TakeAssessment = ({ assessment }) => {
         setError(null);
 
         try {
-            // Wait for the current answer to be saved
-            await saveAnswer();
-
-            // Submit the entire assessment
             await router.post(
                 `/assessment/${assessment.id}/submit`,
                 {},
-                {
-                    preserveState: true,
-                }
+                { preserveState: true }
             );
-
             console.log("Assessment submitted successfully");
         } catch (error) {
-            console.error("Error submitting assessment:", error);
+            console.error("Error details:", error);
             setError("Failed to submit assessment. Please try again.");
         } finally {
             setLoading(false);
@@ -152,11 +151,11 @@ const TakeAssessment = ({ assessment }) => {
                     Question {currentQuestionIndex + 1} of {questions.length}
                 </p>
                 <h2 className="text-lg font-medium mb-4">
-                    {currentQuestion.question.question_text}
+                    {currentQuestion.question_text}
                 </h2>
-                {currentQuestion.question.format_type === "multiple_choice" && (
+                {currentQuestion.format_type === "multiple_choice" && (
                     <ul className="space-y-2">
-                        {currentQuestion.question.options.map((option, index) => (
+                        {currentQuestion.options.map((option, index) => (
                             <li key={index} className="flex items-center">
                                 <input
                                     type="checkbox"
@@ -165,7 +164,9 @@ const TakeAssessment = ({ assessment }) => {
                                     value={option}
                                     className="checkbox checkbox-success mr-2"
                                     onChange={() => handleOptionChange(option)}
-                                    checked={data.answers[currentQuestionIndex].includes(option)}
+                                    checked={data.answers[
+                                        currentQuestionIndex
+                                    ].includes(option)}
                                 />
                                 <label htmlFor={`option-${index}`}>
                                     {option}
@@ -174,7 +175,7 @@ const TakeAssessment = ({ assessment }) => {
                         ))}
                     </ul>
                 )}
-                {currentQuestion.question.format_type === "true_false" && (
+                {currentQuestion.format_type === "true_false" && (
                     <ul className="space-y-2">
                         {["True", "False"].map((option, index) => (
                             <li key={index} className="flex items-center">
@@ -185,7 +186,9 @@ const TakeAssessment = ({ assessment }) => {
                                     value={option}
                                     className="radio radio-primary mr-2"
                                     onChange={() => handleOptionChange(option)}
-                                    checked={data.answers[currentQuestionIndex].includes(option)}
+                                    checked={data.answers[
+                                        currentQuestionIndex
+                                    ].includes(option)}
                                 />
                                 <label htmlFor={`option-${index}`}>
                                     {option}
@@ -194,7 +197,7 @@ const TakeAssessment = ({ assessment }) => {
                         ))}
                     </ul>
                 )}
-                {currentQuestion.question.format_type === "essay" && (
+                {currentQuestion.format_type === "essay" && (
                     <textarea
                         className="textarea textarea-bordered w-full"
                         value={data.answers[currentQuestionIndex][0] || ""}

@@ -110,7 +110,8 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::put('/assessment/update/reject/{assessmentId}', [AssessmentController::class,'rejectAssessment'])->name('assessment.reject');
 
     //Assessment Prof View Start of Assessment
-    Route::put('/assessment/initialize/assessment/{assessmentId}', [AssessmentController::class, 'initializeAssessment'])->name('assessment.initialize');
+    Route::put('/assessment/update/to/wait/{assessmentId}', [AssessmentController::class,'updateToWait'])->name('assessment.update.wait');
+    Route::get('/assessment/initialize/assessment/{assessmentId}', [AssessmentController::class, 'initializeAssessment'])->name('assessment.initialize');
     Route::get('/assessment/{assessmentId}/waiting-students', [AssessmentController::class,'getWaitingStudents'])->name('assessment.get-students');
     Route::post('/assessment/start/{assessmentId}', [AssessmentController::class, 'startAssessmentNow'])->name('assessment.start-now');
     Route::get('/assessment/{assessmentId}/status', [AssessmentController::class,'assessmentStatus'])->name('assessment.status');
@@ -147,11 +148,14 @@ Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function 
     // Save answer for a question
     Route::post('/assessment/{assessmentId}/questions/{questionId}/save', [AssessmentController::class, 'saveAnswer']);
     // Submit the entire assessment
-    Route::post('/assessment/{assessmentId}/submit', [AssessmentController::class, 'submitAssessment']);
+    Route::post('/assessment/{assessmentId}/submit', [AssessmentController::class, 'submitAssessment'])->name('assessment.submit');
     //View the assessment result
     Route::get('/assessment/{assessmentId}/student/{studentId}', [AssessmentController::class, 'showIndividualAssessment'])->name('assessment.student-result');
 
 });
+
+//Route::post('/assessment/{assessmentId}/submit', [AssessmentController::class, 'submitAssessment']);
+
 
 //TEster
 Route::get('/test-store', [StudentPracticeAssessmentController::class, 'testStore']);

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { router, usePage } from "@inertiajs/react";
+import { router, useForm, usePage } from "@inertiajs/react";
 
 const AssessmentWaitingProf = ({
     assessment,
@@ -10,6 +10,8 @@ const AssessmentWaitingProf = ({
     const [waitingStudents, setWaitingStudents] = useState(
         initialWaitingStudents
     );
+
+    const { post } = useForm();
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -25,13 +27,13 @@ const AssessmentWaitingProf = ({
 
     // Function to handle starting the assessment
     const startAssessment = (assessmentId) => {
-        router.post(
+        post(
             `/assessment/start/${assessmentId}`,
             {},
             {
                 onSuccess: () => {
                     // Redirect to the assessment status page
-                    //router.visit(`/assessment/${assessmentId}/status`);
+                    router.visit(`/assessment/${assessmentId}/status`);
                 },
                 onError: (errors) => {
                     console.error("Failed to start the assessment", errors);
