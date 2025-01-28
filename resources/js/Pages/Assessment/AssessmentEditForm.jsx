@@ -30,14 +30,20 @@ const AssessmentEditForm = ({ assessment, questions }) => {
         });
     };
 
-    console.log(questions);
+    //console.log(questions.topic);
 
     return (
         <div className="container mx-auto p-6">
             <div className="mb-4">
-                <Link href="/assessment/index" className="btn btn-secondary">
-                    Back to Assessments
-                </Link>
+                {/* Breadcrumbs */}
+                <div className="text-sm breadcrumbs mb-4">
+                    <ul>
+                        <li>
+                            <Link href="/assessments">Assessments</Link>
+                        </li>
+                        <li>Edit Assessment</li>
+                    </ul>
+                </div>
             </div>
             <h1 className="text-2xl font-bold mb-6">
                 Edit Assessment: {assessment.title}
@@ -71,7 +77,7 @@ const AssessmentEditForm = ({ assessment, questions }) => {
                                 {question.question_text}
                             </td>
                             <td className="border border-gray-300 p-2">
-                                {question.topic_name}
+                                {question.topic.name}
                             </td>
                             <td className="border border-gray-300 p-2">
                                 {question.difficulty}

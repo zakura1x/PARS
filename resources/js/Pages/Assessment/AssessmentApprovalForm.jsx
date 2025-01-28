@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useForm, router } from "@inertiajs/react";
 
 const AssessmentApprovalForm = ({ assessment }) => {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, put, processing, errors } = useForm({
         rejection_reason: "", // Initial rejection reason
         approved: assessment.approved, // To show if it's already approved
     });
@@ -22,8 +22,8 @@ const AssessmentApprovalForm = ({ assessment }) => {
 
         // Determine action based on whether it's rejection or approval
         if (isRejection) {
-            post(`/assessment/update/reject/${assessment.id}`, {
-                data: { rejection_reason: data.rejection_reason },
+            router.put(`/assessment/update/reject/${assessment.id}`, {
+                rejection_reason: data.rejection_reason || "No reason provided",
             });
         } else {
             router.put(`/assessment/update/approve/${assessment.id}`);

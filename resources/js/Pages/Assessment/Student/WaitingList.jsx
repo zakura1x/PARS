@@ -5,14 +5,14 @@ const WaitingList = () => {
     const { assessment } = usePage().props;
 
     useEffect(() => {
-        // Listen for the AssessmentStarted event
-        window.Echo.channel(`assessment.${assessment.id}`)
-            .listen(".assessment.started", (event) => {
-                // Redirect to the assessment taking page
+        window.Echo.channel(`assessment.${assessment.id}`).listen(
+            ".assessment.started",
+            (event) => {
+                console.log("Assessment started event received", event);
                 router.visit(`/assessment/take/${assessment.id}`);
-            });
+            }
+        );
 
-        // Clean up the listener when the component unmounts
         return () => {
             window.Echo.leaveChannel(`assessment.${assessment.id}`);
         };
@@ -31,13 +31,15 @@ const WaitingList = () => {
                     </p>
                     <div className="bg-gray-50 p-4 rounded-lg">
                         <p className="text-sm text-gray-600">
-                            <strong>Assessment Title:</strong> {assessment.title}
+                            <strong>Assessment Title:</strong>{" "}
+                            {assessment.title}
                         </p>
                         <p className="text-sm text-gray-600">
                             <strong>Status:</strong> {assessment.status}
                         </p>
                         <p className="text-sm text-gray-600">
-                            <strong>Access Code:</strong> {assessment.access_code}
+                            <strong>Access Code:</strong>{" "}
+                            {assessment.access_code}
                         </p>
                     </div>
                 </div>

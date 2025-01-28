@@ -364,7 +364,7 @@ class AssessmentController extends Controller
      */
     public function edit($assessmentId)
     {
-        $assessment = Assessment::with('questions')->findOrFail($assessmentId);
+        $assessment = Assessment::with('questions.topic')->findOrFail($assessmentId);
 
         // Get all the questions related to the assessment
         //$questions = $assessment->questions;
@@ -603,23 +603,9 @@ class AssessmentController extends Controller
         // Check if the student has already joined
         $alreadyJoined = $assessment->studentAssessments()->where('user_id', $student->id)->exists();
     
-        if (!$alreadyJoined) {
+        if (!$alreadyJoined) {$assessment->load('questions');
             // Load questions with the `question` relationship
-            $assessment->load([
-                'questions' => function ($query) {
-                    $query->select(
-                        'questions.id', // Select fields directly from the `questions` table
-                        'questions.question_text',
-                        'questions.options',
-                        'questions.topic_id',
-                        'questions.format_type',
-                        'student_assessment_questions.assessment_id',
-                        'student_assessment_questions.question_id',
-                        'student_assessment_questions.student_answer',
-                        'student_assessment_questions.is_correct'
-                    );
-                },
-            ]);
+            $assessment->load('questions');
     
             // Shuffle questions
             $shuffledQuestions = $assessment->questions->shuffle();
@@ -653,6 +639,7 @@ class AssessmentController extends Controller
             foreach($shuffledQuestions as $question){
                 StudentAssessmentQuestion::create([
                     'student_assessment_id' => $studentAssessment->id,
+                    'assessment_id' => $assessment->id,
                     'question_id' => $question->id,
                 ]);
             }
@@ -727,21 +714,7 @@ class AssessmentController extends Controller
         $shuffledOptions = json_decode($studentAssessment->shuffled_options, true);
     
         // Load the assessment questions
-        $assessment->load([
-            'questions' => function ($query) {
-                $query->select(
-                    'questions.id', // Select fields directly from the `questions` table
-                    'questions.question_text',
-                    'questions.options',
-                    'questions.topic_id',
-                    'questions.format_type',
-                    'student_assessment_questions.assessment_id',
-                    'student_assessment_questions.question_id',
-                    'student_assessment_questions.student_answer',
-                    'student_assessment_questions.is_correct'
-                );
-            },
-        ]);
+        $assessment->load('questions');
     
         // Sort questions based on the shuffled order
         $shuffledQuestions = $assessment->questions->sortBy(function ($question) use ($shuffledQuestionIds) {
@@ -772,10 +745,18 @@ class AssessmentController extends Controller
         ]);
         //dd($validated);
 
-        $assessmentQuestion = StudentAssessmentQuestion::where('assessment_id', $assessmentId)
+        $studentAssessment = StudentAssessment::where('assessment_id', $assessmentId)
+        ->where('user_id', Auth::id())
+        ->firstOrFail();
+
+        //dd($studentAssessment);
+
+        //FInd the assessmentQuestion
+        $assessmentQuestion = StudentAssessmentQuestion::where('student_assessment_id', $studentAssessment->id)
         ->where('question_id', $questionId)
         ->firstOrFail();
 
+        //dd($assessmentQuestion);
         // Check if the assessment is already due
         if ($assessment->time_limit && $assessment->started_at) {
             $dueTime = $assessment->started_at->addMinutes($assessment->time_limit);
@@ -807,17 +788,19 @@ class AssessmentController extends Controller
             ->with('answers.question')
             ->firstOrFail();
 
-        dd($assessment);
-    
-        DB::transaction(function () use ($assessment) {
+        //dd($assessment);
+        
+        $assessmentMain = Assessment::findOrFail($assessmentId);
+
+        DB::transaction(function () use ($assessment, $assessmentMain) {
             // Prevent multiple submissions
             if ($assessment->status === 'completed' || $assessment->status === 'timed_out') {
                 throw new \Exception('Assessment has already been submitted.');
             }
     
             // Check if the assessment is already due
-            if ($assessment->time_limit && $assessment->started_at) {
-                $dueTime = $assessment->started_at->addMinutes($assessment->time_limit);
+            if ($assessmentMain->time_limit && $assessmentMain->started_at) {
+                $dueTime = $assessmentMain->started_at->addMinutes($assessmentMain->time_limit);
                 if (now()->greaterThan($dueTime)) {
                     $assessment->update([
                         'status' => 'timed_out',
@@ -1057,7 +1040,7 @@ class AssessmentController extends Controller
         broadcast(new AssessmentStarted($assessment));
 
         // Redirect to the professor's dashboard or status view
-        return redirect()->route('professor.assessment-status', $assessmentId)
+        return redirect()->route('assessment-status', $assessmentId)
             ->with('message', 'Assessment has started.');
     }
 
@@ -1067,15 +1050,15 @@ class AssessmentController extends Controller
 
         //Fetch the students with their status for the assessment
         //$students = $assessment->students()->wherePivot('status')->get();
-        $students = StudentAssessment::where('assessment_id', $assessmentId)
+        $studentAssessments = StudentAssessment::where('assessment_id', $assessmentId)
         ->with('student')
         ->get(); 
 
-        $studentStatus = $students->map(function ($student){
+        $studentStatus = $studentAssessments->map(function ($studentAssessment){
             return [
-                'id' => $student->idNumber,
-                'name' => $student->getFullNameAttribute,
-                'status' => $student->status,
+                'id' => $studentAssessment->student->idNumber,
+                'name' => $studentAssessment->student->full_name,
+                'status' => $studentAssessment->status,
             ];
         });
 
@@ -1090,15 +1073,15 @@ class AssessmentController extends Controller
         $assessment = Assessment::findOrFail($assessmentId);
 
         // Fetch students with their status for this assessment
-        $students = StudentAssessment::where('assessment_id', $assessmentId)
+        $studentAssessments = StudentAssessment::where('assessment_id', $assessmentId)
         ->with('student')
         ->get(); 
 
-        $studentStatus = $students->map(function ($student){
+        $studentStatus = $studentAssessments->map(function ($studentAssessment){
             return [
-                'id' => $student->idNumber,
-                'name' => $student->getFullNameAttribute,
-                'status' => $student->status,
+                'id' => $studentAssessment->student->idNumber,
+                'name' => $studentAssessment->student->full_name,
+                'status' => $studentAssessment->status,
             ];
         });
 
