@@ -270,7 +270,7 @@ class AssessmentController extends Controller
             $assessment->questions()->attach($questions->pluck('id')->toArray());
 
 
-            return to_route('');
+            return to_route('assessment-edit.form', $assessment->id);
 
         }catch(\Exception $e){
             return back()->withErrors(['message' => $e->getMessage()]);
@@ -396,16 +396,20 @@ class AssessmentController extends Controller
         }
 
         $oldQuestion->update(['is_used' => false]);
+
+        //dd($oldQuestion);
         
         //Replace the question
         $replacement = Question::where('topic_id', $oldQuestion->topic_id)
         ->where('difficulty', $oldQuestion->difficulty)
-        ->where('purpose_type', 'exam')
+        ->where('purpose_type', 'examination')
         ->where('is_used', false)
         ->inRandomOrder()
         ->first();
 
-        if ($replacement) {
+        //dd($replacement);
+
+        if (!$replacement) {
             $oldQuestion->update(['is_used' => true]);
             return back()->withErrors(['message' => 'No replacement found']);
         }
@@ -417,6 +421,8 @@ class AssessmentController extends Controller
             'question_id' => $replacement->id,
             'updated_at'=> now()
         ]);
+
+        //dd($replacement);
 
         return back()->with([
             'message' => 'Question replaced successfully.',
@@ -997,12 +1003,15 @@ class AssessmentController extends Controller
     public function initializeAssessment($assessmentId){
         $assessment = Assessment::findOrFail($assessmentId);
 
-        // $assessment->update([
-        //     'status' => 'waiting',
-        //     'updated_at' => now()
-        // ]);
+        $assessment->update([
+            'status' => 'waiting',
+            'updated_at' => now()
+        ]);
 
-        $waitingStudents = $assessment->students()->wherePivot('status', 'waiting')->get();
+        //$waitingStudents = $assessment->students()->wherePivot('status', 'waiting')->get();
+        $waitingStudents = StudentAssessment::where('assessment_id', $assessmentId)
+            ->where('status', 'waiting')
+            ->get();
 
         return inertia('Assessment/AssessmentWaitingProf', [
             'assessment' => $assessment,
@@ -1028,11 +1037,11 @@ class AssessmentController extends Controller
         ]);
 
         // Update all waiting students to 'started' status
-        $assessment->students()
-        ->wherePivot('status', 'waiting')
-        ->update([
-            'status' => 'started',  // Explicitly specify the table name
-        ]);
+        StudentAssessment::where('assessment_id', $assessmentId)
+            ->where('status', 'waiting')
+            ->update([
+                'status' => 'started'
+            ]);
 
         // Broadcast the AssessmentStarted event
         broadcast(new AssessmentStarted($assessment));
@@ -1047,13 +1056,16 @@ class AssessmentController extends Controller
         $assessment = Assessment::findOrFail($assessmentId);
 
         //Fetch the students with their status for the assessment
-        $students = $assessment->students()->wherePivot('status')->get();
+        //$students = $assessment->students()->wherePivot('status')->get();
+        $students = StudentAssessment::where('assessment_id', $assessmentId)
+        ->with('student')
+        ->get(); 
 
         $studentStatus = $students->map(function ($student){
             return [
                 'id' => $student->idNumber,
                 'name' => $student->getFullNameAttribute,
-                'status' => $student->pivot->status,
+                'status' => $student->status,
             ];
         });
 
@@ -1068,14 +1080,15 @@ class AssessmentController extends Controller
         $assessment = Assessment::findOrFail($assessmentId);
 
         // Fetch students with their status for this assessment
-        $students = $assessment->students()->withPivot('status')->get();
+        $students = StudentAssessment::where('assessment_id', $assessmentId)
+        ->with('student')
+        ->get(); 
 
-        // Transform the data to a more frontend-friendly format
-        $studentStatus = $students->map(function ($student) {
+        $studentStatus = $students->map(function ($student){
             return [
-                'id' => $student->id,
-                'name' => $student->name,
-                'status' => $student->pivot->status,
+                'id' => $student->idNumber,
+                'name' => $student->getFullNameAttribute,
+                'status' => $student->status,
             ];
         });
 

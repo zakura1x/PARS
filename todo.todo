@@ -45,6 +45,14 @@ Practice Assessment:
 
 
 Assessment:
+    Need to fix @critical 
+    ☐ The StudentAssessment question should be moved in the assessment_questions
+        - This will store the questions created for the assessment
+    ☐ The StudentAssessmentQuestion should be created for the student when they join the assessment
+        - This will store the answers of the student
+        - It will also store the correct answers of the student
+    ☐ 
+
     @high Need testing
     Needs testing:
         ✔ Generate Assessment @done (1/26/2025, 12:26:46 AM)
