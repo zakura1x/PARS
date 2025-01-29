@@ -183,4 +183,82 @@ class StudyMaterialController extends Controller
         return redirect()->route('study-materials.index', $studyMaterial->topic_id)
             ->with('message', 'Topic has been deleted successfully');
     }
+
+    //Student Controller
+    public function studentIndex(){
+        $subject = Subject::all();
+
+        return inertia('StudyMaterial/Student/StudentStudyMaterial', [
+            'subjects' => $subject
+        ]); 
+    }
+
+    public function studentShowTopics($subjectId){
+
+        // Find the subject by ID or return null if not found
+        $subject = Subject::find($subjectId);
+    
+        // If no subject exists, set topics as an empty collection
+        $topics = $subject ? $subject->topics()->with(['parent', 'subTopics'])->get() : collect();
+    
+        // Get parent topics (or empty if no topics)
+        $parentTopics = $topics->whereNull('parent_id');
+    
+        // Get subtopics (or empty if no topics)
+        $subTopics = $topics->whereNotNull('parent_id');
+
+        //dd($parentTopics);
+
+        return inertia('StudyMaterial/Student/StudentShowTopics', [
+            'topic' => $topics,
+            'subTopics' => $subTopics,
+            'parentTopics' => $parentTopics,
+            'subject' => $subject
+        ]);
+    }
+
+    public function studentShowSubTopics($topicId){
+        $topic = Topics::with('subject')->findOrFail($topicId);
+
+        $studyMaterials = StudyMaterial::with('attachments')
+            ->where('topic_id', $topicId)
+            ->get()
+            ->map(function ($material){
+                $material->attachments = $material->attachments->map(function ($attachment){
+                    $attachment->public_url = Storage::url($attachment->file_path);
+                    return $attachment;
+                });
+                return $material;
+            });
+
+        $subTopics = Topics::where('parent_id', $topicId)->get();
+
+        return inertia('StudyMaterial/Student/StudentShowSubTopics', [
+            'subTopics' => $subTopics,
+            'topic' => $topic,
+            'subject' => $topic->subject,
+            'studyMaterials' => $studyMaterials
+        ]);
+    }
+
+    public function studentShowStudyMaterial($topicId){
+        $topic = Topics::with('subject')->findOrFail($topicId);
+
+        $studyMaterials = StudyMaterial::with('attachments')
+            ->where('topic_id', $topicId)
+            ->get()
+            ->map(function ($material){
+                $material->attachments = $material->attachments->map(function ($attachment){
+                    $attachment->public_url = Storage::url($attachment->file_path);
+                    return $attachment;
+                });
+                return $material;
+            });
+
+        return inertia('StudyMaterial/Student/StudentStudyMaterialList', [
+            'studyMaterials' => $studyMaterials,
+            'topic' => $topic,
+            'subject' => $topic->subject
+        ]);
+    }
 }

@@ -152,6 +152,10 @@ Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function 
     //View the assessment result
     Route::get('/assessment/{assessmentId}/student/{studentId}', [AssessmentController::class, 'showIndividualAssessment'])->name('assessment.student-result');
 
+    //Study Material
+    Route::get('/study-materials/index', [StudyMaterialController::class, 'studentIndex'])->name('student-study-materials.index');
+    Route::get('/study-materials/view/{topicId}', [StudyMaterialController::class, 'studentShowTopics'])->name('student-study-materials.show');
+    Route::get('/study-materials/subtopic/{topicId}', [StudyMaterialController::class, 'studentShowSubTopics'])->name('student-study-materials.subtopic');
 });
 
 //Route::post('/assessment/{assessmentId}/submit', [AssessmentController::class, 'submitAssessment']);

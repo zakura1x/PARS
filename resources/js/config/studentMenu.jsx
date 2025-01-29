@@ -59,6 +59,22 @@ const studentMenu = [
             },
         ],
     },
+    {
+        section: "Study Materials",
+        details: [
+            {
+                title: "Materials",
+                icon: <TbCloudQuestion size={26} />,
+                items: [
+                    {
+                        label: "Subjects",
+                        href: "/study-materials/index",
+                        key: 5,
+                    },
+                ],
+            },
+        ],
+    },
 ];
 
 export default studentMenu;
