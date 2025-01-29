@@ -1040,7 +1040,7 @@ class AssessmentController extends Controller
         broadcast(new AssessmentStarted($assessment));
 
         // Redirect to the professor's dashboard or status view
-        return redirect()->route('assessment-status', $assessmentId)
+        return to_route('assessment.status', $assessmentId)
             ->with('message', 'Assessment has started.');
     }
 
