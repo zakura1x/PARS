@@ -8,6 +8,7 @@ use App\Models\AssessmentQuestion;
 use App\Models\Question;
 use App\Models\StudentAssessment;
 use App\Models\StudentAssessmentQuestion;
+use App\Models\StudentResult;
 use App\Models\StudentTopicProficiency;
 use App\Models\Subject;
 use App\Models\TableOfSpecification;
@@ -785,7 +786,7 @@ class AssessmentController extends Controller
         //dd('reached');
         $assessment = StudentAssessment::where('id', $assessmentId)
             ->where('user_id', $studentId) // Ensure it's scoped to the current student
-            ->with('answers.question')
+            ->with('questions.question')
             ->firstOrFail();
 
         //dd($assessment);
@@ -793,37 +794,32 @@ class AssessmentController extends Controller
         $assessmentMain = Assessment::findOrFail($assessmentId);
 
         DB::transaction(function () use ($assessment, $assessmentMain) {
+
+            $assessment->refresh();
+
             // Prevent multiple submissions
-            if ($assessment->status === 'completed' || $assessment->status === 'timed_out') {
+            if ($assessment->status !== 'started') {
                 throw new \Exception('Assessment has already been submitted.');
             }
     
             // Check if the assessment is already due
             if ($assessmentMain->time_limit && $assessmentMain->started_at) {
                 $dueTime = $assessmentMain->started_at->addMinutes($assessmentMain->time_limit);
-                if (now()->greaterThan($dueTime)) {
-                    $assessment->update([
-                        'status' => 'timed_out',
-                        'submitted_at' => now(),
-                    ]);
-                } else {
-                    $assessment->update([
-                        'status' => 'completed',
-                        'submitted_at' => now(),
-                    ]);
-                }
+                $timedOut = now()->greaterThan($dueTime);
             }
+
+            $assessment->update([
+                'status' => $timedOut ? 'timed_out' : 'completed',
+                'submitted_at' => now()
+            ]);
     
-            // Grade the assessment if not already graded
-            if (!$assessment->graded_at) {
-                $this->gradeAssessment($assessment->id);
-                $assessment->update(['graded_at' => now()]);
-            }
+            // Grade the assessment
+            $this->gradeAssessment($assessment->id);
         });
     
         return to_route('assessment.student-result', [
             'assessmentId' => $assessment->id,
-            'studentId' => $assessment->student_id,
+            'studentId' => $assessment->user_id,
         ]);
     }
     
@@ -862,10 +858,12 @@ class AssessmentController extends Controller
 
         // Save the results to the database
         $assessment->results()->create([
-            'student_id' => $assessment->student_id,
+            'assessment_id' => $assessment->assessment_id,
+            'student_id' => $assessment->user_id,
+            'total_questions' => $correctAnswers + $incorrectAnswers,
             'correct_answers' => $correctAnswers,
-            'incorrect_answers' => $incorrectAnswers,
-            'score_percentage' => $scorePercentage,
+            'wrong_answers' => $incorrectAnswers,
+            'score' => $scorePercentage,
         ]);
 
         // Update proficiency for each topic
@@ -885,7 +883,7 @@ class AssessmentController extends Controller
                 $denominator[] = $difficultyWeight * $questionWeight;
             }
 
-            $this->updateTopicProficiency($assessment->student_id, $topicId, $numerator, $denominator);
+            $this->updateTopicProficiency($assessment->user_id, $topicId, $numerator, $denominator);
         }
 
         return $assessment;
@@ -1099,7 +1097,7 @@ class AssessmentController extends Controller
             'ended_at' => now(),
         ]);
 
-        return redirect()->route('professor.assessment-status', $assessmentId)
+        return redirect()->route('assessment.results', $assessmentId)
             ->with('success', 'Assessment has been completed.');
     }
 
@@ -1111,30 +1109,54 @@ class AssessmentController extends Controller
         return response()->json($waitingStudents);
     }
 
-    public function assessmentResults($assessmentId){
-        $assessment = Assessment::findOrFail($assessmentId);
+    public function assessmentResults($assessmentId)
+    {
+        // Load only necessary assessment data
+        $assessment = Assessment::select(['id', 'title'])
+            ->findOrFail($assessmentId);
 
-        //Class performance metrics
-        $students = $assessment->students->with('results')->get();
-        $totalStudents = $students->count();
-        $averageScore = $students->avg('results.score_percentage');
-        $highestScore = $students->max('results.score_percentage');
-        $lowestScore = $students->min('results.score_percentage');
+        // Get results with student data in chunks
+        $results = StudentResult::where('assessment_id', $assessmentId)
+            ->with(['student' => function($query) {
+                $query->select(['id', 'name']);
+            }])
+            ->select(['id', 'student_id', 'correct_answers', 'total_questions', 'score'])
+            ->cursor(); // Use cursor for memory efficiency
 
-        //Data for graphs
+        // Process results in memory-efficient way
+        $students = [];
+        $totalStudents = 0;
+        $scores = [];
         $scoreDistribution = [];
-        foreach ($students as $student){
-            $scoreRange = floor($student->results->score_percentage / 10) * 10;
-            $scoreDistribution[$scoreRange] = ($scoreDistribution[$scoreRange] ?? 0) + 1;
+
+        foreach ($results as $result) {
+            $totalStudents++;
+            $scores[] = $result->score;
+            
+            // Build student list
+            $students[] = [
+                'id' => $result->student->idNumber,
+                'name' => $result->student->full_name,
+                'latest_result' => $result->only(['correct_answers', 'total_questions', 'score'])
+            ];
+
+            // Build score distribution
+            $range = floor($result->score / 10) * 10;
+            $scoreDistribution[$range] = ($scoreDistribution[$range] ?? 0) + 1;
         }
+
+        // Calculate metrics
+        $averageScore = count($scores) > 0 ? array_sum($scores) / count($scores) : 0;
+        $highestScore = count($scores) > 0 ? max($scores) : 0;
+        $lowestScore = count($scores) > 0 ? min($scores) : 0;
 
         return inertia('Assessment/AssessmentResults', [
             'assessment' => $assessment,
             'students' => $students,
-            'totalStudents' => $totalStudents,
-            'averageScore' => $averageScore,
-            'highestScore' => $highestScore,
-            'lowestScore' => $lowestScore,
+            'totalStudents' => (int) $totalStudents,
+            'averageScore' => (float) $averageScore,
+            'highestScore' => (float) $highestScore,
+            'lowestScore' => (float) $lowestScore,
             'scoreDistribution' => $scoreDistribution,
         ]);
     }

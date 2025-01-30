@@ -64,7 +64,7 @@ class User extends Authenticatable
         return $this->hasMany(StudentAssessment::class, 'student_id');
     }
 
-    public function studentResults()
+    public function results()
     {
         return $this->hasMany(StudentResult::class, 'student_id');
     }

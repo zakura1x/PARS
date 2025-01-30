@@ -19,6 +19,12 @@ class StudentResult extends Model
         'score',
     ];
 
+    protected $casts = [
+        'score' => 'float',
+        'correct_answers' => 'integer',
+        'total_questions' => 'integer',
+    ];
+
     public function student()
     {
         return $this->belongsTo(User::class, 'student_id');

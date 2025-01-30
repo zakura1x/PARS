@@ -92,7 +92,10 @@ class Assessment extends Model
     {
         return $this->belongsToMany(User::class, 'student_assessments')
                     ->withPivot('status') // Include the pivot column 'status'
-                    ->withTimestamps();
+                    ->withTimestamps()
+                    ->with(['results' => function($query){
+                        $query->where('assessment_id', $this->id);
+                    }]);
     }
 
     //Methods

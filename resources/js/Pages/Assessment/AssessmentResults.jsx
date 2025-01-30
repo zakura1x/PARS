@@ -31,15 +31,17 @@ const AssessmentResults = () => {
         scoreDistribution,
     } = usePage().props;
 
+    console.log(students);
+
     // Prepare data for the bar chart
     const chartData = {
-        labels: Object.keys(scoreDistribution).map(
+        labels: Object.keys(scoreDistribution || {}).map(
             (range) => `${range}-${parseInt(range) + 10}%`
         ),
         datasets: [
             {
                 label: "Number of Students",
-                data: Object.values(scoreDistribution),
+                data: Object.values(scoreDistribution || {}).map(Number),
                 backgroundColor: "rgba(54, 162, 235, 0.6)",
             },
         ],
@@ -58,15 +60,10 @@ const AssessmentResults = () => {
         },
     };
 
-    // Function to handle row click
-    const handleRowClick = (studentId) => {
-        router.visit(`/assessment/${assessment.id}/student/${studentId}`);
-    };
-
     return (
         <div className="p-6 bg-base-100 rounded-lg shadow-md">
             <h1 className="text-2xl font-bold mb-4">
-                {assessment.name} - Results
+                {assessment.title} - Results
             </h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -75,9 +72,20 @@ const AssessmentResults = () => {
                         Class Performance
                     </h2>
                     <p>Total Students: {totalStudents}</p>
-                    <p>Average Score: {averageScore.toFixed(2)}%</p>
-                    <p>Highest Score: {highestScore.toFixed(2)}%</p>
-                    <p>Lowest Score: {lowestScore.toFixed(2)}%</p>
+                    <p>
+                        Average Score:{" "}
+                        {!isNaN(averageScore) ? averageScore.toFixed(2) : "N/A"}
+                        %
+                    </p>
+                    <p>
+                        Highest Score:{" "}
+                        {!isNaN(highestScore) ? highestScore.toFixed(2) : "N/A"}
+                        %
+                    </p>
+                    <p>
+                        Lowest Score:{" "}
+                        {!isNaN(lowestScore) ? lowestScore.toFixed(2) : "N/A"}%
+                    </p>
                 </div>
 
                 <div className="bg-white p-4 rounded-lg shadow">
@@ -101,23 +109,43 @@ const AssessmentResults = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {students.map((student) => (
-                            <tr
-                                key={student.id}
-                                onClick={() => handleRowClick(student.id)}
-                                className="cursor-pointer hover:bg-gray-100"
-                            >
-                                <td>{student.id}</td>
-                                <td>{student.name}</td>
-                                <td>{student.results.correct_answers}</td>
-                                <td>{student.results.total_questions}</td>
-                                <td>
-                                    {student.results.score_percentage.toFixed(
-                                        2
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
+                        {students.map((student) => {
+                            const score = parseFloat(
+                                student.latest_result?.score
+                            );
+                            const correctAnswers = parseInt(
+                                student.latest_result?.correct_answers
+                            );
+                            const totalQuestions = parseInt(
+                                student.latest_result?.total_questions
+                            );
+
+                            return (
+                                <tr
+                                    key={student.id}
+                                    onClick={() => handleRowClick(student.id)}
+                                    className="cursor-pointer hover:bg-gray-100"
+                                >
+                                    <td>{student.id}</td>
+                                    <td>{student.name}</td>
+                                    <td>
+                                        {!isNaN(correctAnswers)
+                                            ? correctAnswers
+                                            : "N/A"}
+                                    </td>
+                                    <td>
+                                        {!isNaN(totalQuestions)
+                                            ? totalQuestions
+                                            : "N/A"}
+                                    </td>
+                                    <td>
+                                        {!isNaN(score)
+                                            ? score.toFixed(2)
+                                            : "N/A"}
+                                    </td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
             </div>
