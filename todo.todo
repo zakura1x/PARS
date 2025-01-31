@@ -27,6 +27,7 @@ Practice Assessment:
     ✔ Remove the time limit in generating prac assessment, just record the start and end time @done (1/21/2025, 10:12:48 AM)
     ✔ Remove the topicGrading Criteria when generating assessment @critical @done (1/30/2025, 11:46:54 PM)
     ✔ Create a rules for generating questions @high @done (1/18/2025, 9:54:03 PM)
+    ☐ [1/31/2025] Fix the color of wrong answered questions after prac assess
 
     Student:
         ✔ Fix the issue of saving the last question @done (1/20/2025, 9:45:15 AM)
@@ -48,7 +49,7 @@ Assessment:
     ✔ The StudentAssessmentQuestion should be created for the student when they join the assessment @done (1/30/2025, 11:47:23 PM)
         - This will store the answers of the student
         - It will also store the correct answers of the student
-    ☐ When submitting in student side, an error occurs when storing student answers
+    ☐ [1/31/2025] When submitting in student side, an error occurs but data is stored in student_results
 
     @high Need testing
     Needs testing:
