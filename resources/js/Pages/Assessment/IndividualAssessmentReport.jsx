@@ -11,7 +11,7 @@ const IndividualAssessmentReport = () => {
         usePage().props;
 
     const scorePercentage =
-        result.score_percentage ||
+        result.score ||
         (result.correct_answers /
             (result.correct_answers + result.incorrect_answers)) *
             100;
@@ -30,7 +30,7 @@ const IndividualAssessmentReport = () => {
         );
     };
 
-    console.log(questions);
+    console.log(result);
 
     return (
         <div className="m-2 p-2">
@@ -81,9 +81,9 @@ const IndividualAssessmentReport = () => {
                         <h2 className="text-lg font-semibold">
                             Assessment Details
                         </h2>
-                        <p>Total Number of Items: {assessment.total_items}</p>
+                        <p>Total Number of Items: {result.total_questions}</p>
                         <p>Correct Items: {result.correct_answers}</p>
-                        <p>Time Answered: {duration} minute/s</p>
+                        {/* <p>Time Answered: {duration} minute/s</p> */}
                     </div>
                 </div>
             )}
@@ -101,7 +101,6 @@ const IndividualAssessmentReport = () => {
                             <div className="flex flex-col space-y-2">
                                 <p>
                                     Proficiency Level:{" "}
-                                    {proficiency.previous_level} to{" "}
                                     {proficiency.current_level}
                                 </p>
                             </div>

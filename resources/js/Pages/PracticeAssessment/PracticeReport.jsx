@@ -187,36 +187,34 @@ const PracticeReport = () => {
                                                     key={idx}
                                                     className="flex items-center space-x-2"
                                                 >
-                                                    <input
-                                                        type="radio"
-                                                        name={`question_${index}`}
-                                                        value={option}
-                                                        checked={
-                                                            Array.isArray(
-                                                                question.student_answer
-                                                            )
-                                                                ? question.student_answer.includes(
-                                                                      option
-                                                                  )
-                                                                : option ===
-                                                                  question.student_answer
-                                                        }
-                                                        readOnly
-                                                        className={`radio border-black  ${
-                                                            Array.isArray(
-                                                                question.correct_answer
+                                                    <div
+                                                        className={`w-5 h-5 flex items-center justify-center border border-black rounded ${
+                                                            question.student_answer.includes(
+                                                                option
                                                             )
                                                                 ? question.correct_answer.includes(
                                                                       option
                                                                   )
-                                                                    ? "checked:bg-red-500"
-                                                                    : ""
-                                                                : option ===
-                                                                  question.correct_answer
-                                                                ? " checked:bg-red-500"
-                                                                : ""
+                                                                    ? "bg-green-500" // Correct and selected
+                                                                    : "bg-red-500" // Incorrect and selected
+                                                                : question.correct_answer.includes(
+                                                                      option
+                                                                  )
+                                                                ? "bg-green-500" // Correct but not selected
+                                                                : "bg-white"
                                                         }`}
-                                                    />
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            name={`question_${index}`}
+                                                            value={option}
+                                                            checked={question.student_answer.includes(
+                                                                option
+                                                            )}
+                                                            readOnly
+                                                            className="opacity-0 absolute w-full h-full"
+                                                        />
+                                                    </div>
                                                     <span className="text-black">
                                                         {option}
                                                     </span>
