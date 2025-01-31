@@ -15,29 +15,31 @@ use Illuminate\Support\Facades\Auth;
 class StudentDashboardController extends Controller{
 
     public function index(){
-        // $studentId = Auth::id();
+        $studentId = Auth::id();
 
-        // // Get the 5 latest assessments
-        // $latestAssessments = Assessment::orderBy('created_at', 'desc')->take(value: 5)->get();
+        // Get the 5 latest assessments
+        $latestAssessments = Assessment::orderBy('created_at', 'desc')->take(value: 5)->get();
 
-        // // Get the 5 latest practice assessments with their results
-        // $latestPracticeAssessments = StudentPracticeAssessment::where('student_id', $studentId)
-        //     ->with('results')
-        //     ->orderBy('created_at', 'desc')
-        //     ->take(5)
-        //     ->get();
+        // Get the 5 latest practice assessments with their results
+        $latestPracticeAssessments = StudentPracticeAssessment::where('student_id', $studentId)
+            ->with('results')
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
 
-        // // Get all topic grading criteria ordered by grade
-        // $topicGradingCriteria = TopicGradingCriteria::orderBy('percentage', 'desc')->get();
+        // Get all topic grading criteria ordered by grade
+        $topicGradingCriteria = TopicGradingCriteria::orderBy('percentage', 'desc')->get();
 
-        // // Calculate the overall grade based on topic grading criteria
-        // $overallGrade = $this->calculateOverallGrade($topicGradingCriteria);
+        // Calculate the overall grade based on topic grading criteria
+        $overallGrade = $this->calculateOverallGrade($topicGradingCriteria);
+
+        //dd($overallGrade);
 
         return Inertia::render('Dashboard/StudentDashboard', [
-            // 'latestAssessments' => $latestAssessments,
-            // 'latestPracticeAssessments' => $latestPracticeAssessments,
-            // 'topicGradingCriteria' => $topicGradingCriteria,
-            // 'overallGrade' => $overallGrade,
+            'latestAssessments' => $latestAssessments,
+            'latestPracticeAssessments' => $latestPracticeAssessments,
+            'topicGradingCriteria' => $topicGradingCriteria,
+            'overallGrade' => $overallGrade,
         ]);
     }
 

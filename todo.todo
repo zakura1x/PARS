@@ -25,14 +25,12 @@ Study Materials:
 
 Practice Assessment:
     ✔ Remove the time limit in generating prac assessment, just record the start and end time @done (1/21/2025, 10:12:48 AM)
-    ☐ Remove the topicGrading Criteria when generating assessment @critical
+    ✔ Remove the topicGrading Criteria when generating assessment @critical @done (1/30/2025, 11:46:54 PM)
     ✔ Create a rules for generating questions @high @done (1/18/2025, 9:54:03 PM)
 
     Student:
         ✔ Fix the issue of saving the last question @done (1/20/2025, 9:45:15 AM)
         ✔ Fix the ui when answering assessment, when the website restarts, the answer is not being updated @done (1/19/2025, 1:38:37 AM)
-            ☐ Need some testing
-
         ☐ Add a review answer for answering assessment
         ☐ Add a timer of the assessment in the ui
 
@@ -45,13 +43,11 @@ Practice Assessment:
 
 
 Assessment:
-    Need to fix @critical 
-    ☐ The StudentAssessment question should be moved in the assessment_questions
+    ✔ The StudentAssessment question should be moved in the assessment_questions @done (1/30/2025, 11:47:21 PM)
         - This will store the questions created for the assessment
-    ☐ The StudentAssessmentQuestion should be created for the student when they join the assessment
+    ✔ The StudentAssessmentQuestion should be created for the student when they join the assessment @done (1/30/2025, 11:47:23 PM)
         - This will store the answers of the student
         - It will also store the correct answers of the student
-    ☐ 
 
     @high Need testing
     Needs testing:
@@ -89,7 +85,8 @@ Question:
     ✔ Mass uploaded questions cannot be edited - the edit ui is not displaying anything due to (data.options.map is not a function error) @done (1/21/2025, 10:56:10 PM)
     ☐ Much better to remove the import questions button in the question list
     ✔ The stored mass uploaded questions has a different stored data in the db e.g in options "[\"0%\", \"5%\", \"10%\", \"15%\"]". it has backslashes and quotation marks @done (1/21/2025, 10:56:20 PM)
-    ☐ Delete action in the question list works only in frontend, data is still in db
+    ✔ Delete action in the question list works only in frontend, data is still in db @done (1/31/2025, 8:49:06 AM)
+        - The delete function uses softdeletes, so the data is still in the db
 
     Professor:
 
@@ -125,4 +122,4 @@ Study Materials:
         ☐ Create a ui for viewing of the study materials
     Professor:
         ☐ Create a form for adding title of the attachments
-        ☐ The title should be the name of the attachment
+        ✔ The title should be the name of the attachment @done (1/30/2025, 11:48:09 PM)
