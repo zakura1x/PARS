@@ -17,6 +17,10 @@ class StudentAssessmentQuestion extends Model
         'is_correct'
     ];
 
+    protected $casts = [
+        'student_answer' => 'array',
+    ];
+
     public function studentAssessment()
     {
         return $this->belongsTo(StudentAssessment::class);

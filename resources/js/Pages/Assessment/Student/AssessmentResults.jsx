@@ -1,64 +1,181 @@
-import React from "react";
+import React, { useState } from "react";
 import { usePage } from "@inertiajs/react";
+import { CgNotes } from "react-icons/cg";
+import { IoMdSpeedometer } from "react-icons/io";
+import { FaFileCircleQuestion } from "react-icons/fa6";
+import { FaCheck, FaXmark } from "react-icons/fa6";
+import dayjs from "dayjs";
 
 const AssessmentResults = () => {
-    const { student, assessments } = usePage().props;
+    const { assessment, result, questions, topicProficiencies } =
+        usePage().props;
+
+    const scorePercentage =
+        result.score_percentage ||
+        (result.correct_answers /
+            (result.correct_answers + result.incorrect_answers)) *
+            100;
+
+    const startedAt = dayjs(assessment.started_at);
+    const submittedAt = dayjs(assessment.submitted_at);
+    const duration = submittedAt.diff(startedAt, "minutes");
+
+    const [activeSection, setActiveSection] = useState("assessmentResult");
+
+    const getIcon = (isCorrect) => {
+        return isCorrect ? (
+            <FaCheck color="green" size={24} />
+        ) : (
+            <FaXmark color="red" size={24} />
+        );
+    };
 
     return (
-        <div className="p-6 bg-base-200 min-h-screen">
-            <h1 className="text-2xl font-bold mb-6">
-                Assessment Results for {student.name}
-            </h1>
+        <div className="m-2 p-2">
+            <h2 className="text-2xl font-bold">
+                Assessment Report for Exam code: #{assessment.id}
+            </h2>
 
-            <div className="bg-base-100 rounded-lg shadow-md overflow-hidden">
-                <table className="table w-full">
-                    <thead>
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                                Title
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                                Status
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                                Time Answered (minutes)
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                                Score
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {assessments.map((assessment) => (
-                            <tr key={assessment.id}>
-                                <td className="px-6 py-4">
-                                    {assessment.title}
-                                </td>
-                                <td className="px-6 py-4">
-                                    {assessment.status}
-                                </td>
-                                <td className="px-6 py-4">
-                                    {assessment.started_at &&
-                                    assessment.ended_at
-                                        ? Math.round(
-                                              (new Date(assessment.ended_at) -
-                                                  new Date(
-                                                      assessment.started_at
-                                                  )) /
-                                                  60000
-                                          )
-                                        : "N/A"}
-                                </td>
-                                <td className="px-6 py-4">
-                                    {assessment.score !== null
-                                        ? `${assessment.score}% (${assessment.correct_answers}/${assessment.total_questions})`
-                                        : "N/A"}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+            <div className="mt-2 flex flex-row space-x-4 overflow-x-auto max-w-full">
+                <button
+                    className="btn rounded-2xl bg-[#64946a] border-none text-white"
+                    onClick={() => setActiveSection("assessmentResult")}
+                >
+                    <CgNotes size={22} /> Assessment Result
+                </button>
+                <button
+                    className="btn rounded-2xl bg-[#64946a] border-none text-white"
+                    onClick={() => setActiveSection("topicProficiencies")}
+                >
+                    <IoMdSpeedometer size={22} /> Topic Proficiencies
+                </button>
+                <button
+                    className="btn rounded-2xl bg-[#64946a] border-none text-white"
+                    onClick={() => setActiveSection("questions")}
+                >
+                    <FaFileCircleQuestion size={22} /> Questions
+                </button>
             </div>
+
+            {activeSection === "assessmentResult" && (
+                <div>
+                    <div className="flex flex-col items-center mt-4 min-w-[90%] bg-slate-100 text-black rounded-lg p-4 space-y-4">
+                        <p className="text-lg font-medium">
+                            Assessment Score Percentage
+                        </p>
+                        <div
+                            className="radial-progress"
+                            style={{
+                                "--value": scorePercentage,
+                                "--size": "12rem",
+                                "--thickness": "10px",
+                            }}
+                            role="progressbar"
+                        >
+                            {scorePercentage}%
+                        </div>
+                    </div>
+                    <div className="flex flex-col mt-4 min-w-[90%] bg-slate-100 rounded-lg p-4 text-black">
+                        <h2 className="text-lg font-semibold">
+                            Assessment Details
+                        </h2>
+                        <p>Total Number of Items: {assessment.total_items}</p>
+                        <p>Correct Items: {result.correct_answers}</p>
+                        <p>Time Answered: {duration} minute/s</p>
+                    </div>
+                </div>
+            )}
+
+            {activeSection === "topicProficiencies" && (
+                <div className="mt-4 flex flex-col">
+                    {topicProficiencies.map((proficiency, index) => (
+                        <div
+                            key={index}
+                            className="flex flex-col mt-2 min-w-[90%] bg-slate-100 text-black rounded-lg p-4 space-y-4"
+                        >
+                            <p className="text-lg font-semibold">
+                                Topic: {proficiency.topic_name}
+                            </p>
+                            <div className="flex flex-col space-y-2">
+                                <p>
+                                    Proficiency Level:{" "}
+                                    {proficiency.previous_level} to{" "}
+                                    {proficiency.current_level}
+                                </p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {activeSection === "questions" && (
+                <div className="mt-4 flex flex-col">
+                    {questions.map((question, index) => (
+                        <div key={index} className="mb-2">
+                            <div className="collapse collapse-plus bg-slate-100 text-black">
+                                <input
+                                    type="radio"
+                                    name="my-accordion-3"
+                                    defaultChecked
+                                />
+                                <div className="collapse-title text-xl font-medium">
+                                    <div className="flex flex-row justify-between items-center">
+                                        <p>{question.question_text}</p>
+                                        <div className="rounded-2xl p-2 flex bg-slate-100 flex-row items-center space-x-1">
+                                            {getIcon(question.is_correct)}
+                                            <div
+                                                className={`rounded-2xl px-2 ${
+                                                    question.is_correct
+                                                        ? "bg-green-500"
+                                                        : "bg-red-500"
+                                                }`}
+                                            >
+                                                <p className="text-base">
+                                                    {question.is_correct
+                                                        ? `${question.score}/${question.score}`
+                                                        : `0/${question.score}`}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="collapse-content">
+                                    <div className="flex flex-col space-y-2">
+                                        {question.question_options.map(
+                                            (option, idx) => (
+                                                <label
+                                                    key={idx}
+                                                    className="flex items-center space-x-2"
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        name={`question_${index}`}
+                                                        value={option}
+                                                        checked={question.student_answer.includes(
+                                                            option
+                                                        )}
+                                                        readOnly
+                                                        className={`checkbox border-black ${
+                                                            option ===
+                                                            question.correct_answer
+                                                                ? "checked:bg-red-500"
+                                                                : ""
+                                                        }`}
+                                                    />
+                                                    <span className="text-black">
+                                                        {option}
+                                                    </span>
+                                                </label>
+                                            )
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };

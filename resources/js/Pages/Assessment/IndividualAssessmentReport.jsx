@@ -3,8 +3,7 @@ import { usePage } from "@inertiajs/react";
 import { CgNotes } from "react-icons/cg";
 import { IoMdSpeedometer } from "react-icons/io";
 import { FaFileCircleQuestion } from "react-icons/fa6";
-import { FaCheck } from "react-icons/fa";
-import { FaXmark } from "react-icons/fa6";
+import { FaCheck, FaXmark } from "react-icons/fa6";
 import dayjs from "dayjs";
 
 const IndividualAssessmentReport = () => {
@@ -19,7 +18,7 @@ const IndividualAssessmentReport = () => {
 
     const startedAt = dayjs(assessment.started_at);
     const submittedAt = dayjs(assessment.submitted_at);
-    const duration = submittedAt.diff(startedAt, "minutes"); // duration in minutes
+    const duration = submittedAt.diff(startedAt, "minutes");
 
     const [activeSection, setActiveSection] = useState("assessmentResult");
 
@@ -31,10 +30,12 @@ const IndividualAssessmentReport = () => {
         );
     };
 
+    console.log(questions);
+
     return (
         <div className="m-2 p-2">
             <h2 className="text-2xl font-bold">
-                Assessment Report for Student: {assessment.student.name}
+                Assessment Report for Exam code: #{assessment.id}
             </h2>
 
             <div className="mt-2 flex flex-row space-x-4 overflow-x-auto max-w-full">
@@ -42,28 +43,25 @@ const IndividualAssessmentReport = () => {
                     className="btn rounded-2xl bg-[#64946a] border-none text-white"
                     onClick={() => setActiveSection("assessmentResult")}
                 >
-                    <CgNotes size={22} />
-                    Assessment Result
+                    <CgNotes size={22} /> Assessment Result
                 </button>
                 <button
                     className="btn rounded-2xl bg-[#64946a] border-none text-white"
                     onClick={() => setActiveSection("topicProficiencies")}
                 >
-                    <IoMdSpeedometer size={22} />
-                    Topic Proficiencies
+                    <IoMdSpeedometer size={22} /> Topic Proficiencies
                 </button>
                 <button
                     className="btn rounded-2xl bg-[#64946a] border-none text-white"
                     onClick={() => setActiveSection("questions")}
                 >
-                    <FaFileCircleQuestion size={22} />
-                    Questions
+                    <FaFileCircleQuestion size={22} /> Questions
                 </button>
             </div>
 
             {activeSection === "assessmentResult" && (
                 <div>
-                    <div className="flex flex-col items-center mt-4 min-w-[90%] bg-slate-100 text-black rounded-lg p-4  space-y-4">
+                    <div className="flex flex-col items-center mt-4 min-w-[90%] bg-slate-100 text-black rounded-lg p-4 space-y-4">
                         <p className="text-lg font-medium">
                             Assessment Score Percentage
                         </p>
@@ -79,19 +77,13 @@ const IndividualAssessmentReport = () => {
                             {scorePercentage}%
                         </div>
                     </div>
-                    <div className="flex flex-col mt-4 min-w-[90%] bg-slate-100 rounded-lg p-4 text-black ">
+                    <div className="flex flex-col mt-4 min-w-[90%] bg-slate-100 rounded-lg p-4 text-black">
                         <h2 className="text-lg font-semibold">
                             Assessment Details
                         </h2>
-                        <p className="text-md">
-                            Total Number of Items: {assessment.total_items}
-                        </p>
-                        <p className="text-md">
-                            Correct Items: {result.correct_answers}
-                        </p>
-                        <p className="text-md">
-                            Time Answered: {duration} minute/s
-                        </p>
+                        <p>Total Number of Items: {assessment.total_items}</p>
+                        <p>Correct Items: {result.correct_answers}</p>
+                        <p>Time Answered: {duration} minute/s</p>
                     </div>
                 </div>
             )}
@@ -107,24 +99,12 @@ const IndividualAssessmentReport = () => {
                                 Topic: {proficiency.topic_name}
                             </p>
                             <div className="flex flex-col space-y-2">
-                                <div className="flex flex-row justify-between items-center">
-                                    <p>Current Grade</p>
-                                    <div className="w-full bg-gray-200 rounded-full h-6">
-                                        <div
-                                            className="bg-black h-6 rounded-full"
-                                            style={{
-                                                width: `${proficiency.grade}%`,
-                                            }}
-                                        ></div>
-                                    </div>
-                                    <span className="ml-2">
-                                        {proficiency.grade}%
-                                    </span>
-                                </div>
+                                <p>
+                                    Proficiency Level:{" "}
+                                    {proficiency.previous_level} to{" "}
+                                    {proficiency.current_level}
+                                </p>
                             </div>
-                            <p className="text-sm text-gray-600">
-                                Proficiency Level: {proficiency.current_level}
-                            </p>
                         </div>
                     ))}
                 </div>
@@ -170,36 +150,34 @@ const IndividualAssessmentReport = () => {
                                                     key={idx}
                                                     className="flex items-center space-x-2"
                                                 >
-                                                    <input
-                                                        type="radio"
-                                                        name={`question_${index}`}
-                                                        value={option}
-                                                        checked={
-                                                            Array.isArray(
-                                                                question.student_answer
-                                                            )
-                                                                ? question.student_answer.includes(
-                                                                      option
-                                                                  )
-                                                                : option ===
-                                                                  question.student_answer
-                                                        }
-                                                        readOnly
-                                                        className={`radio border-black  ${
-                                                            Array.isArray(
-                                                                question.correct_answer
+                                                    <div
+                                                        className={`w-5 h-5 flex items-center justify-center border border-black rounded ${
+                                                            question.student_answer.includes(
+                                                                option
                                                             )
                                                                 ? question.correct_answer.includes(
                                                                       option
                                                                   )
-                                                                    ? "checked:bg-red-500"
-                                                                    : ""
-                                                                : option ===
-                                                                  question.correct_answer
-                                                                ? " checked:bg-red-500"
-                                                                : ""
+                                                                    ? "bg-green-500" // Correct and selected
+                                                                    : "bg-red-500" // Incorrect and selected
+                                                                : question.correct_answer.includes(
+                                                                      option
+                                                                  )
+                                                                ? "bg-green-500" // Correct but not selected
+                                                                : "bg-white"
                                                         }`}
-                                                    />
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            name={`question_${index}`}
+                                                            value={option}
+                                                            checked={question.student_answer.includes(
+                                                                option
+                                                            )}
+                                                            readOnly
+                                                            className="opacity-0 absolute w-full h-full"
+                                                        />
+                                                    </div>
                                                     <span className="text-black">
                                                         {option}
                                                     </span>
@@ -207,34 +185,6 @@ const IndividualAssessmentReport = () => {
                                             )
                                         )}
                                     </div>
-
-                                    {question.solution && (
-                                        <div className="mt-4 space-y-2">
-                                            <p>Solution:</p>
-                                            {question.solution.match(
-                                                /\.(jpeg|jpg|gif|png)$/
-                                            ) ? (
-                                                <img
-                                                    src={question.solution}
-                                                    alt="Solution"
-                                                    className="max-w-full h-auto"
-                                                />
-                                            ) : question.solution.match(
-                                                  /^(http|https):\/\//
-                                              ) ? (
-                                                <a
-                                                    href={question.solution}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-black underline"
-                                                >
-                                                    View Solution
-                                                </a>
-                                            ) : (
-                                                <p>{question.solution}</p>
-                                            )}
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         </div>

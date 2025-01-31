@@ -946,7 +946,7 @@ class AssessmentController extends Controller
     
         // Fetch all assessments the student has answered
         $assessments = Assessment::whereHas('students', function ($query) use ($studentId) {
-            $query->where('student_id', $studentId);
+            $query->where('user_id', $studentId);
         })
         ->with(['results' => function ($query) use ($studentId) {
             $query->where('student_id', $studentId);
@@ -1165,7 +1165,7 @@ class AssessmentController extends Controller
         //Fetch the students assessment
         $assessment = StudentAssessment::with('results', 'questions.question')
         ->where('assessment_id', $assessmentId)
-        ->where('student_id', $studentId)
+        ->where('user_id', $studentId)
         ->firstOrFail();
 
         //Get the current topic proficiency for the assessment
