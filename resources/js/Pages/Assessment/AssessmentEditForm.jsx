@@ -33,7 +33,7 @@ const AssessmentEditForm = ({ assessment, questions }) => {
     //console.log(questions.topic);
 
     return (
-        <div className="container mx-auto p-6">
+        <div className="mx-auto overflow-auto p-6">
             <div className="mb-4">
                 {/* Breadcrumbs */}
                 <div className="text-sm breadcrumbs mb-4">

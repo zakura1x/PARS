@@ -138,7 +138,7 @@ const AssessmentGeneratorForm = ({ subjects, errors }) => {
                 <div className="flex justify-end">
                     <button
                         type="submit"
-                        className="btn btn-primary"
+                        className="btn btn-black text-white hover:bg-primary border-none"
                         disabled={processing}
                     >
                         {processing ? "Creating..." : "Create Assessment"}

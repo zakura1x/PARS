@@ -201,7 +201,7 @@ const QuestionForm = ({ initialSubjects }) => {
     };
 
     return (
-        <div className="p-6 bg-gray-100 min-h-screen">
+        <div className="p-6 min-h-[90%]">
             {/* Breadcrumbs */}
             <div className="text-sm breadcrumbs mb-4">
                 <ul>
@@ -217,7 +217,7 @@ const QuestionForm = ({ initialSubjects }) => {
             {/* Question Form */}
             <form
                 onSubmit={handleSubmit}
-                className="rounded-lg bg-white shadow "
+                className="rounded-lg bg-background shadow "
             >
                 <div className="w-full bg-black text-white rounded-t-lg">
                     <h1 className="text-lg mb-4 ml-2 font-medium p-2">
@@ -225,7 +225,7 @@ const QuestionForm = ({ initialSubjects }) => {
                     </h1>
                 </div>
 
-                <div className="px-6 pb-4">
+                <div className="px-6 bg-background pb-4">
                     <div className="flex flex-col md:flex-row md:justify-between gap-4">
                         {/* Subject */}
                         <div className="mb-4 w-full">
@@ -464,7 +464,7 @@ const QuestionForm = ({ initialSubjects }) => {
                             <button
                                 type="submit"
                                 disabled={isProcessing} // Use isProcessing here
-                                className="btn w-full bg-black border-none text-white hover:bg-green-800"
+                                className="btn w-full bg-primary border-none text-white hover:bg-accent"
                             >
                                 {isProcessing ? (
                                     <ClipLoader size={20} color={"#fff"} />

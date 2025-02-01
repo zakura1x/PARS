@@ -1,67 +1,46 @@
 import React from "react";
 import { Link, router, usePage } from "@inertiajs/react";
-import Pagination from "../../components/misc/Pagination"; // Import Pagination
-import FlashMessage from "../../components/Notifications/FlashMessage"; // Import FlashMessage
+import Pagination from "../../components/misc/Pagination";
+import FlashMessage from "../../components/Notifications/FlashMessage";
 
 const AssessmentIndex = ({ assessments }) => {
-    const { auth, flash } = usePage().props;
+    const { auth, flash, errors } = usePage().props;
 
-    // Handle pagination
     const handlePageChange = (url) => {
         if (url) {
             router.get(url);
         }
     };
 
-    // Handle submitting for approval
     const handleSubmitForApproval = (assessmentId) => {
         router.put(`/assessment/update/approval/${assessmentId}`);
     };
 
-    // Handle starting the assessment
     const handleStartAssessment = (assessmentId) => {
         router.put(`/assessment/update/to/wait/${assessmentId}`);
     };
 
     return (
-        <div className="container mx-auto p-6">
+        <div className="container mx-auto p-4 sm:p-6 overflow-x-auto">
             <FlashMessage message={flash.message} />
-            <h1 className="text-2xl font-bold mb-6">Assessments</h1>
+            {errors && errors.message && (
+                <div className="bg-red-100 p-4 text-red-700 rounded-lg shadow-md mb-4">
+                    {errors.message}
+                </div>
+            )}
+            <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">
+                Assessments
+            </h1>
 
             {assessments.data.length === 0 ? (
-                <table className="table table-auto w-full border-collapse border border-gray-300">
-                    <thead>
-                        <tr className="bg-gray-100">
-                            <th className="border border-gray-300 p-2">
-                                Title
-                            </th>
-                            <th className="border border-gray-300 p-2">
-                                Status
-                            </th>
-                            <th className="border border-gray-300 p-2">
-                                Created At
-                            </th>
-                            <th className="border border-gray-300 p-2">
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td
-                                className="border border-gray-300 p-2"
-                                colSpan="4"
-                            >
-                                No assessments found.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div className="bg-gray-100 p-4 text-center rounded-lg shadow-md">
+                    No assessments found.
+                </div>
             ) : (
-                <>
-                    <table className="table table-auto w-full border-collapse border border-gray-300">
+                <div className="overflow-x-auto">
+                    <table className="w-full border-collapse border border-gray-300 text-sm sm:text-base">
                         <thead>
-                            <tr className="bg-gray-100">
+                            <tr className="bg-gray-100 text-left">
                                 <th className="border border-gray-300 p-2">
                                     Title
                                 </th>
@@ -78,7 +57,7 @@ const AssessmentIndex = ({ assessments }) => {
                         </thead>
                         <tbody>
                             {assessments.data.map((assessment) => (
-                                <tr key={assessment.id}>
+                                <tr key={assessment.id} className="border-b">
                                     <td className="border border-gray-300 p-2">
                                         {assessment.title}
                                     </td>
@@ -90,16 +69,13 @@ const AssessmentIndex = ({ assessments }) => {
                                             assessment.created_at
                                         ).toLocaleString()}
                                     </td>
-                                    <td className="border border-gray-300 p-2 space-x-2">
-                                        {/* View/Edit Button */}
+                                    <td className="border border-gray-300 p-2 flex flex-wrap gap-2">
                                         <Link
                                             href={`/assessment/edit/form/exam/${assessment.id}`}
                                             className="btn btn-primary btn-sm"
                                         >
                                             View/Edit
                                         </Link>
-
-                                        {/* Start Assessment Button (for pending assessments) */}
                                         {assessment.status === "active" && (
                                             <button
                                                 type="button"
@@ -113,8 +89,6 @@ const AssessmentIndex = ({ assessments }) => {
                                                 Start Assessment
                                             </button>
                                         )}
-
-                                        {/* View Status Button (for ongoing assessments) */}
                                         {assessment.status === "on_going" && (
                                             <Link
                                                 href={`/assessment/${assessment.id}/status`}
@@ -123,8 +97,6 @@ const AssessmentIndex = ({ assessments }) => {
                                                 View Status
                                             </Link>
                                         )}
-
-                                        {/* View Results Button (for completed assessments) */}
                                         {assessment.status === "completed" && (
                                             <Link
                                                 href={`/assessment/${assessment.id}/results`}
@@ -133,46 +105,41 @@ const AssessmentIndex = ({ assessments }) => {
                                                 View Results
                                             </Link>
                                         )}
-
-                                        {/* Approve Button (for program heads) */}
                                         {auth.user.role === "program_head" && (
-                                            <Link
-                                                href={`/assessment/approval/form/${assessment.id}`}
-                                                className="btn btn-warning btn-sm"
-                                            >
-                                                Approve
-                                            </Link>
-                                        )}
-
-                                        {/* Submit for Approval Button (for program heads) */}
-                                        {auth.user.role === "program_head" && (
-                                            <button
-                                                type="button"
-                                                className="btn btn-secondary btn-sm"
-                                                onClick={() =>
-                                                    handleSubmitForApproval(
-                                                        assessment.id
-                                                    )
-                                                }
-                                            >
-                                                Submit for Approval
-                                            </button>
+                                            <>
+                                                <Link
+                                                    href={`/assessment/approval/form/${assessment.id}`}
+                                                    className="btn btn-warning btn-sm"
+                                                >
+                                                    Approve
+                                                </Link>
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-secondary btn-sm"
+                                                    onClick={() =>
+                                                        handleSubmitForApproval(
+                                                            assessment.id
+                                                        )
+                                                    }
+                                                >
+                                                    Submit for Approval
+                                                </button>
+                                            </>
                                         )}
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
-
-                    {/* Pagination Component */}
-                    <div className="mt-4">
-                        <Pagination
-                            data={assessments}
-                            onPageChange={handlePageChange}
-                        />
-                    </div>
-                </>
+                </div>
             )}
+
+            <div className="mt-4">
+                <Pagination
+                    data={assessments}
+                    onPageChange={handlePageChange}
+                />
+            </div>
         </div>
     );
 };

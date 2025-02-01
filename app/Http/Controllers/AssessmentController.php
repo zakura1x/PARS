@@ -367,6 +367,10 @@ class AssessmentController extends Controller
     {
         $assessment = Assessment::with('questions.topic')->findOrFail($assessmentId);
 
+        if($assessment->status !== 'draft'){
+            return back()->withErrors(['message' => 'Assessment cannot be edited anymore']);
+        }
+
         // Get all the questions related to the assessment
         //$questions = $assessment->questions;
 
@@ -1135,7 +1139,8 @@ class AssessmentController extends Controller
             
             // Build student list
             $students[] = [
-                'id' => $result->student->idNumber,
+                'idNumber' => $result->student->idNumber,
+                'id' => $result->student->id,
                 'name' => $result->student->full_name,
                 'latest_result' => $result->only(['correct_answers', 'total_questions', 'score'])
             ];
@@ -1163,6 +1168,7 @@ class AssessmentController extends Controller
 
     public function showIndividualAssessment($assessmentId, $studentId){
         //Fetch the students assessment
+        dd('reached');
         $assessment = StudentAssessment::with('results', 'questions.question')
         ->where('assessment_id', $assessmentId)
         ->where('user_id', $studentId)

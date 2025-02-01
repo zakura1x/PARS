@@ -16,7 +16,7 @@ const programHeadMenu = [
                 items: [
                     { label: "Add Question", href: "/questionDetails", key: 1 },
                     { label: "Question List", href: "/questionBank", key: 2 },
-                    { label: "Approve Question", href: "", key: 3 },
+
                     {
                         label: "Mass Upload Question",
                         href: "/question/mass-upload",
@@ -28,8 +28,16 @@ const programHeadMenu = [
                 title: "Assessment",
                 icon: <MdOutlineAssessment size={26} />,
                 items: [
-                    { label: "Generate Exam Assessment", href: "/assessment/generator/form/exam", key: 5 },
-                    { label: "View Assessments", href: "/assessment/index/program-head", key: 6 },
+                    {
+                        label: "Generate Exam Assessment",
+                        href: "/assessment/generator/form/exam",
+                        key: 5,
+                    },
+                    {
+                        label: "View Assessments",
+                        href: "/assessment/index/program-head",
+                        key: 6,
+                    },
                     { label: "Assessment Dashboard", href: "", key: 7 },
                     //{ label: "Assessment Repository", href: "", key: 4 },
                 ],

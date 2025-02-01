@@ -21,9 +21,6 @@ const Header = () => {
                     <button className="btn border-none bg-[#42604C] text-white hover:bg-gray-600 px-4">
                         <Link href="/questionDetails">+ Add New Question</Link>
                     </button>
-                    <button className="btn border-none bg-[#42604C] text-white hover:bg-gray-600 px-4">
-                        Import Question/s
-                    </button>
                 </div>
             </div>
         </div>

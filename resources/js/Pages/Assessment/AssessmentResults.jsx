@@ -1,5 +1,5 @@
 import React from "react";
-import { usePage } from "@inertiajs/react";
+import { usePage, router } from "@inertiajs/react";
 import { Bar } from "react-chartjs-2";
 import {
     Chart as ChartJS,
@@ -60,11 +60,15 @@ const AssessmentResults = () => {
     };
 
     const handleRowClick = (studentId) => {
-        router.visit(`/students/${studentId}`);
+        router.visit(
+            `/assessment/${assessment.id}/student/prof/view/${studentId}`
+        );
     };
 
+    //console.log(assessment.id);
+
     return (
-        <div className="p-4 bg-base-100 rounded-lg shadow-md">
+        <div className="p-4 bg-gray-200 rounded-lg shadow-md">
             <h1 className="text-2xl font-bold mb-6 text-center md:text-left">
                 {assessment.title} - Results
             </h1>
@@ -106,7 +110,6 @@ const AssessmentResults = () => {
                         Score Distribution
                     </h2>
                     <div className="h-64 md:h-80">
-                        {" "}
                         {/* Fixed height for responsiveness */}
                         <Bar data={chartData} options={chartOptions} />
                     </div>
@@ -118,70 +121,75 @@ const AssessmentResults = () => {
                 Student Results
             </h2>
             <div className="overflow-x-auto rounded-lg shadow-sm">
-                <table className="min-w-full bg-white">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                                Student ID
-                            </th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                                Name
-                            </th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                                Correct Answers
-                            </th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                                Total Questions
-                            </th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                                Score (%)
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                        {students.map((student) => {
-                            const score = parseFloat(
-                                student.latest_result?.score
-                            );
-                            const correctAnswers = parseInt(
-                                student.latest_result?.correct_answers
-                            );
-                            const totalQuestions = parseInt(
-                                student.latest_result?.total_questions
-                            );
+                <div className="max-h-96 overflow-y-auto">
+                    {/* Set fixed height and enable vertical scrolling */}
+                    <table className="min-w-full bg-white">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                                    Student ID
+                                </th>
+                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                                    Name
+                                </th>
+                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                                    Correct Answers
+                                </th>
+                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                                    Total Questions
+                                </th>
+                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                                    Score (%)
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                            {students.map((student) => {
+                                const score = parseFloat(
+                                    student.latest_result?.score
+                                );
+                                const correctAnswers = parseInt(
+                                    student.latest_result?.correct_answers
+                                );
+                                const totalQuestions = parseInt(
+                                    student.latest_result?.total_questions
+                                );
 
-                            return (
-                                <tr
-                                    key={student.id}
-                                    onClick={() => handleRowClick(student.id)}
-                                    className="cursor-pointer hover:bg-gray-50 transition-colors"
-                                >
-                                    <td className="px-4 py-3 text-sm text-gray-700">
-                                        {student.id}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-gray-700">
-                                        {student.name}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-gray-700">
-                                        {!isNaN(correctAnswers)
-                                            ? correctAnswers
-                                            : "N/A"}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-gray-700">
-                                        {!isNaN(totalQuestions)
-                                            ? totalQuestions
-                                            : "N/A"}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-gray-700">
-                                        {!isNaN(score)
-                                            ? score.toFixed(2)
-                                            : "N/A"}
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
+                                return (
+                                    <tr
+                                        key={student.id}
+                                        onClick={() =>
+                                            handleRowClick(student.id)
+                                        }
+                                        className="cursor-pointer hover:bg-gray-50 transition-colors"
+                                    >
+                                        <td className="px-4 py-3 text-sm text-gray-700">
+                                            {student.id}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-gray-700">
+                                            {student.name}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-gray-700">
+                                            {!isNaN(correctAnswers)
+                                                ? correctAnswers
+                                                : "N/A"}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-gray-700">
+                                            {!isNaN(totalQuestions)
+                                                ? totalQuestions
+                                                : "N/A"}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-gray-700">
+                                            {!isNaN(score)
+                                                ? score.toFixed(2)
+                                                : "N/A"}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );
