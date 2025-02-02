@@ -19,7 +19,7 @@ const QuestionTable = ({ questions }) => {
             router.delete(`/questions/${id}`);
         }
     };
-    
+
     return (
         <div className="my-2 overflow-x-auto lg:mx-4">
             <table className="w-full border-collapse bg-white shadow-md rounded-md">
@@ -31,7 +31,6 @@ const QuestionTable = ({ questions }) => {
                         <th className="py-3 px-4 text-left">Difficulty</th>
                         <th className="py-3 px-4 text-left">Subject</th>
                         <th className="py-3 px-4 text-left">Topic</th>
-                        <th className="py-3 px-4 text-left">Status</th>
                         <th className="py-3 px-4 text-left">Date Added</th>
                         <th className="py-3 px-4 text-left">Actions</th>
                     </tr>
@@ -90,7 +89,7 @@ const QuestionTable = ({ questions }) => {
                                 </td>
 
                                 {/* Status with Color Badge */}
-                                <td className="py-3 px-4">
+                                {/* <td className="py-3 px-4">
                                     <span
                                         className={`px-2 py-1 text-xs font-semibold rounded-full ${
                                             question.status === "Active"
@@ -100,7 +99,7 @@ const QuestionTable = ({ questions }) => {
                                     >
                                         {question.status}
                                     </span>
-                                </td>
+                                </td> */}
 
                                 {/* Date Added */}
                                 <td className="py-3 px-4">

@@ -22,7 +22,7 @@
     input[type="number"],
     select,
     textarea {
-        @apply block w-full rounded-md border p-2 text-base shadow-sm ring-1 ring-inset ring-accent bg-background placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm bg-white;
+        @apply block w-full rounded-md border p-2 text-base shadow-sm ring-1 ring-inset ring-secondary bg-background placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm bg-white;
     }
     label {
         @apply block text-sm font-medium leading-6 text-slate-900 first-letter:capitalize;

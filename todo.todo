@@ -27,7 +27,7 @@ Practice Assessment:
     ✔ Remove the time limit in generating prac assessment, just record the start and end time @done (1/21/2025, 10:12:48 AM)
     ✔ Remove the topicGrading Criteria when generating assessment @critical @done (1/30/2025, 11:46:54 PM)
     ✔ Create a rules for generating questions @high @done (1/18/2025, 9:54:03 PM)
-    ☐ [1/31/2025] Fix the color of wrong answered questions after prac assess
+    ✔ [1/31/2025] Fix the color of wrong answered questions after prac assess @done (2/2/2025, 8:06:22 PM)
 
     Student:
         ✔ Fix the issue of saving the last question @done (1/20/2025, 9:45:15 AM)
@@ -54,22 +54,22 @@ Assessment:
     @high Need testing
     Needs testing:
         ✔ Generate Assessment @done (1/26/2025, 12:26:46 AM)
-        ☐ Edit Assessment @high
+        ✔ Edit Assessment @high @done (2/1/2025, 11:45:36 PM)
         ✔ Replace Question @high @done (1/29/2025, 6:07:50 PM)
         ☐ Delete Assessment @high
         ✔ Approve Assessment @high @done (1/31/2025, 9:39:50 AM)
 
     Need to do:
-        ☐ Initialization of Assessment @high
-            ☐ Faculty can start the assessment @high
-            ☐ Student can join the assessment @high
-        ☐ Faculty set the start of the assessment
-        ☐ Student answering assessment @high
-        ☐ Grading of assessment @high
-        ☐ Report for the assessment @high
-            ☐ Report for student @high
-            ☐ Report for faculty @high
-        ☐ Faculty can end the assessment @high
+        ✔ Initialization of Assessment @high @done (2/1/2025, 11:57:37 PM)
+            ✔ Faculty can start the assessment @high @done (2/1/2025, 11:57:39 PM)
+            ✔ Student can join the assessment @high @done (2/1/2025, 11:57:40 PM)
+        ✔ Faculty set the start of the assessment @done (2/1/2025, 11:57:45 PM)
+        ✔ Student answering assessment @high @done (2/1/2025, 11:57:48 PM)
+        ✔ Grading of assessment @high @done (2/1/2025, 11:57:49 PM)
+        ✔ Report for the assessment @high @done (2/1/2025, 11:57:51 PM)
+            ✔ Report for student @high @done (2/1/2025, 11:57:52 PM)
+            ✔ Report for faculty @high @done (2/1/2025, 11:57:53 PM)
+        ✔ Faculty can end the assessment @high @done (2/1/2025, 11:57:54 PM)
 
     Student:
         ✔ Ui for answering assessment @done (1/26/2025, 7:08:18 PM)
@@ -85,7 +85,7 @@ Question:
         ✔ CSV File upload @done (1/21/2025, 10:50:42 AM)
 
     ✔ Mass uploaded questions cannot be edited - the edit ui is not displaying anything due to (data.options.map is not a function error) @done (1/21/2025, 10:56:10 PM)
-    ☐ Much better to remove the import questions button in the question list
+    ✔ Much better to remove the import questions button in the question list @done (2/1/2025, 11:45:16 PM)
     ✔ The stored mass uploaded questions has a different stored data in the db e.g in options "[\"0%\", \"5%\", \"10%\", \"15%\"]". it has backslashes and quotation marks @done (1/21/2025, 10:56:20 PM)
     ✔ Delete action in the question list works only in frontend, data is still in db @done (1/31/2025, 8:49:06 AM)
         - The delete function uses softdeletes, so the data is still in the db
@@ -105,7 +105,7 @@ Topics:
     Program Head:
 
 Subject:
-    ☐ Remove the active and inactive
+    ✔ Remove the active and inactive @done (2/1/2025, 11:45:50 PM)
     ☐ Add delete function
     ☐ Fix the form for adding subject
     Professor:

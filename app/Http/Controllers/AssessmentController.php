@@ -1168,7 +1168,7 @@ class AssessmentController extends Controller
 
     public function showIndividualAssessment($assessmentId, $studentId){
         //Fetch the students assessment
-        dd('reached');
+        //dd('reached');
         $assessment = StudentAssessment::with('results', 'questions.question')
         ->where('assessment_id', $assessmentId)
         ->where('user_id', $studentId)

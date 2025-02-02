@@ -4,7 +4,7 @@ import { Link } from "@inertiajs/react";
 const Header = () => {
     return (
         <div>
-            <div className="breadcrumbs text-sm">
+            {/* <div className="breadcrumbs text-sm">
                 <ul>
                     <li>
                         <a href="/dashboard">Dashboard</a>
@@ -14,7 +14,7 @@ const Header = () => {
                     </li>
                     <li className="text-gray-500">Question List</li>
                 </ul>
-            </div>
+            </div> */}
             <div className="flex justify-between items-center flex-row p-4 md:py-0  space-x-6">
                 <h4 className="font-bold text-[24px] ">Questions</h4>
                 <div className="space-x-4 space-y-2 md:space-y-0 flex-col md:flex-row">

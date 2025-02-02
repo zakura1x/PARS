@@ -38,6 +38,7 @@ const QuestionEdit = () => {
         }
     }, [data.subject_id]);
 
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setData(name, value);
@@ -54,13 +55,20 @@ const QuestionEdit = () => {
     };
 
     const handleRemoveOption = (index) => {
-        const updatedOptions = [...data.options];
-        const removedOption = updatedOptions.splice(index, 1)[0];
-        setData("options", updatedOptions);
-        setData(
-            "correct_answer",
-            data.correct_answer.filter((ans) => ans !== removedOption)
-        );
+        setData((prevData) => {
+            const updatedOptions = prevData.options.filter(
+                (_, i) => i !== index
+            );
+            const removedOption = prevData.options[index];
+
+            return {
+                ...prevData,
+                options: updatedOptions,
+                correct_answer: prevData.correct_answer.filter(
+                    (ans) => ans !== removedOption
+                ),
+            };
+        });
     };
 
     const toggleCorrectAnswer = (option) => {
@@ -121,6 +129,7 @@ const QuestionEdit = () => {
                                 </button>
                             </div>
                         ))}
+
                         <button
                             type="button"
                             onClick={handleAddOption}
@@ -220,7 +229,7 @@ const QuestionEdit = () => {
                                 name="subject_id"
                                 value={data.subject_id}
                                 onChange={handleInputChange}
-                                className="select select-bordered w-full"
+                                className="select select-bordered w-full bg-background"
                             >
                                 <option value="">Select a subject</option>
                                 {subjects.map((subject) => (
@@ -244,7 +253,7 @@ const QuestionEdit = () => {
                                 name="topic_id"
                                 value={data.topic_id}
                                 onChange={handleInputChange}
-                                className="select select-bordered w-full"
+                                className="select select-bordered w-full bg-background"
                             >
                                 <option value="">Select a topic</option>
                                 {availableTopics.map((topic) => (
@@ -268,7 +277,7 @@ const QuestionEdit = () => {
                                 name="purpose_type"
                                 value={data.purpose_type}
                                 onChange={handleInputChange}
-                                className="select select-bordered w-full"
+                                className="select select-bordered w-full bg-background"
                             >
                                 <option value="">Select the Purpose</option>
                                 <option value="practice">Practice Type</option>
@@ -296,7 +305,7 @@ const QuestionEdit = () => {
                                 name="difficulty"
                                 value={data.difficulty}
                                 onChange={handleInputChange}
-                                className="select select-bordered w-full"
+                                className="select select-bordered w-full bg-background"
                             >
                                 <option value="">Select Difficulty</option>
                                 <option value="remembering">Remembering</option>
@@ -345,11 +354,11 @@ const QuestionEdit = () => {
                                         e.target.files[0]
                                     )
                                 }
-                                className="input input-bordered w-full"
+                                className="file-input file-input-bordered w-full max-w-xs"
                             />
                             {errors.attachment_path && (
                                 <span className="text-red-500 text-sm">
-                                    {errors.attachment_path}
+                                    s{errors.attachment_path}
                                 </span>
                             )}
                         </div>
@@ -363,7 +372,7 @@ const QuestionEdit = () => {
                             name="question_text"
                             value={data.question_text}
                             onChange={handleInputChange}
-                            className="textarea textarea-bordered w-full"
+                            className="textarea textarea-bordered w-full bg-background"
                         ></textarea>
                         {errors.question_text && (
                             <span className="text-red-500 text-sm">
@@ -380,7 +389,7 @@ const QuestionEdit = () => {
                             name="status"
                             value={data.status}
                             onChange={handleInputChange}
-                            className="select select-bordered w-full"
+                            className="select select-bordered w-full bg-background"
                         >
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
@@ -400,7 +409,7 @@ const QuestionEdit = () => {
                             name="format_type"
                             value={data.format_type}
                             onChange={handleInputChange}
-                            className="select select-bordered w-full"
+                            className="select select-bordered w-full bg-background"
                         >
                             <option value="">Select a format</option>
                             <option value="multiple_choice">
