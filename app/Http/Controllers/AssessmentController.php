@@ -788,7 +788,7 @@ class AssessmentController extends Controller
     public function submitAssessment($assessmentId, $studentId)
     {
         //dd('reached');
-        $assessment = StudentAssessment::where('id', $assessmentId)
+        $assessment = StudentAssessment::where('assessment_id', $assessmentId)
             ->where('user_id', $studentId) // Ensure it's scoped to the current student
             ->with('questions.question')
             ->firstOrFail();

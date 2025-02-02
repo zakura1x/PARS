@@ -80,11 +80,11 @@ const programHeadMenu = [
                 icon: <IoIosBookmarks size={26} />,
                 items: [
                     { label: "Topic List", href: "/topic/lists", key: 11 },
-                    {
-                        label: "Topic Grading Criteria",
-                        href: "/topic-grading-criteria/index",
-                        key: 12,
-                    },
+                    // {
+                    //     label: "Topic Grading Criteria",
+                    //     href: "/topic-grading-criteria/index",
+                    //     key: 12,
+                    // },
                     {
                         label: "Table of Specification (TOS)",
                         href: "/table-of-specification/index",
