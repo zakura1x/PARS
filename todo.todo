@@ -50,6 +50,8 @@ Assessment:
         - This will store the answers of the student
         - It will also store the correct answers of the student
     ☐ [1/31/2025] When submitting in student side, an error occurs but data is stored in student_results
+    ☐ [2/2/2025] Breadcrumbs of assessment not working
+    ☐ [2/2/2025] If multiple students joined the assessment, some cannot submit their assessment nor save the answers in db
 
     @high Need testing
     Needs testing:
@@ -121,7 +123,9 @@ Customize Assessments:
 
 Study Materials:
     Student:
-        ☐ Create a ui for viewing of the study materials
+        ✔ Create a ui for viewing of the study materials
+        ☐ [2/2/2025] on student side, viewing of study materials is forbidden
+
     Professor:
         ☐ Create a form for adding title of the attachments
         ✔ The title should be the name of the attachment @done (1/30/2025, 11:48:09 PM)
