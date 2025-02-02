@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('student_assessments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('assessment_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('assessment_id')->constrained('assessments')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->json('shuffled_questions')->nullable(); // Stores shuffled question IDs
             $table->json('shuffled_options')->nullable();  // Stores shuffled options for each question
