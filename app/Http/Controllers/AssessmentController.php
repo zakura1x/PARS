@@ -860,35 +860,38 @@ class AssessmentController extends Controller
         // Calculate the final score percentage for the assessment
         $scorePercentage = ($totalWeightedScore > 0) ? ($earnedWeightedScore / $totalWeightedScore) * 100 : 0;
 
-        // Save the results to the database
-        $assessment->results()->create([
-            'assessment_id' => $assessment->assessment_id,
-            'student_id' => $assessment->user_id,
-            'total_questions' => $correctAnswers + $incorrectAnswers,
-            'correct_answers' => $correctAnswers,
-            'wrong_answers' => $incorrectAnswers,
-            'score' => $scorePercentage,
-        ]);
-
-        // Update proficiency for each topic
-        foreach ($questionsByTopic as $topicId => $topicQuestions) {
-            $numerator = [];
-            $denominator = [];
-
-            foreach ($topicQuestions as $question) {
-                $isCorrect = $question->is_correct;
-                $questionWeight = $question->question->weight ?? 1;
-                $difficultyWeight = $this->getDifficultyWeight($question->question);
-
-                $score = $isCorrect ? 1 : 0;
-                $attemptWeight = 1;
-
-                $numerator[] = $attemptWeight * $score * $difficultyWeight * $questionWeight;
-                $denominator[] = $difficultyWeight * $questionWeight;
+        DB::transaction(function () use ($assessment, $correctAnswers, $incorrectAnswers, $scorePercentage, $questionsByTopic) {
+            // Re-fetch assessment inside transaction to prevent race conditions
+            $assessment->refresh();
+        
+            $assessment->results()->create([
+                'assessment_id' => $assessment->assessment_id,
+                'student_id' => $assessment->user_id,
+                'total_questions' => $correctAnswers + $incorrectAnswers,
+                'correct_answers' => $correctAnswers,
+                'wrong_answers' => $incorrectAnswers,
+                'score' => $scorePercentage,
+            ]);
+        
+            foreach ($questionsByTopic as $topicId => $topicQuestions) {
+                $numerator = [];
+                $denominator = [];
+        
+                foreach ($topicQuestions as $question) {
+                    $isCorrect = $question->is_correct;
+                    $questionWeight = $question->question->weight ?? 1;
+                    $difficultyWeight = $this->getDifficultyWeight($question->question);
+        
+                    $score = $isCorrect ? 1 : 0;
+                    $attemptWeight = 1;
+        
+                    $numerator[] = $attemptWeight * $score * $difficultyWeight * $questionWeight;
+                    $denominator[] = $difficultyWeight * $questionWeight;
+                }
+        
+                $this->updateTopicProficiency($assessment->user_id, $topicId, $numerator, $denominator);
             }
-
-            $this->updateTopicProficiency($assessment->user_id, $topicId, $numerator, $denominator);
-        }
+        });
 
         return $assessment;
     }
