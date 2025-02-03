@@ -1178,7 +1178,7 @@ class AssessmentController extends Controller
     public function showIndividualAssessment($assessmentId, $studentId){
         //Fetch the students assessment
         //dd('reached');
-        $assessment = StudentAssessment::with('results', 'questions.question')
+        $assessment = StudentAssessment::with('result', 'questions.question')
         ->where('assessment_id', $assessmentId)
         ->where('user_id', $studentId)
         ->firstOrFail();
@@ -1190,7 +1190,7 @@ class AssessmentController extends Controller
 
         return inertia('Assessment/IndividualAssessmentReport', [
             'assessment' => $assessment,
-            'result' => $assessment->results,
+            'result' => $assessment->result,
             'questions' => $assessment->questions->map(function ($question) {
                 return [
                     'question_text' => $question->question->question_text,
