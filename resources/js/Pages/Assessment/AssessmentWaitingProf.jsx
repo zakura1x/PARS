@@ -43,7 +43,7 @@ const AssessmentWaitingProf = ({
     };
 
     return (
-        <div className="p-6 bg-base-100 rounded-lg shadow-md">
+        <div className="p-6 m-6 bg-background rounded-lg shadow-md">
             <h1 className="text-2xl font-bold mb-4">{assessment.name}</h1>
             <p className="text-gray-700 mb-2">Status: {assessment.status}</p>
             <p className="text-gray-700 mb-4">

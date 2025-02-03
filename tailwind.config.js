@@ -57,14 +57,14 @@ export default {
           "secondary": "#8fd2ef",
           "accent": "#638de9",
           "neutral": "#0a4219",
-          "base-100": "#f2fdf5",
+          "base-100": "#ffffff",
         },
         dark: {
           "primary": "#9ebda8",
           "secondary": "#105370",
           "accent": "#16419c",
           "neutral": "#0a4219",
-          "base-100": "#020d05",
+          "base-100": "#ffffff",
         },
       },
     ], // false: only light + dark | true: all themes | array: specific themes like this ["light", "dark", "cupcake"]

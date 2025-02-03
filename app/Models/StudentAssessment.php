@@ -41,9 +41,9 @@ class StudentAssessment extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function results()
+    public function result()
     {
-        return $this->hasOne(StudentResult::class, 'assessment_id');
+        return $this->hasOne(StudentResult::class);
     }
     
 }

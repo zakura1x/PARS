@@ -12,8 +12,8 @@ const StudentInputCode = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-base-200">
-            <div className="card w-full max-w-md shadow-2xl bg-base-100">
+        <div className="min-h-screen flex items-center justify-center bg-background">
+            <div className="card w-full max-w-md shadow-2xl bg-background">
                 <div className="card-body">
                     <h1 className="card-title text-center">Join Assessment</h1>
                     <form onSubmit={handleSubmit}>
@@ -44,7 +44,7 @@ const StudentInputCode = () => {
                         <div className="form-control mt-6">
                             <button
                                 type="submit"
-                                className="btn btn-primary bg-black hover:bg-green-800 border-none"
+                                className="btn text-white btn-primary bg-black hover:bg-green-800 border-none"
                             >
                                 Join Assessment
                             </button>

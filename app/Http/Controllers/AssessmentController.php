@@ -793,7 +793,7 @@ class AssessmentController extends Controller
             ->with('questions.question')
             ->firstOrFail();
 
-        //dd($assessment);
+        //dd($assessment->assessment_id);
         
         $assessmentMain = Assessment::findOrFail($assessmentId);
 
@@ -818,7 +818,7 @@ class AssessmentController extends Controller
             ]);
     
             // Grade the assessment
-            $this->gradeAssessment($assessment->id);
+            $this->gradeAssessment($assessment->assessment_id, $assessment->user_id );
         });
     
         return to_route('assessment.student-result', [
@@ -828,9 +828,14 @@ class AssessmentController extends Controller
     }
     
 
-    public function gradeAssessment($assessmentId)
+    public function gradeAssessment($assessmentId, $studentId)
     {
-        $assessment = StudentAssessment::findOrFail($assessmentId);
+        //dd($assessmentId, $studentId);
+        $assessment = StudentAssessment::where('assessment_id', $assessmentId)
+            ->where('user_id', $studentId) // Ensure it's scoped to the current student
+            ->firstOrFail();
+        //dd($assessment);
+        
 
         $questions = $assessment->questions()->with('question')->get();
         
@@ -860,18 +865,18 @@ class AssessmentController extends Controller
         // Calculate the final score percentage for the assessment
         $scorePercentage = ($totalWeightedScore > 0) ? ($earnedWeightedScore / $totalWeightedScore) * 100 : 0;
 
-        DB::transaction(function () use ($assessment, $correctAnswers, $incorrectAnswers, $scorePercentage, $questionsByTopic) {
+        DB::transaction(function () use ($assessmentId, $studentId, $assessment, $correctAnswers, $incorrectAnswers, $scorePercentage, $questionsByTopic) {
             // Re-fetch assessment inside transaction to prevent race conditions
             $assessment->refresh();
-        
-            $assessment->results()->create([
-                'assessment_id' => $assessment->assessment_id,
-                'student_id' => $assessment->user_id,
+            //dd($assessment->assessment_id);
+
+            $assessment->result()->create([
                 'total_questions' => $correctAnswers + $incorrectAnswers,
                 'correct_answers' => $correctAnswers,
                 'wrong_answers' => $incorrectAnswers,
                 'score' => $scorePercentage,
             ]);
+            
         
             foreach ($questionsByTopic as $topicId => $topicQuestions) {
                 $numerator = [];
@@ -952,28 +957,27 @@ class AssessmentController extends Controller
         $student = User::findOrFail($studentId);
     
         // Fetch all assessments the student has answered
-        $assessments = Assessment::whereHas('students', function ($query) use ($studentId) {
-            $query->where('user_id', $studentId);
-        })
-        ->with(['results' => function ($query) use ($studentId) {
-            $query->where('student_id', $studentId);
-        }])
-        ->get();
+        $studentAssessments = StudentAssessment::where('user_id', $studentId)
+            ->with(['assessment', 'result'])
+            ->get();
     
         // Transform the data for the frontend
-        $assessmentResults = $assessments->map(function ($assessment) {
-            $timeAnswered = $assessment->started_at && $assessment->ended_at
+        $assessmentResults = $studentAssessments->map(function ($studentAssessment) {
+            $assessment = $studentAssessment->assessment;
+            $result = $studentAssessment->result;
+
+            $timeAnswered = $studentAssessment->started_at && $studentAssessment->completed_at
                 ? round((strtotime($assessment->ended_at) - strtotime($assessment->started_at)) / 60)
                 : null;
     
             return [
                 'id' => $assessment->id,
                 'title' => $assessment->title,
-                'status' => $assessment->status,
+                'status' => $studentAssessment->status,
                 'time_answered' => $timeAnswered,
-                'score' => $assessment->results->first()->score_percentage ?? null,
-                'correct_answers' => $assessment->results->first()->correct_answers ?? null,
-                'total_questions' => $assessment->results->first()->total_questions ?? null,
+                'score' => $result->score ?? null,
+                'correct_answers' => $result->correct_answer ?? null,
+                'total_questions' => $result->total_questions ?? null,
             ];
         });
     
@@ -1123,12 +1127,14 @@ class AssessmentController extends Controller
             ->findOrFail($assessmentId);
 
         // Get results with student data in chunks
-        $results = StudentResult::where('assessment_id', $assessmentId)
-            ->with(['student' => function($query) {
+        $results = StudentResult::whereHas('studentAssessment', function ($query) use ($assessmentId){
+            $query->where('assessment_id', $assessmentId);
+        })
+            ->with(['student' => function($query){
                 $query->select(['id', 'name']);
             }])
-            ->select(['id', 'student_id', 'correct_answers', 'total_questions', 'score'])
-            ->cursor(); // Use cursor for memory efficiency
+                ->select(['id', 'student_id', 'correct_answers', 'total_questions', 'score'])
+                ->cursor();
 
         // Process results in memory-efficient way
         $students = [];

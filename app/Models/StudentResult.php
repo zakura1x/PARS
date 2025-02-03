@@ -11,8 +11,7 @@ class StudentResult extends Model
     use HasFactory;
 
     protected $fillable = [
-        'student_id',
-        'assessment_id',
+        'student_assessment_id',
         'total_questions',
         'correct_answers',
         'wrong_answers',
@@ -30,8 +29,9 @@ class StudentResult extends Model
         return $this->belongsTo(User::class, 'student_id');
     }
 
-    public function assessment()
-    {
-        return $this->belongsTo(Assessment::class);
+    public function studentAssessment(){
+        return $this->belongsTo(StudentAssessment::class);
     }
+
+    // Get all results for an assessment
 }

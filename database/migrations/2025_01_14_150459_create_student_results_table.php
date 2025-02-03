@@ -11,10 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Schema::create('student_results', function (Blueprint $table) {
+        //     $table->id();
+        //     $table->foreignId('student_assessment_id')->constrained('student_assessments')->onDelete('cascade');
+        //     $table->foreignId('student_id')->constrained('users')->onDelete('cascade');
+        //     $table->foreignId('assessment_id')->constrained('assessments')->onDelete('cascade');
+        //     $table->integer('total_questions');
+        //     $table->integer('correct_answers');
+        //     $table->integer('wrong_answers');
+        //     $table->decimal('score', 5, 2);
+        //     $table->timestamps();
+        // });
         Schema::create('student_results', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('student_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('assessment_id')->constrained('assessments')->onDelete('cascade');
+            $table->foreignId('student_assessment_id')
+                  ->constrained('student_assessments')
+                  ->onDelete('cascade'); // Key connection
             $table->integer('total_questions');
             $table->integer('correct_answers');
             $table->integer('wrong_answers');
