@@ -1131,9 +1131,9 @@ class AssessmentController extends Controller
             $query->where('assessment_id', $assessmentId);
         })
             ->with(['student' => function($query){
-                $query->select(['id', 'name']);
+                $query->select(['id', 'full_name']);
             }])
-                ->select(['id', 'student_id', 'correct_answers', 'total_questions', 'score'])
+                ->select(['id', 'student_assessment_id','correct_answers', 'total_questions', 'score'])
                 ->cursor();
 
         // Process results in memory-efficient way
@@ -1141,16 +1141,19 @@ class AssessmentController extends Controller
         $totalStudents = 0;
         $scores = [];
         $scoreDistribution = [];
+        
 
         foreach ($results as $result) {
             $totalStudents++;
             $scores[] = $result->score;
+
+            //dd($result->studentAssessment->student);
             
             // Build student list
             $students[] = [
-                'idNumber' => $result->student->idNumber,
-                'id' => $result->student->id,
-                'name' => $result->student->full_name,
+                'idNumber' => $result->studentAssessment->student->idNumber,
+                'id' => $result->studentAssessment->student->id,
+                'name' => $result->studentAssessment->student->full_name,
                 'latest_result' => $result->only(['correct_answers', 'total_questions', 'score'])
             ];
 

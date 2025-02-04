@@ -26,8 +26,17 @@ class StudentResult extends Model
 
     public function student()
     {
-        return $this->belongsTo(User::class, 'student_id');
+        return $this->hasOneThrough(
+            User::class, // Final model (User)
+            StudentAssessment::class, // Intermediate model (StudentAssessment)
+            'id', // Foreign key on StudentAssessment (links to student_assessment_id in StudentResult)
+            'id', // Primary key of User
+            'student_assessment_id', // Foreign key in StudentResult (points to StudentAssessment)
+            'user_id' // Foreign key in StudentAssessment (points to User)
+        );
     }
+
+
 
     public function studentAssessment(){
         return $this->belongsTo(StudentAssessment::class);
