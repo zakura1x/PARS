@@ -1,4 +1,4 @@
-Dashboard: test
+Dashboard:
     Student:
         ☐ Fix the Ui
 
@@ -40,18 +40,14 @@ Practice Assessment:
 
     Program Head:
         ☐ Program Head can view the statistics of all the students in the program
-
-
-
+        
 Assessment:
     ✔ The StudentAssessment question should be moved in the assessment_questions @done (1/30/2025, 11:47:21 PM)
-        - This will store the questions created for the assessment
     ✔ The StudentAssessmentQuestion should be created for the student when they join the assessment @done (1/30/2025, 11:47:23 PM)
-        - This will store the answers of the student
-        - It will also store the correct answers of the student
-    ☐ [1/31/2025] When submitting in student side, an error occurs but data is stored in student_results
-    ☐ [2/2/2025] Breadcrumbs of assessment not working
-    ☐ [2/2/2025] If multiple students joined the assessment, some cannot submit their assessment nor save the answers in db
+        
+    ☐  When submitting in student side, an error occurs but data is stored in student_results
+    ☐  Breadcrumbs of assessment not working
+    ☐  If multiple students joined the assessment, some cannot submit their assessment nor save the answers in db
 
     @high Need testing
     Needs testing:
@@ -90,7 +86,6 @@ Question:
     ✔ Much better to remove the import questions button in the question list @done (2/1/2025, 11:45:16 PM)
     ✔ The stored mass uploaded questions has a different stored data in the db e.g in options "[\"0%\", \"5%\", \"10%\", \"15%\"]". it has backslashes and quotation marks @done (1/21/2025, 10:56:20 PM)
     ✔ Delete action in the question list works only in frontend, data is still in db @done (1/31/2025, 8:49:06 AM)
-        - The delete function uses softdeletes, so the data is still in the db
 
     Professor:
 
@@ -124,8 +119,10 @@ Customize Assessments:
 Study Materials:
     Student:
         ✔ Create a ui for viewing of the study materials
-        ☐ [2/2/2025] on student side, viewing of study materials is forbidden
+        ☐ on student side, viewing of study materials is forbidden
 
     Professor:
         ☐ Create a form for adding title of the attachments
         ✔ The title should be the name of the attachment @done (1/30/2025, 11:48:09 PM)
+bet:
+    ☐ Add a button for viewing of the study materials
