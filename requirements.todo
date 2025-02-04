@@ -6,6 +6,9 @@ User Management:
     ☐ Remove admin role
     ☐ Users can be re-role
 
+Questions:
+    ☐ User can add a question that has mathematical equation
+
 Study Materials:
     ☐ Professor can only add their material of own subject
 
@@ -15,8 +18,8 @@ Practice Assessment:
 Assessment:
     ☐ Add a review answer for answering assessment
 
-    ☐ Assessment can be deleted
-    ☐ Assessments can be 
+    ☐ Assessment can be deleted if the status is draft
+    ☐ Assessments can be rechecked by the professor
     
 Subject:
     ☐ Add delete function of the subject
@@ -33,5 +36,4 @@ Profile:
 
 Settings: @low
     ☐ Add dark mode
-    ☐ 
 

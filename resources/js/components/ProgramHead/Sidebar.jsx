@@ -19,11 +19,17 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     };
 
     const handleMouseEnter = () => {
-        setIsHovered(true);
+        if (window.innerWidth >= 768) {
+            // Check if screen width is medium or larger
+            setIsHovered(true);
+        }
     };
 
     const handleMouseLeave = () => {
-        setIsHovered(false);
+        if (window.innerWidth >= 768) {
+            // Check if screen width is medium or larger
+            setIsHovered(false);
+        }
     };
 
     return (
