@@ -35,10 +35,10 @@ class AssessmentController extends Controller
             ->where('status', '!=', 'draft') // Exclude assessments with status 'draft'
             ->orderBy('created_at', 'desc')
             ->paginate(10); // Paginate the results (10 items per page)
-    
+
         return inertia('Assessment/AssessmentIndex', ['assessments' => $assessments]);
     }
-    
+
 
     public function indexForProf()
     {
@@ -61,7 +61,7 @@ class AssessmentController extends Controller
     //     $search = $request->input('search');
     //     $subjectId = $request->input('subject_id');
 
-    
+
     //     // Get all the Topics with search functionality
     //     $topics = Topics::when($subjectId, function ($query, $subjectId) {
     //         return $query->where('subject_id', $subjectId);
@@ -78,8 +78,8 @@ class AssessmentController extends Controller
     //         'search' => $search,
     //         'subjectId' => $subjectId,
     //     ]);
-    // }  
-    
+    // }
+
     public function create()
     {
         // Fetch all subjects (or any other data needed for the form)
@@ -290,7 +290,7 @@ class AssessmentController extends Controller
         if ($tableOfSpecification->isEmpty()) {
             throw new \Exception("No Table of Specification found for the selected subject.");
         }
-        
+
         //\Log::info("Processing TOS for subject ID: {$subjectId}");
         //\Log::info("TOS found: " . $tableOfSpecification->count());
 
@@ -322,13 +322,13 @@ class AssessmentController extends Controller
                 //If insufficient questions for the difficulty level
                 if ($questionsForDifficulty->count() < $count) {
                     $remainingQuestionsNeeded = $count - $questionsForDifficulty->count();
-                
+
                     // Reset used questions for this difficulty level
                     Question::where('topic_id', $topicId)
                         ->where('purpose_type', 'examination')
                         ->where('difficulty', $difficultyLevel)
                         ->update(['is_used' => false]);
-                
+
                     // Re-fetch additional questions after reset
                     $additionalQuestions = Question::where('topic_id', $topicId)
                         ->where('purpose_type', 'examination')
@@ -337,14 +337,14 @@ class AssessmentController extends Controller
                         ->inRandomOrder()
                         ->take($remainingQuestionsNeeded)
                         ->get();
-                
+
                     if ($additionalQuestions->isEmpty()) {
                         throw new \Exception("Insufficient questions available for topic ID: {$topicId} and difficulty: {$difficultyLevel}.");
                     }
-                
+
                     $questionsForDifficulty = $questionsForDifficulty->merge($additionalQuestions);
                 }
-                
+
 
                 //Mark fetched questions as used and track ids
                 foreach ($questionsForDifficulty as $question){
@@ -471,8 +471,8 @@ class AssessmentController extends Controller
 
         $assessment->questions->map(function ($question) {
             // Decode correct_answer if it's JSON string
-            $correctAnswers = is_string($question->correct_answer) 
-            ? json_decode($question->correct_answer, true) 
+            $correctAnswers = is_string($question->correct_answer)
+            ? json_decode($question->correct_answer, true)
             : $question->correct_answer;
 
             // Ensure correct_answer is an array
@@ -481,7 +481,7 @@ class AssessmentController extends Controller
             $question->correct_answer_text = collect($question->options)->filter(function ($option) use ($correctAnswers) {
                 return in_array($option, $correctAnswers);
             });
-    
+
             return $question;
         });
 
@@ -539,7 +539,7 @@ class AssessmentController extends Controller
 
         return to_route('assessment-PH.index')->with(['message' => 'Assessment was successfully rejected']);
     }
-    
+
     public function destroy($assessmentId)
     {
         $assessment = Assessment::findOrFail($assessmentId);
@@ -585,16 +585,16 @@ class AssessmentController extends Controller
     {
         $code = $request->input('code');
         $assessment = Assessment::where('access_code', $code)->first();
-    
+
         if (!$assessment) {
             return back()->withErrors(['code' => 'Invalid access code.']);
         }
-    
+
         // Ensure the assessment is active or ongoing
         if (!in_array($assessment->status, ['waiting', 'on_going'])) {
             return back()->withErrors(['code' => 'Assessment is not available for joining.']);
         }
-    
+
         // Check if the assessment is already due
         if ($assessment->time_limit && $assessment->started_at) {
             $dueTime = $assessment->started_at->addMinutes($assessment->time_limit);
@@ -602,37 +602,37 @@ class AssessmentController extends Controller
                 return back()->withErrors(['code' => 'The assessment has already ended.']);
             }
         }
-    
+
         $student = Auth::user();
-    
+
         // Check if the student has already joined
         $alreadyJoined = $assessment->studentAssessments()->where('user_id', $student->id)->exists();
-    
+
         if (!$alreadyJoined) {$assessment->load('questions');
             // Load questions with the `question` relationship
             $assessment->load('questions');
-    
+
             // Shuffle questions
             $shuffledQuestions = $assessment->questions->shuffle();
-    
+
             // Shuffle options for each question
             $shuffledOptions = [];
             foreach ($shuffledQuestions as $question) {
                 $options = $question->options;
-    
+
                 // Decode options if they are stored as JSON
                 if (!is_array($options)) {
                     $options = json_decode($options, true);
                 }
-    
+
                 // Shuffle the options
                 $shuffledOptions[$question->id] = collect($options)->shuffle()->toArray();
             }
-    
+
             // Set the status to 'started' for ongoing assessments
             $status = $assessment->status === 'on_going' ? 'started' : 'waiting';
-            
-    
+
+
             // Create a new StudentAssessment record
             $studentAssessment = $assessment->studentAssessments()->create([
                 'user_id' => $student->id,
@@ -649,12 +649,12 @@ class AssessmentController extends Controller
                 ]);
             }
         }
-    
+
         // Redirect based on assessment status
         if ($assessment->status === 'on_going') {
             return to_route('assessment.take-assessment', $assessment->id); // Redirect to the assessment taking page
         }
-    
+
         // Store the assessment ID in the session or query parameters
         return redirect()->route('assessment.waitingList', ['assessment_id' => $assessment->id]);
     }
@@ -698,44 +698,44 @@ class AssessmentController extends Controller
     {
         // Retrieve the assessment
         $assessment = Assessment::findOrFail($assessmentId);
-    
+
         // Ensure the assessment is ongoing
         if ($assessment->status !== 'on_going') {
             return back()->with(['message' => 'The assessment is not yet available or has been completed']);
         }
-    
+
         // Get the student's shuffled questions and options from the student_assessments table
         $student = Auth::user();
         $studentAssessment = StudentAssessment::where('assessment_id', $assessmentId)
             ->where('user_id', $student->id)
             ->first();
-    
+
         if (!$studentAssessment) {
             return back()->with(['message' => 'Shuffled data not found. Please restart the assessment.']);
         }
-    
+
         // Decode the shuffled questions and options
         $shuffledQuestionIds = json_decode($studentAssessment->shuffled_questions, true);
         $shuffledOptions = json_decode($studentAssessment->shuffled_options, true);
-    
+
         // Load the assessment questions
         $assessment->load('questions');
-    
+
         // Sort questions based on the shuffled order
         $shuffledQuestions = $assessment->questions->sortBy(function ($question) use ($shuffledQuestionIds) {
             return array_search($question->id, $shuffledQuestionIds);
         });
-    
+
         // Apply shuffled options to each question
         foreach ($shuffledQuestions as $question) {
             if (isset($shuffledOptions[$question->id])) {
                 $question->options = $shuffledOptions[$question->id];
             }
         }
-    
+
         // Set the sorted and shuffled questions back to the assessment
         $assessment->setRelation('questions', $shuffledQuestions);
-    
+
         return inertia('Assessment/Student/TakeAssessment', [
             'assessment' => $assessment,
         ]);
@@ -774,7 +774,7 @@ class AssessmentController extends Controller
         $question = $assessmentQuestion->question;
         //dd($question);
         $correctAnswer = $question->correct_answer;
-        
+
         $isCorrect = !array_diff($validated['selected_option'], $correctAnswer);
 
         $assessmentQuestion->update([
@@ -784,7 +784,7 @@ class AssessmentController extends Controller
 
         return back();
     }
-    
+
     public function submitAssessment($assessmentId, $studentId)
     {
         //dd('reached');
@@ -794,7 +794,7 @@ class AssessmentController extends Controller
             ->firstOrFail();
 
         //dd($assessment->assessment_id);
-        
+
         $assessmentMain = Assessment::findOrFail($assessmentId);
 
         DB::transaction(function () use ($assessment, $assessmentMain) {
@@ -805,7 +805,7 @@ class AssessmentController extends Controller
             if ($assessment->status !== 'started') {
                 throw new \Exception('Assessment has already been submitted.');
             }
-    
+
             // Check if the assessment is already due
             if ($assessmentMain->time_limit && $assessmentMain->started_at) {
                 $dueTime = $assessmentMain->started_at->addMinutes($assessmentMain->time_limit);
@@ -816,17 +816,17 @@ class AssessmentController extends Controller
                 'status' => $timedOut ? 'timed_out' : 'completed',
                 'submitted_at' => now()
             ]);
-    
+
             // Grade the assessment
             $this->gradeAssessment($assessment->assessment_id, $assessment->user_id );
         });
-    
+
         return to_route('assessment.student-result', [
-            'assessmentId' => $assessment->id,
+            'assessmentId' => $assessment->assessment_id,
             'studentId' => $assessment->user_id,
         ]);
     }
-    
+
 
     public function gradeAssessment($assessmentId, $studentId)
     {
@@ -835,10 +835,10 @@ class AssessmentController extends Controller
             ->where('user_id', $studentId) // Ensure it's scoped to the current student
             ->firstOrFail();
         //dd($assessment);
-        
+
 
         $questions = $assessment->questions()->with('question')->get();
-        
+
         // Initialize grading variables
         $correctAnswers = 0;
         $incorrectAnswers = 0;
@@ -876,24 +876,24 @@ class AssessmentController extends Controller
                 'wrong_answers' => $incorrectAnswers,
                 'score' => $scorePercentage,
             ]);
-            
-        
+
+
             foreach ($questionsByTopic as $topicId => $topicQuestions) {
                 $numerator = [];
                 $denominator = [];
-        
+
                 foreach ($topicQuestions as $question) {
                     $isCorrect = $question->is_correct;
                     $questionWeight = $question->question->weight ?? 1;
                     $difficultyWeight = $this->getDifficultyWeight($question->question);
-        
+
                     $score = $isCorrect ? 1 : 0;
                     $attemptWeight = 1;
-        
+
                     $numerator[] = $attemptWeight * $score * $difficultyWeight * $questionWeight;
                     $denominator[] = $difficultyWeight * $questionWeight;
                 }
-        
+
                 $this->updateTopicProficiency($assessment->user_id, $topicId, $numerator, $denominator);
             }
         });
@@ -921,9 +921,9 @@ class AssessmentController extends Controller
     {
         $totalNumerator = array_sum($numerator);
         $totalDenominator = array_sum($denominator);
-    
+
         $proficiencyScore = $totalDenominator > 0 ? $totalNumerator / $totalDenominator : 0;
-    
+
         // Fetch or create the current proficiency record
         $proficiency = StudentTopicProficiency::firstOrNew(
             [
@@ -937,7 +937,7 @@ class AssessmentController extends Controller
                 'attempts' => 0, // Fallback attempts
             ]
         );
-    
+
         // Update the current proficiency record
         $newTotalScore = ($proficiency->average_score * $proficiency->attempts) + ($proficiencyScore * 100);
         $proficiency->attempts += 1; // Increment attempts
@@ -955,12 +955,12 @@ class AssessmentController extends Controller
     {
         // Fetch the student
         $student = User::findOrFail($studentId);
-    
+
         // Fetch all assessments the student has answered
         $studentAssessments = StudentAssessment::where('user_id', $studentId)
             ->with(['assessment', 'result'])
             ->get();
-    
+
         // Transform the data for the frontend
         $assessmentResults = $studentAssessments->map(function ($studentAssessment) {
             $assessment = $studentAssessment->assessment;
@@ -969,7 +969,7 @@ class AssessmentController extends Controller
             $timeAnswered = $studentAssessment->started_at && $studentAssessment->completed_at
                 ? round((strtotime($assessment->ended_at) - strtotime($assessment->started_at)) / 60)
                 : null;
-    
+
             return [
                 'id' => $assessment->id,
                 'title' => $assessment->title,
@@ -980,7 +980,7 @@ class AssessmentController extends Controller
                 'total_questions' => $result->total_questions ?? null,
             ];
         });
-    
+
         return inertia('Assessment/Student/AssessmentResults', [
             'student' => $student,
             'assessments' => $assessmentResults,
@@ -1020,7 +1020,7 @@ class AssessmentController extends Controller
             'initialWaitingStudents' => $waitingStudents,
             'assessmentCode' => $assessment->access_code,
         ]);
-        
+
     }
 
     public function startAssessmentNow($assessmentId)
@@ -1061,7 +1061,7 @@ class AssessmentController extends Controller
         //$students = $assessment->students()->wherePivot('status')->get();
         $studentAssessments = StudentAssessment::where('assessment_id', $assessmentId)
         ->with('student')
-        ->get(); 
+        ->get();
 
         $studentStatus = $studentAssessments->map(function ($studentAssessment){
             return [
@@ -1084,7 +1084,7 @@ class AssessmentController extends Controller
         // Fetch students with their status for this assessment
         $studentAssessments = StudentAssessment::where('assessment_id', $assessmentId)
         ->with('student')
-        ->get(); 
+        ->get();
 
         $studentStatus = $studentAssessments->map(function ($studentAssessment){
             return [
@@ -1141,14 +1141,14 @@ class AssessmentController extends Controller
         $totalStudents = 0;
         $scores = [];
         $scoreDistribution = [];
-        
+
 
         foreach ($results as $result) {
             $totalStudents++;
             $scores[] = $result->score;
 
             //dd($result->studentAssessment->student);
-            
+
             // Build student list
             $students[] = [
                 'idNumber' => $result->studentAssessment->student->idNumber,
@@ -1214,7 +1214,7 @@ class AssessmentController extends Controller
             }),
         ]);
 
-        
+
     }
 
 }
