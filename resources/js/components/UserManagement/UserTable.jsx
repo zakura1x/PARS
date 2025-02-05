@@ -1,11 +1,29 @@
-import React from "react";
+import React, { useState } from "react";
 import { router } from "@inertiajs/react";
 import Pagination from "../misc/Pagination";
+import { MdDeleteOutline } from "react-icons/md";
+import { FaRegEdit } from "react-icons/fa";
+import { Modal, Button } from "daisyui";
 
 const UserTable = ({ users, setShowModal, setData }) => {
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteUserId, setDeleteUserId] = useState(null);
+
     const handlePageChange = (url) => {
         if (url) {
             router.get(url);
+        }
+    };
+
+    const handleDelete = (id) => {
+        setDeleteUserId(id);
+        document.getElementById("delete_modal").showModal();
+    };
+
+    const confirmDelete = () => {
+        if (deleteUserId) {
+            router.delete(`/users/${deleteUserId}`);
+            document.getElementById("delete_modal").close();
         }
     };
 
@@ -42,7 +60,7 @@ const UserTable = ({ users, setShowModal, setData }) => {
                                 className="border-b hover:bg-gray-50 text-gray-700"
                             >
                                 {/* ID */}
-                                <td className="py-3 px-4">{user.id}</td>
+                                <td className="py-3 px-4">{user.idNumber}</td>
 
                                 {/* Name */}
                                 <td className="py-3 px-4">{user.full_name}</td>
@@ -92,10 +110,13 @@ const UserTable = ({ users, setShowModal, setData }) => {
                                             });
                                         }}
                                     >
-                                        Edit
+                                        <FaRegEdit size={24} />
                                     </button>
-                                    <button className="text-red-600 hover:underline ml-2">
-                                        Delete
+                                    <button
+                                        className="text-red-600 hover:underline ml-2"
+                                        onClick={() => handleDelete(user.id)}
+                                    >
+                                        <MdDeleteOutline size={24} />
                                     </button>
                                 </td>
                             </tr>
@@ -106,6 +127,35 @@ const UserTable = ({ users, setShowModal, setData }) => {
 
             {/* Pagination */}
             <Pagination data={users} onPageChange={handlePageChange} />
+
+            {/* Delete Confirmation Modal */}
+            <dialog id="delete_modal" className="modal">
+                <div className="modal-box">
+                    <h3 className="font-bold text-lg">Confirm Delete</h3>
+                    <p className="py-4">
+                        Are you sure you want to delete this user?
+                    </p>
+                    <div className="modal-action">
+                        <button
+                            className="btn"
+                            onClick={() =>
+                                document.getElementById("delete_modal").close()
+                            }
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            className="btn btn-error"
+                            onClick={confirmDelete}
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </div>
+                <form method="dialog" className="modal-backdrop">
+                    <button>close</button>
+                </form>
+            </dialog>
         </div>
     );
 };

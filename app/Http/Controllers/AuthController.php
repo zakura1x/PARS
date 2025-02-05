@@ -13,6 +13,15 @@ class AuthController extends Controller
      */
     public function login()
     {
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->role === 'program_head') {
+                return redirect()->route('dashboard');
+            } elseif ($user->role === 'student') {
+                return redirect()->route('dashboard.student');
+            }
+        }
+        
         return inertia('Authentication/Login');
     }
 

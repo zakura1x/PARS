@@ -147,18 +147,24 @@ class UserManagementController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
-        //
+        $user = User::findOrFail($id);
+
+        // Delete role-specific details
+        if ($user->role == 'professor') {
+            Professor::where('user_id', $user->id)->delete();
+        } elseif ($user->role == 'program_head') {
+            ProgramHead::where('user_id', $user->id)->delete();
+        } elseif ($user->role == 'dean') {
+            Dean::where('user_id', $user->id)->delete();
+        }
+
+        // Delete the user
+        $user->delete();
+
+        return redirect()->route('userlist')->with('message', 'User was deleted successfully');
     }
 }
