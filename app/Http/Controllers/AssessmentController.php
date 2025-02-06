@@ -1178,6 +1178,48 @@ class AssessmentController extends Controller
         ]);
     }
 
+    public function assessmentItemAnalysis($assessmentId){
+        //Find the assessment
+        $assessment = Assessment::select(['id', 'title'])->findOrFail($assessmentId);
+
+        //Fetch the questions
+        $questions = Question::where('assessments', function ($query) use ($assessmentId){
+            $query->where('assessment_id', $assessmentId);
+        })->with([
+            'studentAnswers',
+        ])->select(['id', 'question_text', 'options'])->get();
+
+        //Process each questions per student
+        $questionStats = $questions->map(function ($question){
+            $options = is_array($question->options) ? $question->options : json_decode($question->options, true);
+            $optionCounts = array_fill_keys(array_keys($options), 0);
+
+            //Count student response per option
+            foreach($question->studentAnswers as $answer){
+                if(is_array($answer->student_answer)){
+                    foreach($answer->student_answer as $selectedOption){
+                        if(isset($optionCounts[$selectedOption])){
+                            $optionCounts[$selectedOption]++;
+                        }
+                    }
+                }
+            }
+
+            return [
+                'id' => $question->id,
+                'question_text' => $question->question_text,
+                'correct_answers' => $question->studentAnswers->where('is_correct', true)->count,
+                'wrong_answers' => $question->studentAnswers->where('is_correct', false)->count,
+                'option_count' => $optionCounts
+            ];
+        });
+
+        return inertia('Assessment/AssessmentItemAnalysis',[
+            'assessment' => $assessment,
+            'questions' => $questionStats
+        ]);
+    }
+
     public function showIndividualAssessment($assessmentId, $studentId){
         //Fetch the students assessment
         //dd('reached');

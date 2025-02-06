@@ -119,7 +119,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::post('/assessment/{assessmentId}/end', [AssessmentController::class, 'endAssessment'])->name('assessment.end');
     Route::get('/assessment/{assessmentId}/results', [AssessmentController::class, 'assessmentResults'])->name('assessment.results');
     Route::get('/assessment/{assessmentId}/student/prof/view/{studentId}', [AssessmentController::class, 'showIndividualAssessment'])->name('assessment.student');
-
+    Route::get('/assessment/{assessmentId}/item-analysis', [AssessmentController::class, 'assessmentItemAnalysis'])->name('assessment.item-analysis');
 });
 
 Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function () {
