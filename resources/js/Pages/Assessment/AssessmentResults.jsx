@@ -79,6 +79,13 @@ const AssessmentResults = () => {
                     <h2 className="text-xl font-semibold mb-4 text-gray-800">
                         Class Performance
                     </h2>
+                    <button className="btn btn-primary text-white">
+                        <Link
+                            href={`/assessment/${assessment.id}/item-analysis`}
+                        >
+                            Item Analysis
+                        </Link>
+                    </button>
                     <div className="space-y-2 text-gray-600">
                         <p>Total Students: {totalStudents}</p>
                         <p>
