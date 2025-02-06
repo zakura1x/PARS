@@ -47,7 +47,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                     isOpen || isHovered ? "px-4" : "px-2"
                 }`}
             >
-                {isOpen(<h1 className="font-semibold text-2xl">PARS</h1>)}
+                {(isOpen || isHovered) && (
+                    <h1 className="font-semibold text-2xl">PARS</h1>
+                )}
 
                 <button
                     className="btn btn-square btn-ghost"

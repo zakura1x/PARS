@@ -5,7 +5,9 @@ import React, { useState } from "react";
 const ProgramHeadLayout = ({ children }) => {
     const [isOpen, setIsOpen] = useState(false);
     const toggleSidebar = () => {
-        setIsOpen(!isOpen);
+        if (window.innerWidth >= 768) { // Check if screen width is medium or larger
+            setIsOpen(!isOpen);
+        }
     };
     return (
         <div className="flex h-screen overflow-hidden text-black bg-[#e5e7eb]">
