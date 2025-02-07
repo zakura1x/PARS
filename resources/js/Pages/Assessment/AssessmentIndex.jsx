@@ -199,7 +199,8 @@ const renderActionButton = (assessment, userRole) => {
         );
     }
 
-    if (userRole === "professor") {
+    // replace to professor
+    if (userRole === "program_head") {
         return (
             <>
                 <button
