@@ -148,12 +148,21 @@ const renderActionButton = (assessment, userRole) => {
 
     if (assessment.status === "draft" || assessment.status === "rejected") {
         return (
-            <Link
-                href={`/assessment/edit/form/exam/${assessment.id}`}
-                className="btn btn-primary btn-sm"
-            >
-                Edit Questions
-            </Link>
+            <>
+                <Link
+                    href={`/assessment/edit/form/exam/${assessment.id}`}
+                    className="btn btn-primary btn-sm"
+                >
+                    Edit Questions
+                </Link>
+                <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => handleSubmitForApproval(assessment.id)}
+                >
+                    Submit for Approval
+                </button>
+            </>
         );
     }
 
@@ -200,7 +209,7 @@ const renderActionButton = (assessment, userRole) => {
     }
 
     // replace to professor
-    if (userRole === "program_head") {
+    if (userRole === "professor") {
         return (
             <>
                 <button
