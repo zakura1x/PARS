@@ -60,7 +60,11 @@ const programHeadMenu = [
                 icon: <FaUserGraduate size={26} />,
                 items: [
                     { label: "Student List", href: "/student/list", key: 10 },
-                    { label: "Mass Upload Student", href: "", key: 11 },
+                    {
+                        label: "Mass Upload Student",
+                        href: "/student/mass/upload/form",
+                        key: 11,
+                    },
                 ],
             },
         ],

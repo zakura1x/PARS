@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\StudentsTemplateExport;
+use App\Imports\StudentsImport;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
 
 class StudentController extends Controller
 {
@@ -76,6 +79,24 @@ class StudentController extends Controller
         ]);
 
         return to_route('student.list')->with('message', 'Student was Added Successfully');
+    }
+
+    public function massUploadStudentForm(){
+        return inertia('StudentManagement/MassUploadStudent');
+    }
+
+    public function exportTemplate(){
+        return Excel::download(new StudentsTemplateExport, 'students_template.xlsx');
+    }
+
+    public function massUploadStudent(Request $request){
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv'
+        ]);
+
+        Excel::import(new StudentsImport, $request->file('file'));
+
+        return to_route('student.list')->with('message', 'Students were Added Successfully');
     }
 
     /**

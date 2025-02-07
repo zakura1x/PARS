@@ -17,4 +17,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::post('/student/add', [StudentController::class, 'store'])->name('student.add');
     Route::put('/student/update/{id}', [StudentController::class, 'update'])->name('student.update');
     Route::delete('/student/delete/{id}', [StudentController::class, 'destroy'])->name('student.delete');
+    Route::get('/student/mass/upload/form', [StudentController::class, 'massUploadStudentForm'])->name('student.mass.upload.form');
+    Route::post('/student/mass/upload', [StudentController::class, 'massUploadStudent'])->name('student.mass.upload');
+    Route::get('/students/export-template', [StudentController::class, 'exportTemplate'])->name('students.export-template');
 });
