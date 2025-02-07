@@ -35,18 +35,22 @@ const AssessmentItemAnalysis = () => {
                                 <div className="flex flex-row justify-between items-center">
                                     <p>{question.question_text}</p>
                                     <div className="rounded-2xl p-2 flex bg-slate-100 flex-row items-center space-x-1">
-                                        {getIcon(question.is_correct)}
+                                        {getIcon(
+                                            question.correct_answers >
+                                                question.wrong_answers
+                                        )}
                                         <div
                                             className={`rounded-2xl px-2 ${
-                                                question.is_correct
+                                                question.correct_answers >
+                                                question.wrong_answers
                                                     ? "bg-green-500"
                                                     : "bg-red-500"
                                             }`}
                                         >
                                             <p className="text-base">
-                                                {question.is_correct
-                                                    ? `${question.score}/${question.score}`
-                                                    : `0/${question.score}`}
+                                                {question.correct_answers}/
+                                                {question.correct_answers +
+                                                    question.wrong_answers}
                                             </p>
                                         </div>
                                     </div>
@@ -55,44 +59,30 @@ const AssessmentItemAnalysis = () => {
 
                             <div className="collapse-content">
                                 <div className="flex flex-col space-y-2">
-                                    {question.question_options.map(
-                                        (option, idx) => (
-                                            <label
+                                    <p className="text-sm text-gray-600">
+                                        <strong>Item Difficulty:</strong>{" "}
+                                        {(
+                                            (question.correct_answers /
+                                                (question.correct_answers +
+                                                    question.wrong_answers)) *
+                                            100
+                                        ).toFixed(2)}
+                                        %
+                                    </p>
+
+                                    {Object.entries(question.option_count).map(
+                                        ([option, count], idx) => (
+                                            <div
                                                 key={idx}
-                                                className="flex items-center space-x-2"
+                                                className="flex justify-between items-center bg-white p-2 rounded-lg shadow-sm"
                                             >
-                                                <div
-                                                    className={`w-5 h-5 flex items-center justify-center border border-black rounded ${
-                                                        question.student_answer.includes(
-                                                            option
-                                                        )
-                                                            ? question.correct_answer.includes(
-                                                                  option
-                                                              )
-                                                                ? "bg-green-500" // Correct and selected
-                                                                : "bg-red-500" // Incorrect and selected
-                                                            : question.correct_answer.includes(
-                                                                  option
-                                                              )
-                                                            ? "bg-green-500" // Correct but not selected
-                                                            : "bg-white"
-                                                    }`}
-                                                >
-                                                    <input
-                                                        type="checkbox"
-                                                        name={`question_${index}`}
-                                                        value={option}
-                                                        checked={question.student_answer.includes(
-                                                            option
-                                                        )}
-                                                        readOnly
-                                                        className="opacity-0 absolute w-full h-full"
-                                                    />
-                                                </div>
                                                 <span className="text-black">
                                                     {option}
                                                 </span>
-                                            </label>
+                                                <span className="text-gray-700 text-sm">
+                                                    {count} students
+                                                </span>
+                                            </div>
                                         )
                                     )}
                                 </div>

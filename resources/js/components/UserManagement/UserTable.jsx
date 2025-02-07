@@ -1,12 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { router } from "@inertiajs/react";
 import Pagination from "../misc/Pagination";
 import { MdDeleteOutline } from "react-icons/md";
 import { FaRegEdit } from "react-icons/fa";
-import { Modal, Button } from "daisyui";
 
 const UserTable = ({ users, setShowModal, setData }) => {
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteUserId, setDeleteUserId] = useState(null);
 
     const handlePageChange = (url) => {
@@ -27,129 +25,125 @@ const UserTable = ({ users, setShowModal, setData }) => {
         }
     };
 
+    const getRoleBadgeClass = (role) => {
+        switch (role) {
+            case "professor":
+                return "badge badge-info";
+            case "program_head":
+                return "badge badge-success";
+            default:
+                return "badge badge-warning";
+        }
+    };
+
     return (
-        <div className="my-2 overflow-x-auto lg:mx-4">
-            <table className="w-full border-collapse bg-white shadow-md rounded-md">
-                {/* Table Header */}
-                <thead>
-                    <tr className="bg-gray-200 text-gray-700 text-sm">
-                        <th className="py-3 px-4 text-left">ID</th>
-                        <th className="py-3 px-4 text-left">Name</th>
-                        <th className="py-3 px-4 text-left">Email</th>
-                        <th className="py-3 px-4 text-left">Role</th>
-                        <th className="py-3 px-4 text-left">Date Added</th>
-                        <th className="py-3 px-4 text-left">Actions</th>
-                    </tr>
-                </thead>
-
-                {/* Table Body */}
-                <tbody>
-                    {users?.data?.length === 0 ? (
+        <div className="container mx-auto p-6">
+            <div className="overflow-x-auto">
+                <table className="table table-zebra w-full">
+                    <thead>
                         <tr>
-                            <td
-                                colSpan="6"
-                                className="text-center py-6 text-gray-500"
-                            >
-                                No users found...
-                            </td>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Date Added</th>
+                            <th>Actions</th>
                         </tr>
-                    ) : (
-                        users.data.map((user) => (
-                            <tr
-                                key={user.id}
-                                className="border-b hover:bg-gray-50 text-gray-700"
-                            >
-                                {/* ID */}
-                                <td className="py-3 px-4">{user.idNumber}</td>
-
-                                {/* Name */}
-                                <td className="py-3 px-4">{user.full_name}</td>
-
-                                {/* Email */}
-                                <td className="py-3 px-4">{user.email}</td>
-
-                                {/* Role with Color-coded Badge */}
-                                <td className="py-3 px-4">
-                                    <span
-                                        className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                                            user.role === "professor"
-                                                ? "bg-blue-100 text-blue-700"
-                                                : user.role === "program_head"
-                                                ? "bg-green-100 text-green-700"
-                                                : "bg-yellow-100 text-yellow-700"
-                                        }`}
-                                    >
-                                        {user.role}
-                                    </span>
-                                </td>
-
-                                {/* Date Added */}
-                                <td className="py-3 px-4">
-                                    {new Date(
-                                        user.created_at
-                                    ).toLocaleDateString()}
-                                </td>
-
-                                {/* Actions */}
-                                <td className="py-3 px-4">
-                                    <button
-                                        className="text-blue-600 hover:underline"
-                                        onClick={() => {
-                                            setShowModal(true);
-                                            setData({
-                                                id: user.id,
-                                                first_name: user.first_name,
-                                                last_name: user.last_name,
-                                                email: user.email,
-                                                idNumber: user.idNumber,
-                                                profilePhoto:
-                                                    user.profile_photo,
-                                                role: user.role,
-                                                birthdate: user.birthdate,
-                                                gender: user.gender,
-                                            });
-                                        }}
-                                    >
-                                        <FaRegEdit size={24} />
-                                    </button>
-                                    <button
-                                        className="text-red-600 hover:underline ml-2"
-                                        onClick={() => handleDelete(user.id)}
-                                    >
-                                        <MdDeleteOutline size={24} />
-                                    </button>
+                    </thead>
+                    <tbody>
+                        {users?.data?.length === 0 ? (
+                            <tr>
+                                <td colSpan="6" className="text-center">
+                                    No users found...
                                 </td>
                             </tr>
-                        ))
-                    )}
-                </tbody>
-            </table>
+                        ) : (
+                            users.data.map((user) => (
+                                <tr key={user.id}>
+                                    <td>{user.idNumber}</td>
+                                    <td>{user.full_name}</td>
+                                    <td>{user.email}</td>
+                                    <td>
+                                        <span
+                                            className={getRoleBadgeClass(
+                                                user.role
+                                            )}
+                                        >
+                                            {user.role}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {new Date(
+                                            user.created_at
+                                        ).toLocaleDateString()}
+                                    </td>
+                                    <td>
+                                        <div className="flex space-x-2">
+                                            <button
+                                                className="btn btn-ghost btn-sm"
+                                                onClick={() => {
+                                                    setShowModal(true);
+                                                    setData({
+                                                        id: user.id,
+                                                        first_name:
+                                                            user.first_name,
+                                                        last_name:
+                                                            user.last_name,
+                                                        email: user.email,
+                                                        idNumber: user.idNumber,
+                                                        profilePhoto:
+                                                            user.profile_photo,
+                                                        role: user.role,
+                                                        birthdate:
+                                                            user.birthdate,
+                                                        gender: user.gender,
+                                                    });
+                                                }}
+                                            >
+                                                <FaRegEdit size={18} />
+                                            </button>
+                                            <button
+                                                className="btn btn-ghost btn-sm text-error"
+                                                onClick={() =>
+                                                    handleDelete(user.id)
+                                                }
+                                            >
+                                                <MdDeleteOutline size={18} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
 
-            {/* Pagination */}
-            <Pagination data={users} onPageChange={handlePageChange} />
+            <div className="mt-4">
+                <Pagination data={users} onPageChange={handlePageChange} />
+            </div>
 
-            {/* Delete Confirmation Modal */}
-            <dialog id="delete_modal" className="modal">
+            <dialog
+                id="delete_modal"
+                className="modal modal-bottom sm:modal-middle"
+            >
                 <div className="modal-box">
                     <h3 className="font-bold text-lg">Confirm Delete</h3>
                     <p className="py-4">
                         Are you sure you want to delete this user?
                     </p>
                     <div className="modal-action">
-                        <button
-                            className="btn"
-                            onClick={() =>
-                                document.getElementById("delete_modal").close()
-                            }
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            className="btn btn-error"
-                            onClick={confirmDelete}
-                        >
-                            Delete
-                        </button>
+                        <form method="dialog">
+                            <button className="btn btn-ghost mr-2">
+                                Cancel
+                            </button>
+                            <button
+                                className="btn btn-error"
+                                onClick={confirmDelete}
+                            >
+                                Delete
+                            </button>
+                        </form>
                     </div>
                 </div>
                 <form method="dialog" className="modal-backdrop">

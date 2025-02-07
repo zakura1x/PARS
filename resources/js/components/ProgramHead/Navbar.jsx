@@ -41,7 +41,9 @@ const Navbar = ({ toggleSidebar }) => {
 
             <div>
                 <div className="flex flex-col space-y-1">
-                    <h2 className="font-medium">{auth.user.full_name}</h2>
+                    <h2 className="font-medium text-xs md:text-base hidden md:flex">
+                        {auth.user.full_name}
+                    </h2>
                     <p className="text-xs text-slate-600">{auth.user.email}</p>
                 </div>
                 <div className="dropdown dropdown-end">

@@ -532,6 +532,7 @@ class AssessmentController extends Controller
         }
 
         $assessment->update([
+            'status' => 'rejected',
             'approved' => false,
             'approved_by' => Auth::user()->id,
             'rejection_reason' => $validated['rejection_reason']
@@ -1179,25 +1180,31 @@ class AssessmentController extends Controller
     }
 
     public function assessmentItemAnalysis($assessmentId){
+        
         //Find the assessment
         $assessment = Assessment::select(['id', 'title'])->findOrFail($assessmentId);
 
         //Fetch the questions
-        $questions = Question::where('assessments', function ($query) use ($assessmentId){
-            $query->where('assessment_id', $assessmentId);
-        })->with([
-            'studentAnswers',
-        ])->select(['id', 'question_text', 'options'])->get();
-
+        $questions = Question::whereHas('assessments', function ($query) use ($assessmentId) {
+            $query->where('assessments.id', $assessmentId);
+        })
+        ->with('studentAnswers')
+        ->select(['id', 'question_text', 'options'])
+        ->get();
+    
+        //dd($questions);
         //Process each questions per student
         $questionStats = $questions->map(function ($question){
             $options = is_array($question->options) ? $question->options : json_decode($question->options, true);
-            $optionCounts = array_fill_keys(array_keys($options), 0);
+            $optionCounts = array_fill_keys($options, 0);
 
             //Count student response per option
             foreach($question->studentAnswers as $answer){
-                if(is_array($answer->student_answer)){
-                    foreach($answer->student_answer as $selectedOption){
+                $studentAnswer = is_string($answer->student_answer) ? json_decode($answer->student_answer, true) : $answer->student_answer;
+
+
+                if(is_array($studentAnswer)){
+                    foreach($studentAnswer as $selectedOption){
                         if(isset($optionCounts[$selectedOption])){
                             $optionCounts[$selectedOption]++;
                         }
@@ -1208,15 +1215,19 @@ class AssessmentController extends Controller
             return [
                 'id' => $question->id,
                 'question_text' => $question->question_text,
-                'correct_answers' => $question->studentAnswers->where('is_correct', true)->count,
-                'wrong_answers' => $question->studentAnswers->where('is_correct', false)->count,
+                'correct_answers' => $question->studentAnswers->where('is_correct', true)->count(),
+                'wrong_answers' => $question->studentAnswers->where('is_correct', false)->count(),
                 'option_count' => $optionCounts
             ];
         });
 
+
+
+        //dd($assessment, $questionStats);
+
         return inertia('Assessment/AssessmentItemAnalysis',[
             'assessment' => $assessment,
-            'questions' => $questionStats
+            'questions' => $questionStats   
         ]);
     }
 

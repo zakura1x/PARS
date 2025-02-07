@@ -1,5 +1,5 @@
 import React from "react";
-import { usePage, router } from "@inertiajs/react";
+import { usePage, router, Link } from "@inertiajs/react";
 import { Bar } from "react-chartjs-2";
 import {
     Chart as ChartJS,

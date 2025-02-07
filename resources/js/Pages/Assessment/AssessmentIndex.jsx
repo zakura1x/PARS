@@ -1,4 +1,3 @@
-import React from "react";
 import { Link, router, usePage } from "@inertiajs/react";
 import Pagination from "../../components/misc/Pagination";
 import FlashMessage from "../../components/Notifications/FlashMessage";
@@ -21,111 +20,88 @@ const AssessmentIndex = ({ assessments }) => {
     };
 
     return (
-        <div className="container mx-auto p-4 sm:p-6 overflow-x-auto">
+        <div className="container mx-auto p-4 space-y-6">
             <FlashMessage message={flash.message} />
             {errors && errors.message && (
-                <div className="bg-red-100 p-4 text-red-700 rounded-lg shadow-md mb-4">
-                    {errors.message}
+                <div className="alert alert-error shadow-lg">
+                    <div>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="stroke-current flex-shrink-0 h-6 w-6"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+                        <span>{errors.message}</span>
+                    </div>
                 </div>
             )}
-            <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">
-                Assessments
-            </h1>
+
+            <div className="flex justify-between items-center">
+                <h1 className="text-3xl font-bold">Assessments</h1>
+            </div>
 
             {assessments.data.length === 0 ? (
-                <div className="bg-gray-100 p-4 text-center rounded-lg shadow-md">
-                    No assessments found.
+                <div className="alert alert-info shadow-lg">
+                    <div>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            className="stroke-current flex-shrink-0 w-6 h-6"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            ></path>
+                        </svg>
+                        <span>No assessments found.</span>
+                    </div>
                 </div>
             ) : (
                 <div className="overflow-x-auto">
-                    <table className="w-full border-collapse border border-gray-300 text-sm sm:text-base">
+                    <table className="table w-full">
                         <thead>
-                            <tr className="bg-gray-100 text-left">
-                                <th className="border border-gray-300 p-2">
-                                    Title
-                                </th>
-                                <th className="border border-gray-300 p-2">
-                                    Status
-                                </th>
-                                <th className="border border-gray-300 p-2">
-                                    Created At
-                                </th>
-                                <th className="border border-gray-300 p-2">
-                                    Actions
-                                </th>
+                            <tr>
+                                <th>Title</th>
+                                <th>Status</th>
+                                <th>Created At</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {assessments.data.map((assessment) => (
-                                <tr key={assessment.id} className="border-b">
-                                    <td className="border border-gray-300 p-2">
-                                        {assessment.title}
+                                <tr key={assessment.id}>
+                                    <td>{assessment.title}</td>
+                                    <td>
+                                        <span
+                                            className={`badge ${getStatusBadgeColor(
+                                                assessment.status
+                                            )}`}
+                                        >
+                                            {assessment.status}
+                                        </span>
                                     </td>
-                                    <td className="border border-gray-300 p-2">
-                                        {assessment.status}
-                                    </td>
-                                    <td className="border border-gray-300 p-2">
+                                    <td>
                                         {new Date(
                                             assessment.created_at
                                         ).toLocaleString()}
                                     </td>
-                                    <td className="border border-gray-300 p-2 flex flex-wrap gap-2">
-                                        <Link
-                                            href={`/assessment/edit/form/exam/${assessment.id}`}
-                                            className="btn btn-primary btn-sm"
-                                        >
-                                            View/Edit
-                                        </Link>
-                                        {assessment.status === "active" && (
-                                            <button
-                                                type="button"
-                                                className="btn btn-success btn-sm"
-                                                onClick={() =>
-                                                    handleStartAssessment(
-                                                        assessment.id
-                                                    )
-                                                }
-                                            >
-                                                Start Assessment
-                                            </button>
-                                        )}
-                                        {assessment.status === "on_going" && (
-                                            <Link
-                                                href={`/assessment/${assessment.id}/status`}
-                                                className="btn btn-info btn-sm"
-                                            >
-                                                View Status
-                                            </Link>
-                                        )}
-                                        {assessment.status === "completed" && (
-                                            <Link
-                                                href={`/assessment/${assessment.id}/results`}
-                                                className="btn btn-info btn-sm"
-                                            >
-                                                View Results
-                                            </Link>
-                                        )}
-                                        {auth.user.role === "program_head" && (
-                                            <>
-                                                <Link
-                                                    href={`/assessment/approval/form/${assessment.id}`}
-                                                    className="btn btn-warning btn-sm"
-                                                >
-                                                    Approve
-                                                </Link>
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-secondary btn-sm"
-                                                    onClick={() =>
-                                                        handleSubmitForApproval(
-                                                            assessment.id
-                                                        )
-                                                    }
-                                                >
-                                                    Submit for Approval
-                                                </button>
-                                            </>
-                                        )}
+                                    <td>
+                                        <div className="flex flex-wrap gap-2">
+                                            {renderActionButton(
+                                                assessment,
+                                                auth.user.role
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -142,6 +118,102 @@ const AssessmentIndex = ({ assessments }) => {
             </div>
         </div>
     );
+};
+
+const getStatusBadgeColor = (status) => {
+    switch (status) {
+        case "active":
+            return "badge-success";
+        case "on_going":
+            return "badge-warning";
+        case "completed":
+            return "badge-info";
+        default:
+            return "badge-ghost";
+    }
+};
+
+const renderActionButton = (assessment, userRole) => {
+    if (assessment.status === "active") {
+        return (
+            <button
+                type="button"
+                className="btn btn-success btn-sm"
+                onClick={() => handleStartAssessment(assessment.id)}
+            >
+                Start Assessment
+            </button>
+        );
+    }
+
+    if (assessment.status === "draft" || assessment.status === "rejected") {
+        return (
+            <Link
+                href={`/assessment/edit/form/exam/${assessment.id}`}
+                className="btn btn-primary btn-sm"
+            >
+                Edit Questions
+            </Link>
+        );
+    }
+
+    if (assessment.status === "on_going") {
+        return (
+            <Link
+                href={`/assessment/${assessment.id}/status`}
+                className="btn btn-info btn-sm"
+            >
+                View Status
+            </Link>
+        );
+    }
+
+    if (assessment.status === "completed") {
+        return (
+            <Link
+                href={`/assessment/${assessment.id}/results`}
+                className="btn btn-info btn-sm"
+            >
+                View Results
+            </Link>
+        );
+    }
+
+    if (userRole === "program_head") {
+        return (
+            <>
+                <Link
+                    href={`/assessment/approval/form/${assessment.id}`}
+                    className="btn btn-warning btn-sm"
+                >
+                    Approve
+                </Link>
+                <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => handleSubmitForApproval(assessment.id)}
+                >
+                    Submit for Approval
+                </button>
+            </>
+        );
+    }
+
+    if (userRole === "professor") {
+        return (
+            <>
+                <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => handleSubmitForApproval(assessment.id)}
+                >
+                    Submit for Approval
+                </button>
+            </>
+        );
+    }
+
+    return null;
 };
 
 export default AssessmentIndex;
