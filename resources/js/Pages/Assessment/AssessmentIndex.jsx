@@ -19,6 +19,99 @@ const AssessmentIndex = ({ assessments }) => {
         router.put(`/assessment/update/to/wait/${assessmentId}`);
     };
 
+    const renderActionButton = (assessment, userRole) => {
+        if (assessment.status === "active") {
+            return (
+                <button
+                    type="button"
+                    className="btn btn-success btn-sm"
+                    onClick={() => handleStartAssessment(assessment.id)}
+                >
+                    Start Assessment
+                </button>
+            );
+        }
+
+        if (assessment.status === "draft" || assessment.status === "rejected") {
+            return (
+                <>
+                    <Link
+                        href={`/assessment/edit/form/exam/${assessment.id}`}
+                        className="btn btn-primary btn-sm"
+                    >
+                        Edit Questions
+                    </Link>
+                    <button
+                        type="button"
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => handleSubmitForApproval(assessment.id)}
+                    >
+                        Submit for Approval
+                    </button>
+                </>
+            );
+        }
+
+        if (assessment.status === "on_going") {
+            return (
+                <Link
+                    href={`/assessment/${assessment.id}/status`}
+                    className="btn btn-info btn-sm"
+                >
+                    View Status
+                </Link>
+            );
+        }
+
+        if (assessment.status === "completed") {
+            return (
+                <Link
+                    href={`/assessment/${assessment.id}/results`}
+                    className="btn btn-info btn-sm"
+                >
+                    View Results
+                </Link>
+            );
+        }
+
+        if (userRole === "program_head") {
+            return (
+                <>
+                    <Link
+                        href={`/assessment/approval/form/${assessment.id}`}
+                        className="btn btn-warning btn-sm"
+                    >
+                        Approve
+                    </Link>
+                    <button
+                        type="button"
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => handleSubmitForApproval(assessment.id)}
+                    >
+                        Submit for Approval
+                    </button>
+                </>
+            );
+        }
+
+        // replace to professor
+        if (userRole === "professor") {
+            return (
+                <>
+                    <button
+                        type="button"
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => handleSubmitForApproval(assessment.id)}
+                    >
+                        Submit for Approval
+                    </button>
+                </>
+            );
+        }
+
+        return null;
+    };
+
     return (
         <div className="container mx-auto p-4 space-y-6">
             <FlashMessage message={flash.message} />
@@ -131,99 +224,6 @@ const getStatusBadgeColor = (status) => {
         default:
             return "badge-ghost";
     }
-};
-
-const renderActionButton = (assessment, userRole) => {
-    if (assessment.status === "active") {
-        return (
-            <button
-                type="button"
-                className="btn btn-success btn-sm"
-                onClick={() => handleStartAssessment(assessment.id)}
-            >
-                Start Assessment
-            </button>
-        );
-    }
-
-    if (assessment.status === "draft" || assessment.status === "rejected") {
-        return (
-            <>
-                <Link
-                    href={`/assessment/edit/form/exam/${assessment.id}`}
-                    className="btn btn-primary btn-sm"
-                >
-                    Edit Questions
-                </Link>
-                <button
-                    type="button"
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => handleSubmitForApproval(assessment.id)}
-                >
-                    Submit for Approval
-                </button>
-            </>
-        );
-    }
-
-    if (assessment.status === "on_going") {
-        return (
-            <Link
-                href={`/assessment/${assessment.id}/status`}
-                className="btn btn-info btn-sm"
-            >
-                View Status
-            </Link>
-        );
-    }
-
-    if (assessment.status === "completed") {
-        return (
-            <Link
-                href={`/assessment/${assessment.id}/results`}
-                className="btn btn-info btn-sm"
-            >
-                View Results
-            </Link>
-        );
-    }
-
-    if (userRole === "program_head") {
-        return (
-            <>
-                <Link
-                    href={`/assessment/approval/form/${assessment.id}`}
-                    className="btn btn-warning btn-sm"
-                >
-                    Approve
-                </Link>
-                <button
-                    type="button"
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => handleSubmitForApproval(assessment.id)}
-                >
-                    Submit for Approval
-                </button>
-            </>
-        );
-    }
-
-    // replace to professor
-    if (userRole === "professor") {
-        return (
-            <>
-                <button
-                    type="button"
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => handleSubmitForApproval(assessment.id)}
-                >
-                    Submit for Approval
-                </button>
-            </>
-        );
-    }
-
-    return null;
 };
 
 export default AssessmentIndex;

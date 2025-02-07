@@ -21,7 +21,7 @@ Assessment:
     ☐ Assessment can be deleted if the status is draft
     ☐ Assessments can be rechecked by the professor
     ✔ Item analysis of the assessment @done (2/7/2025, 10:06:12 AM)
-    ☐ Assessments with status->rejectected can be resubmit by the professor
+    ✔ Assessments with status->rejectected can be resubmit by the professor @done (2/7/2025, 9:01:05 PM)
     
 Subject:
     ☐ Add delete function of the subject

@@ -502,7 +502,9 @@ class AssessmentController extends Controller
 
         //Check if the assessment is already approved
         if($assessment->approved){
-            return response()->json(['message' => 'This assessment has already been approved.']);
+            return back()->withErrors(['message' => 'Assessment is not yet ready for approval']);
+        }elseif($assessment->status !== 'pending'){
+            return back()->withErrors(['message' => 'Assessment is not yet ready for approval']);
         }
 
         //Approve the assessment
