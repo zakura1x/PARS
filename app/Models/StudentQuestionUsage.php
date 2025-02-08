@@ -15,7 +15,13 @@ class StudentQuestionUsage extends Model
         'question_id',
         'selection_percentage',
         'correct_attempts',
-        'wrong_attempts'
+        'wrong_attempts',
+        'is_mastered',
+        'recent_attempts'
+    ];
+
+    protected $casts = [
+        'recent_attempts'=> 'array'
     ];
 
     public function question()

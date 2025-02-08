@@ -18,6 +18,7 @@ class StudentTopicProficiency extends Model
         'attempts',
         'proficiency_level',
         'grade',
+        'is_mastered'
     ];
 
     public function student() {

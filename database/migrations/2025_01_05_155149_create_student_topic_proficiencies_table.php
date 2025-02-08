@@ -20,6 +20,9 @@ return new class extends Migration
             $table->decimal('average_score',5,2)->nullable(); //Track the student's average score for the topic
             $table->integer('attempts')->default(0); //Tracks the number of attempts for this topic
             $table->decimal('grade', 5,2)->nullable();
+
+            //Track mastery
+            $table->boolean('is_mastered')->default(false);
             
             $table->timestamps();
             //Soft delete

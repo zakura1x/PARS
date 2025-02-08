@@ -14,7 +14,6 @@ class Question extends Model
         'user_id',
         'subject_id',
         'topic_id',
-        //Content
         'format_type',
         'purpose_type',
         'difficulty',
@@ -26,6 +25,7 @@ class Question extends Model
         'correct_answer',
         'solution',
         'is_used',
+        'is_mastered'
     ];
 
     protected $casts =[

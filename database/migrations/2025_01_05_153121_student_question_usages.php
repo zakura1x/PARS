@@ -21,6 +21,10 @@ return new class extends Migration
             $table->unsignedInteger('correct_attempts')->default(0);
             $table->unsignedInteger('wrong_attempts')->default(0);
 
+            //Track mastery
+            $table->boolean('is_mastered')->default(false);
+            $table->json('recent_attempts')->nullable();
+
             $table->timestamps();
             //Implement a softDelete
             $table->softDeletes();

@@ -693,18 +693,21 @@ class StudentPracticeAssessmentController extends Controller
         $elapsedTime = now()->diffInSeconds($assessment->started_at);
         $timeLimit = strtotime($assessment->time_limit) - strtotime('TODAY');
 
-        // Check if the time limit has been exceeded
-        if ($elapsedTime > $timeLimit) {
-            $assessment->update([
-                'status' => 'timed_out',
-                'submitted_at' => now(),
-            ]);
-        } else {
-            $assessment->update([
-                'status' => 'completed',
-                'submitted_at' => now(),
-            ]);
-        }
+        //Update assessment status based on time limit
+        $assessment->update([
+            'status' => ($elapsedTime > $timeLimit) ? 'timed_out' : 'completed',
+            'submitted_at' => now()
+        ]);
+
+        //Mastery Thresholds
+        $masteryThresholds = [
+            'remembering' => [3, 5],
+            'understanding' => [3, 5],
+            'applying' => [2, 3],
+            'analyzing' => [3, 4],
+            'evaluating' => [4, 5],
+            'creating' => [4, 5],
+        ];
 
         //Process the question_usage of the questions on the assessment
         foreach($assessment->questions as $assessmentQuestion){
@@ -714,24 +717,43 @@ class StudentPracticeAssessmentController extends Controller
             $isCorrect = $assessmentQuestion->is_correct;
 
             //Update the StudentQuestionUsage
-            $studentUsage = StudentQuestionUsage::firstOrNew(
-                ['student_id' => $assessment->student_id, 'question_id' => $assessmentQuestion->question_id]
-            );
-            
+            $studentUsage = StudentQuestionUsage::firstOrNew([
+                'student_id' => $assessment->student_id, 
+                'question_id' => $assessmentQuestion->question_id
+            ]);
+
+            //Attempt counts
+            $studentUsage->correct_attempts = ($studentUsage->correct_attempts ?? 0) + ($isCorrect ? 1 : 0);
+            $studentUsage->wrong_attempts = ($studentUsage->wrong_attempts ?? 0) + (!$isCorrect ? 1 : 0);
+
+            //Update selection probability
             if($isCorrect){
-                $studentUsage->correct_attempts = ($studentUsage->correct_attempts ?? 0) + 1;
-
-                //Decrease the selection percentage by 20% with a minimum of 5%
-                $studentUsage->selection_percentage = max(
-                    5,
-                    ($studentUsage->selection_percentage ?? 100) * 0.8
-                );
-            } else{
-                $studentUsage->wrong_attempts = ($studentUsage->wrong_attempts ?? 0) + 1;
-
-                //Keep the selection percentage unchanged
-                $studentUsage->selection_percentage = $studentUsage->selection_percentage ?? 100;
+                $studentUsage->selection_percentage = max(5, ($studentUsage->selection_percentage ?? 100) * 0.8);
             }
+
+            //Store recent attempts
+            $recentAttempts = json_decode($studentUsage->recent_attempts ?? '[]', true);
+            array_push($recentAttempts, $isCorrect);
+            if(count($recentAttempts) > 7){
+                array_shift($recentAttempts);
+            }
+            $studentUsage->recent_attempts = json_encode($recentAttempts);
+
+            //Determine the mastery
+            $difficulty = $question->difficulty;
+            $threshold = $masteryThresholds[$difficulty] ?? [3, 5];
+
+            $isMastered = $studentUsage->correct_attempts >= $threshold[0];
+
+            //Check declining errors for mastery
+            if($isMastered && $studentUsage->wrong_attempts >= 5){
+                if($this->hasDecliningErrors($recentAttempts)){
+                    $isMastered = true;
+                }
+            }
+
+            //update mastery status
+            $studentUsage->is_mastered = $isMastered;
             $studentUsage->save();
         }
 
@@ -742,80 +764,101 @@ class StudentPracticeAssessmentController extends Controller
         return to_route('practice-assessment.view-result', $assessment->id);
     }
 
+    private function hasDecliningErrors($recentAttempts)
+    {
+        $errors = array_map(fn($v) => !$v, $recentAttempts); // Convert correct (true) to false and vice versa
+        $sortedErrors = $errors;
+        sort($sortedErrors);
+    
+        return count($errors) >= 5 && array_reverse($errors) === $sortedErrors;
+    }
+    
+
     public function gradeAssessment($practiceAssessmentId)
     {
         $assessment = StudentPracticeAssessment::findOrFail($practiceAssessmentId);
-
         $questions = $assessment->questions()->with('question')->get();
-        
+    
         // Initialize grading variables
         $correctAnswers = 0;
         $incorrectAnswers = 0;
-        $totalWeightedScore = 0; // Total possible score (weighted)
-        $earnedWeightedScore = 0; // Total score earned (weighted)
-
-        // Group questions by topic for topic-specific calculations
+        $totalWeightedScore = 0;
+        $earnedWeightedScore = 0;
+    
+        // Group questions by topic
         $questionsByTopic = $questions->groupBy(fn($q) => $q->question->topic_id);
-
+    
         foreach ($questions as $question) {
-            $isCorrect = $question->is_correct; // Check if the question was answered correctly
-            $questionWeight = $question->question->weight ?? 1; // Default weight is 1 if not set
-
+            $isCorrect = $question->is_correct;
+            $questionWeight = $question->question->weight ?? 1; 
+    
             if ($isCorrect) {
                 $correctAnswers++;
                 $earnedWeightedScore += $questionWeight;
             } else {
                 $incorrectAnswers++;
             }
-
-            $totalWeightedScore += $questionWeight; // Add to the total weighted score
+    
+            $totalWeightedScore += $questionWeight;
         }
-
-        // Calculate the final score percentage for the assessment
+    
+        // Calculate final score percentage
         $scorePercentage = ($totalWeightedScore > 0) ? ($earnedWeightedScore / $totalWeightedScore) * 100 : 0;
-
-        // Save the results to the database
+    
+        // Save assessment results
         $assessment->results()->create([
             'student_id' => $assessment->student_id,
             'correct_answers' => $correctAnswers,
             'incorrect_answers' => $incorrectAnswers,
             'score_percentage' => $scorePercentage,
         ]);
-
-        // Update proficiency for each topic
+    
+        // Update topic proficiency
         foreach ($questionsByTopic as $topicId => $topicQuestions) {
-            $numerator = [];
-            $denominator = [];
-
+            $numerator = 0;
+            $denominator = 0;
+    
             foreach ($topicQuestions as $question) {
                 $isCorrect = $question->is_correct;
                 $questionWeight = $question->question->weight ?? 1;
-                $difficultyWeight = $this->getDifficultyWeight($question->question);
-
+                $difficultyWeight = $this->getDifficultyWeight($question->question->difficulty);
+    
                 $score = $isCorrect ? 1 : 0;
-                $attemptWeight = 1;
-
-                $numerator[] = $attemptWeight * $score * $difficultyWeight * $questionWeight;
-                $denominator[] = $difficultyWeight * $questionWeight;
+    
+                $numerator += $score * $difficultyWeight * $questionWeight;
+                $denominator += $difficultyWeight * $questionWeight;
             }
-
+    
             $this->updateTopicProficiency($assessment->student_id, $topicId, $numerator, $denominator, $assessment->id);
         }
-
+    
         return $assessment;
     }
+    
 
 
     /**
      * Get Difficulty Weight for a Question
      */
-    private function getDifficultyWeight($question)
+    private function getDifficultyWeight($difficulty)
     {
-        return match ($question->bloom_taxonomy_level) {
-            'remembering', 'understanding' => 1, // Easy
-            'applying',  => 2,        // Moderate
-            'analyzing', 'evaluating', 'create' => 3,       // Advanced
-            default => 1,                        // Default to easy
+        return match ($difficulty) {
+            'remembering' => 0.5,
+            'understanding' => 0.6,
+            'applying' => 0.7,
+            'analyzing' => 0.8,
+            'evaluating' => 0.9,
+            'create' => 1.8,
+            default => 1.0
+        };
+    }
+
+    private function determineProficiencyLevel($percentage)
+    {
+        return match (true){
+            $percentage >= 80 => 'advanced',
+            $percentage >= 60 => 'intermediate',
+            default => 'beginner',
         };
     }
 
@@ -824,51 +867,68 @@ class StudentPracticeAssessmentController extends Controller
      */
     private function updateTopicProficiency($studentId, $topicId, $numerator, $denominator, $assessmentId)
     {
-        $totalNumerator = array_sum($numerator);
-        $totalDenominator = array_sum($denominator);
-    
-        $proficiencyScore = $totalDenominator > 0 ? $totalNumerator / $totalDenominator : 0;
-    
-        // Fetch or create the current proficiency record
-        $proficiency = StudentTopicProficiency::firstOrNew(
+        $topicMastery = ($denominator > 0) ? ($numerator / $denominator) * 100 : 0;
+
+        //Get previous attempts
+        $topicProficiency = StudentTopicProficiency::where('student_id', $studentId)
+            ->where('topic_id', $topicId)
+            ->first();
+        $attempts = $topicProficiency ? $topicProficiency->attempts + 1 : 1;
+
+        //determine proficiency level
+        $proficiencyLevel = $this->determineProficiencyLevel($topicMastery);
+
+        StudentTopicProficiency::updateOrCreate(
+            ['student_id' => $studentId, 'topic_id' => $topicId],
             [
-                'student_id' => $studentId,
-                'topic_id' => $topicId,
-            ],
-            [
-                'proficiency_level' => 'beginner', // Fallback level
-                'grade' => 0.00, // Fallback grade
-                'average_score' => 0.00, // Fallback average score
-                'attempts' => 0, // Fallback attempts
+                'proficiency_level' => $proficiencyLevel,
+                'grade' => $topicMastery,
+                'attempts' => $attempts,
             ]
         );
+    
+        //$proficiencyScore = $totalDenominator > 0 ? $totalNumerator / $totalDenominator : 0;
+    
+        // Fetch or create the current proficiency record
+        // $proficiency = StudentTopicProficiency::firstOrNew(
+        //     [
+        //         'student_id' => $studentId,
+        //         'topic_id' => $topicId,
+        //     ],
+        //     [
+        //         'proficiency_level' => 'beginner', // Fallback level
+        //         'grade' => 0.00, // Fallback grade
+        //         'average_score' => 0.00, // Fallback average score
+        //         'attempts' => 0, // Fallback attempts
+        //     ]
+        // );
 
-        // Handle fallback for historical proficiency (if no grade exists)
-        $previousGrade = $proficiency->grade ?? 0.00; // Use 0 if no grade exists
-        $previousLevel = $proficiency->proficiency_level ?? 'beginner'; // Use 'beginner' if no level exists
+        // // Handle fallback for historical proficiency (if no grade exists)
+        // $previousGrade = $proficiency->grade ?? 0.00; // Use 0 if no grade exists
+        // $previousLevel = $proficiency->proficiency_level ?? 'beginner'; // Use 'beginner' if no level exists
     
-        //Save the current proficiency to the historical table
-        StudentAssessmentTopicProficiencies::create([
-            'assessment_id' => $assessmentId,
-            'student_id' => $studentId,
-            'topic_id' => $topicId,
-            'previous_grade' => $previousGrade, // Save the current grade before updating
-            'previous_level' => $previousLevel, // Save the current level before updating
-            'grade' => $proficiencyScore * 100, // Convert to percentage
-            'current_level' => $this->determineProficiencyLevel($proficiencyScore),
-        ]);
+        // //Save the current proficiency to the historical table
+        // StudentAssessmentTopicProficiencies::create([
+        //     'assessment_id' => $assessmentId,
+        //     'student_id' => $studentId,
+        //     'topic_id' => $topicId,
+        //     'previous_grade' => $previousGrade, // Save the current grade before updating
+        //     'previous_level' => $previousLevel, // Save the current level before updating
+        //     'grade' => $proficiencyScore * 100, // Convert to percentage
+        //     'current_level' => $this->determineProficiencyLevel($proficiencyScore),
+        // ]);
     
-        //Update the current proficiency record
-        $newTotalScore = ($proficiency->average_score * $proficiency->attempts) + ($proficiencyScore * 100);
-        $proficiency->attempts += 1; // Increment attempts
-        $proficiency->average_score = $proficiency->attempts > 0 ? $newTotalScore / $proficiency->attempts : $proficiencyScore * 100;
-        $proficiency->grade = $proficiencyScore * 100; // Current assessment grade
-        $proficiency->proficiency_level = match (true) {
-            $proficiency->average_score < 60 => 'beginner',
-            $proficiency->average_score >= 60 && $proficiency->average_score <= 80 => 'intermediate',
-            default => 'advanced',
-        };
-        $proficiency->save();
+        // //Update the current proficiency record
+        // $newTotalScore = ($proficiency->average_score * $proficiency->attempts) + ($proficiencyScore * 100);
+        // $proficiency->attempts += 1; // Increment attempts
+        // $proficiency->average_score = $proficiency->attempts > 0 ? $newTotalScore / $proficiency->attempts : $proficiencyScore * 100;
+        // $proficiency->grade = $proficiencyScore * 100; // Current assessment grade
+        // $proficiency->proficiency_level = match (true) {
+        //     $proficiency->average_score < 60 => 'beginner',
+        //     $proficiency->average_score >= 60 && $proficiency->average_score <= 80 => 'intermediate',
+        //     default => 'advanced',
+        // };
+        // $proficiency->save();
 
         
     }
@@ -932,43 +992,4 @@ class StudentPracticeAssessmentController extends Controller
         return inertia('PracticeAssessment/PracticeQuestionList', ['assessment' => $assessment]);
     }
 
- 
-
-    /**
-     * Determine proficiency level based on score
-     */
-    private function determineProficiencyLevel($score)
-    {
-        if ($score >= 0.85) {
-            return 'advanced';
-        } elseif ($score >= 0.70) {
-            return 'intermediate';
-        } else {
-            return 'beginner';
-        }
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(StudentPracticeAssessment $studentPracticeAssessment)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateStudentPracticeAssessmentRequest $request, StudentPracticeAssessment $studentPracticeAssessment)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(StudentPracticeAssessment $studentPracticeAssessment)
-    {
-        //
-    }
 }
