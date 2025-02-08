@@ -169,11 +169,10 @@ class StudentController extends Controller
     public function destroy($id)
     {
         //Find the user
-        $user = User::find($id);
+        $user = User::findOrFail($id);
         //Find the student
-        $student = Student::where('user_id', $id)->first();
+        $student = Student::where('user_id', $user->id)->delete();
         $user->delete();
-        $student->delete();
 
         return to_route('student.list')->with('message', 'Student was Deleted Successfully');
     }

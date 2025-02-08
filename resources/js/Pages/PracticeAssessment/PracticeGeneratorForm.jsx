@@ -109,11 +109,8 @@ const PracticeGeneratorForm = () => {
         setShowConfirmation(false);
     };
 
-    // console.log("Topics:", topics);
-    // console.log("Selected Topics:", selectedTopics);
-
     return (
-        <div className="m-4 p-6 rounded-lg bg-white relative">
+        <div className="m-4 p-6 rounded-lg bg-white">
             <h1 className="text-2xl font-bold mb-4">Practice Generator Form</h1>
             <hr className="border-t-2 border-black my-4" />
             {/* Confirmation Dialog */}

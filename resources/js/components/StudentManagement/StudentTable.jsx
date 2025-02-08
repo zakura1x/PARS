@@ -84,7 +84,7 @@ const StudentTable = ({ students }) => {
                                             e.stopPropagation();
                                             router.delete(
                                                 route(
-                                                    "student.destroy",
+                                                    "student.delete",
                                                     student.user.id
                                                 )
                                             );

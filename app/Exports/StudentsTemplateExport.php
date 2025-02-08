@@ -4,9 +4,11 @@ namespace App\Exports;
 
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 
-class StudentsTemplateExport implements FromArray, WithHeadings
+class StudentsTemplateExport implements FromArray, WithHeadings, WithEvents
 {
     public function array(): array
     {
@@ -33,23 +35,21 @@ class StudentsTemplateExport implements FromArray, WithHeadings
         return [
             AfterSheet::class => function(AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
-                
-                // Define the dropdown values for Gender
+
+                // Define dropdown values for Gender
                 $validation = $sheet->getCell('E2')->getDataValidation();
-                $validation->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST);
-                $validation->setErrorStyle(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::STYLE_INFORMATION);
+                $validation->setType(DataValidation::TYPE_LIST);
+                $validation->setErrorStyle(DataValidation::STYLE_STOP);
                 $validation->setAllowBlank(false);
-                $validation->setShowInputMessage(true);
-                $validation->setShowErrorMessage(true);
                 $validation->setShowDropDown(true);
                 $validation->setFormula1('"Male,Female,Other"');
 
-                // Apply the validation to multiple rows (e.g., 100 rows)
+                // Apply the validation to multiple rows (e.g., E2:E100)
                 for ($i = 2; $i <= 100; $i++) {
-                    $sheet->getCell("E$i")->setDataValidation(clone $validation);
+                    $cell = "E$i";
+                    $sheet->getCell($cell)->setDataValidation(clone $validation);
                 }
             },
         ];
     }
 }
-

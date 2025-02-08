@@ -8,15 +8,24 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\SkipsOnFailure;
+use Maatwebsite\Excel\Concerns\SkipsFailures;
+use Maatwebsite\Excel\Validators\Failure;
+use Maatwebsite\Excel\Concerns\WithValidation;
 
-class StudentsImport implements ToModel, WithHeadingRow
+class StudentsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnFailure
 {
+    use SkipsFailures;
+
     public function model(array $row)
     {
         $row = array_change_key_case(array_map('trim', $row), CASE_LOWER);
 
-        // Log the keys to debug
-        Log::info('Row keys: ', array_keys($row));
+        // Check if idNumber already exists
+        if (User::where('idNumber', $row['id_number'])->exists()) {
+            Log::warning("Skipping row: ID Number {$row['id_number']} already exists.");
+            return null; // Skip this row
+        }
 
         $user = User::create([
             'first_name' => $row['first_name'],
@@ -33,5 +42,16 @@ class StudentsImport implements ToModel, WithHeadingRow
             'birth_date' => $row['birthdate_yyyy_mm_dd'],
         ]);
     }
-}
 
+    public function rules(): array
+    {
+        return [
+            'id_number' => 'required|unique:users,idNumber',
+            'student_email' => 'required|email|unique:users,email',
+            'first_name' => 'required|string',
+            'last_name' => 'required|string',
+            'gender' => 'required|in:male,female,other',
+            'birthdate_yyyy_mm_dd' => 'required|date|before:today',
+        ];
+    }
+}
