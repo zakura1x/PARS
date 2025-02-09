@@ -169,7 +169,7 @@ class StudentPracticeAssessmentController extends Controller
 
         // Check if questions are empty
         if (empty($questions) || $questions->isEmpty()) {
-            return response()->json(['message' => 'No questions available for this assessment.'], 422);
+            return back()->with(['message' => 'No questions available for this assessment.'], 422);
         }
 
         // Create the assessment

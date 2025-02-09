@@ -1,7 +1,11 @@
+import { useState, useEffect } from "react";
 import { usePage, useForm, router } from "@inertiajs/react";
-import React, { useState, useEffect } from "react";
-import Pagination from "../../components/misc/Pagination";
-import LoadingSpinner from "../../components/misc/LoadingSpinner";
+import SubjectSelect from "../../components/PracticeAssessment/SubjectSelect";
+import TopicSearch from "../../components/PracticeAssessment/TopicSearch";
+import TopicList from "../../components/PracticeAssessment/TopicList";
+import SelectedTopics from "../../components/PracticeAssessment/SelectedTopics";
+import ConfirmationDialog from "../../components/PracticeAssessment/ConfirmationDialog";
+import LoadingSpinner from "../../components/PracticeAssessment/LoadingSpinner";
 
 const PracticeGeneratorForm = () => {
     const {
@@ -9,6 +13,7 @@ const PracticeGeneratorForm = () => {
         topics: initialTopics,
         search: initialSearch,
         subjectId: initialSubjectId,
+        flash: { message }, // Add flash message
     } = usePage().props;
     const [selectedSubject, setSelectedSubject] = useState(
         initialSubjectId || ""
@@ -18,19 +23,25 @@ const PracticeGeneratorForm = () => {
         type: "",
         subject_id: selectedSubject,
         total_items: "",
-        topics: [], // Only topic IDs
+        topics: [],
         time_limit: "",
     });
-    const [selectedTopics, setSelectedTopics] = useState(data.topics || []); // Initialize with form data topics
+    const [selectedTopics, setSelectedTopics] = useState(data.topics || []);
     const [topics, setTopics] = useState(initialTopics?.data || []);
     const [showConfirmation, setShowConfirmation] = useState(false);
+
+    useEffect(() => {
+        if (Array.isArray(initialTopics?.data)) {
+            setTopics(initialTopics.data);
+        } else if (Array.isArray(initialTopics)) {
+            setTopics(initialTopics);
+        }
+    }, [initialTopics]);
 
     const handleSubjectChange = (e) => {
         const subjectId = e.target.value;
         setSelectedSubject(subjectId);
         setData("subject_id", subjectId);
-
-        // Fetch topics for the selected subject
         if (subjectId) {
             router.get(
                 `/student-practice-assessments/generator/form`,
@@ -40,33 +51,9 @@ const PracticeGeneratorForm = () => {
         }
     };
 
-    const uniqueTopics = Array.from(
-        new Map(topics.map((topic) => [topic.id, topic])).values()
-    );
-
-    useEffect(() => {
-        if (Array.isArray(initialTopics?.data)) {
-            setTopics(initialTopics.data); // Use the data property if available
-        } else if (Array.isArray(initialTopics)) {
-            setTopics(initialTopics); // Fallback for plain arrays
-        }
-    }, [initialTopics]);
-
-    const handlePageChange = (url) => {
-        if (url) {
-            router.get(
-                url,
-                { subject_id: selectedSubject, search: value },
-                { preserveState: true, preserveScroll: true }
-            );
-        }
-    };
-
     const handleSearchChange = (e) => {
         const value = e.target.value;
         setSearch(value);
-
-        // Fetch topics for the selected subject with search query
         if (selectedSubject) {
             router.get(
                 `/student-practice-assessments/generator/form`,
@@ -110,97 +97,68 @@ const PracticeGeneratorForm = () => {
     };
 
     return (
-        <div className="m-4 p-6 rounded-lg bg-white">
-            <h1 className="text-2xl font-bold mb-4">Practice Generator Form</h1>
-            <hr className="border-t-2 border-black my-4" />
-            {/* Confirmation Dialog */}
-            {showConfirmation && (
-                <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
-                    <div className="bg-white p-6 rounded shadow-lg m-4">
-                        <p className="mb-4">
-                            Are you sure you want to create this assessment?
-                            This will affect your overall Grade.
-                        </p>
-                        <div className="flex justify-end">
-                            <button
-                                className="btn btn-error mr-2"
-                                onClick={handleCancelSubmit}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                className="btn bg-green-500 border-none text-white"
-                                onClick={handleConfirmSubmit}
-                            >
-                                Yes
-                            </button>
-                        </div>
-                    </div>
+        <div className="container mx-auto p-6 bg-white rounded-lg shadow-lg mt-4">
+            <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
+                Practice Generator Form
+            </h1>
+            <hr className="border-t-2 border-gray-200 mb-6" />
+
+            {message && (
+                <div className="alert alert-error">
+                    <span>{message}</span>
                 </div>
             )}
-            {/* Loading Spinner */}
+
+            {showConfirmation && (
+                <ConfirmationDialog
+                    onConfirm={handleConfirmSubmit}
+                    onCancel={handleCancelSubmit}
+                />
+            )}
+
             {processing && <LoadingSpinner />}
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="flex flex-row space-x-4">
-                    <div className="flex flex-col">
-                        <label className="block mb-2">
-                            Choose What type of assessment
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="form-control">
+                        <label className="label">
+                            <span className="label-text">Assessment Type</span>
                         </label>
                         <select
                             id="type"
                             value={data.type}
                             onChange={(e) => setData("type", e.target.value)}
-                            className="select select-bordered w-full bg-transparent"
+                            className="select select-bordered w-full"
                         >
-                            <option value="">Assessment Type</option>
+                            <option value="">Select Assessment Type</option>
                             <option value="proficiency">
                                 Based on your Proficiency
                             </option>
-                            {/* <option value="criteria">
-                                Based on Pre-defined criteria for the topic
-                            </option> */}
                             <option value="exam">
                                 Based on Examination (Simulate board exam)
                             </option>
                         </select>
                         {errors.type && (
-                            <span className="text-red-500 text-sm">
+                            <span className="text-error text-sm">
                                 {errors.type}
                             </span>
                         )}
                     </div>
 
-                    <div className="flex flex-col">
-                        <label className="block mb-2">
-                            Choose your subject
-                        </label>
-                        <select
-                            id="subject"
-                            value={data.subject_id}
-                            onChange={(e) => {
-                                setData("subject_id", e.target.value);
-                                handleSubjectChange(e);
-                            }}
-                            className="select select-bordered w-full bg-transparent"
-                        >
-                            <option value="">Select a subject</option>
-                            {subjects.map((subject) => (
-                                <option key={subject.id} value={subject.id}>
-                                    {subject.name}
-                                </option>
-                            ))}
-                        </select>
-                        {errors.subject_id && (
-                            <span className="text-red-500 text-sm">
-                                {errors.subject_id}
-                            </span>
-                        )}
-                    </div>
+                    <SubjectSelect
+                        subjects={subjects}
+                        selectedSubject={data.subject_id}
+                        onChange={handleSubjectChange}
+                        error={errors.subject_id}
+                    />
                 </div>
-                <div className="flex flex-row space-x-4">
-                    <div className="flex flex-col">
-                        <label className="block mb-2">
-                            Total Number of Items
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="form-control">
+                        <label className="label">
+                            <span className="label-text">
+                                Total Number of Items
+                            </span>
                         </label>
                         <input
                             type="number"
@@ -210,16 +168,19 @@ const PracticeGeneratorForm = () => {
                                 setData("total_items", e.target.value)
                             }
                             placeholder="Minimum of 1"
-                            className="input input-bordered w-full bg-transparent"
+                            className="input input-bordered w-full"
                         />
                         {errors.total_items && (
-                            <span className="text-red-500 text-sm">
+                            <span className="text-error text-sm">
                                 {errors.total_items}
                             </span>
                         )}
                     </div>
-                    <div className="flex flex-col">
-                        <label className="block mb-2">Set time limit</label>
+
+                    <div className="form-control">
+                        <label className="label">
+                            <span className="label-text">Set time limit</span>
+                        </label>
                         <input
                             type="text"
                             id="time_limit"
@@ -240,93 +201,31 @@ const PracticeGeneratorForm = () => {
                             <option value="120">120 minutes</option>
                         </datalist>
                         {errors.time_limit && (
-                            <span className="text-red-500 text-sm">
+                            <span className="text-error text-sm">
                                 {errors.time_limit}
                             </span>
                         )}
                     </div>
                 </div>
 
-                <div className="flex flex-row space-x-4">
-                    <div>
-                        <label htmlFor="Topics" className="block mb-2">
-                            Search Topics:
-                        </label>
-                        <input
-                            type="text"
-                            id="search"
-                            value={search}
-                            onChange={handleSearchChange}
-                            placeholder="Search topics..."
-                            className="input input-bordered w-full"
-                        />
-                    </div>
-                </div>
+                <TopicSearch search={search} onChange={handleSearchChange} />
 
-                {/* Topics Table containing name and id */}
-                <div className="my-2 overflow-x-auto lg:mx-4 max-h-96">
-                    <table className="table w-full bg-white shadow-md rounded-md">
-                        <thead>
-                            <tr className="bg-gray-200 text-gray-700 text-sm">
-                                <th className="py-3 px-4 text-left">Name</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {Array.isArray(topics) && topics.length > 0 ? (
-                                topics.map((topic) => (
-                                    <tr
-                                        key={topic.id}
-                                        className="border-b text-gray-700 cursor-pointer hover:bg-gray-50"
-                                        onClick={() => handleTopicClick(topic)}
-                                    >
-                                        <td className="py-3 px-4">
-                                            {topic.name}
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td
-                                        colSpan="2"
-                                        className="text-center py-6 text-gray-500"
-                                    >
-                                        No topics found...
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                <div>
-                    <h2 className="text-xl font-semibold mb-2">
-                        Topics for assessment:
-                    </h2>
-                    <div className="flex flex-wrap">
-                        {selectedTopics.map((topicId) => {
-                            const topic = topics.find((t) => t.id === topicId);
-                            return (
-                                <span
-                                    key={topicId}
-                                    onClick={() => handleRemoveTopic(topicId)}
-                                    className="badge badge-accent cursor-pointer"
-                                >
-                                    {topic ? `${topic.name}` : `${topicId}`}{" "}
-                                    &times;
-                                </span>
-                            );
-                        })}
-                    </div>
-                    {errors.topics && (
-                        <span className="text-red-500 text-sm">
-                            Please include a topic to generate the assessment
-                        </span>
-                    )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <TopicList
+                        topics={topics}
+                        onTopicClick={handleTopicClick}
+                    />
+                    <SelectedTopics
+                        selectedTopics={selectedTopics}
+                        topics={topics}
+                        onRemoveTopic={handleRemoveTopic}
+                        error={errors.topics}
+                    />
                 </div>
 
                 <button
                     type="submit"
-                    className="btn bg-black w-full hover:bg-green-800 hover:text-white"
+                    className="btn btn-primary w-full"
                     disabled={processing}
                 >
                     Generate the Assessment
