@@ -22,7 +22,8 @@ return new class extends Migration
             $table->decimal('grade', 5,2)->nullable();
 
             //Track mastery
-            $table->boolean('is_mastered')->default(false);
+            $table->integer('correct_attempts')->default(0);
+            $table->integer('incorrect_attempts')->default(0);
             
             $table->timestamps();
             //Soft delete
