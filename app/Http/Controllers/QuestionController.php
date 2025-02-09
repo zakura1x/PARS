@@ -121,38 +121,44 @@ class QuestionController extends Controller
         return inertia('QuestionBank/QuestionUpload');
     }
 
-    public function uploadQuestions(Request $request){
-        $request-> validate([
+    public function uploadQuestions(Request $request)
+    {
+        $request->validate([
             'file' => 'required|mimes:xlsx,xls|max:2048',
         ]);
-
-        //Load the uploaded Excel File
+    
+        // Load the uploaded Excel file
         $file = $request->file('file');
         $rows = Excel::toArray(null, $file); // Read all rows into an array
-
-        //Extract rows from the first sheet
+    
+        // Extract rows from the first sheet
         $data = $rows[0] ?? [];
-
-        
-        //Validate
-        foreach ($data as $key => $row){
-            //SKip the header row
-            if($key === 0) continue;
-
-            //Map the excel columns
-            $rowData = [
-                'subject_name'   => $row[0] ?? null,
-                'topic_name'     => $row[1] ?? null,
-                'format_type'    => $row[2] ?? null,
-                'purpose_type'   => $row[3] ?? null,
-                'difficulty'     => $row[4] ?? null,
-                'question_text'  => $row[5] ?? null,
-                'options'        => $row[6] ?? null,
-                'correct_answer' => $row[7] ?? null,
-                'weight'         => $row[8] ?? null,
-            ];
-
-             // Validate the row data
+    
+        if (empty($data)) {
+            return back()->with(['message' => 'The uploaded file is empty or not formatted correctly.']);
+        }
+    
+        // Define the expected header format
+        $expectedHeaders = [
+            'subject_name', 'topic_name', 'format_type', 'purpose_type',
+            'difficulty', 'question_text', 'options', 'correct_answer', 'weight'
+        ];
+    
+        // Validate if the first row matches the expected headers
+        $headerRow = array_map('trim', $data[0] ?? []);
+    
+        if (count($headerRow) < count($expectedHeaders) || array_diff($expectedHeaders, $headerRow)) {
+            return back()->with(['message' => 'Invalid Excel format. Please use the correct template.']);
+        }
+    
+        // Process rows (skip header row)
+        foreach ($data as $key => $row) {
+            if ($key === 0) continue; // Skip header row
+    
+            // Map the excel columns
+            $rowData = array_combine($expectedHeaders, array_slice($row, 0, count($expectedHeaders)));
+    
+            // Validate row data
             $validator = Validator::make($rowData, [
                 'subject_name'   => 'required|exists:subjects,name',
                 'topic_name'     => 'required|exists:topics,name',
@@ -160,19 +166,19 @@ class QuestionController extends Controller
                 'purpose_type'   => 'required|in:practice,assessment,examination',
                 'difficulty'     => 'required|in:remembering,understanding,applying,analyzing,evaluating,create',
                 'question_text'  => 'required|string|max:255',
-                'options'        => 'nullable|json', // Options should be JSON format
+                'options'        => 'nullable|json',
                 'correct_answer' => 'required|json',
                 'weight'         => 'required|integer|min:1',
             ]);
-
-            if($validator->fails()){
+    
+            if ($validator->fails()) {
                 continue;
             }
-
+    
             // Convert subject_name and topic_name to their respective IDs
             $subject = Subject::where('name', $rowData['subject_name'])->first();
             $topic = Topics::where('name', $rowData['topic_name'])->first();
-
+    
             Question::create([
                 'user_id'        => Auth::id(),
                 'subject_id'     => $subject->id,
@@ -186,10 +192,10 @@ class QuestionController extends Controller
                 'weight'         => $rowData['weight'],
             ]);
         }
-
+    
         return to_route('questionIndex')->with(['message' => 'Questions were uploaded successfully']);
-
     }
+    
 
     /**
      * Display the specified resource.

@@ -829,7 +829,7 @@ class StudentPracticeAssessmentController extends Controller
                 $denominator += $difficultyWeight * $questionWeight;
             }
     
-            $this->updateTopicProficiency($assessment->student_id, $topicId, $numerator, $denominator, $assessment->id);
+            $this->updateTopicProficiency($assessment->student_id, $topicId, $numerator, $denominator, $assessment->id, $correctAnswers, $incorrectAnswers);
         }
     
         return $assessment;
@@ -862,23 +862,32 @@ class StudentPracticeAssessmentController extends Controller
         };
     }
 
+    private function checkMastery($correctAttempts, $incorrectAttempts)
+    {
+        // Mastery conditions based on attempt patterns
+        return match (true) {
+            $correctAttempts >= 5 => true, // 5+ correct answers
+            $incorrectAttempts >= 5 && $correctAttempts >= 3 => true, // 3+ correct after 5 incorrect
+            default => false,
+        };
+    }
+
+
+
     /**
      * Update Topic Proficiency
      */
-    private function updateTopicProficiency($studentId, $topicId, $numerator, $denominator, $assessmentId)
+    private function updateTopicProficiency($studentId, $topicId, $numerator, $denominator, $assessmentId, $correctAnswers, $incorrectAnswers)
     {
         $topicMastery = ($denominator > 0) ? ($numerator / $denominator) * 100 : 0;
     
-        // Get previous attempts
+        // Get previous topic proficiency data
         $topicProficiency = StudentTopicProficiency::where('student_id', $studentId)
             ->where('topic_id', $topicId)
             ->first();
     
         $attempts = $topicProficiency ? $topicProficiency->attempts + 1 : 1;
-    
-        // Determine proficiency level
-        $proficiencyLevel = $this->determineProficiencyLevel($topicMastery);
-    
+        
         // Fetch or create the current proficiency record
         $proficiency = StudentTopicProficiency::firstOrCreate(
             [
@@ -890,6 +899,8 @@ class StudentPracticeAssessmentController extends Controller
                 'grade' => 0.00, // Fallback grade
                 'average_score' => 0.00, // Fallback average score
                 'attempts' => 0, // Fallback attempts
+                'correct_attempts' => 0, // Correct answer tracking
+                'incorrect_attempts' => 0, // Incorrect answer tracking
             ]
         );
     
@@ -905,8 +916,15 @@ class StudentPracticeAssessmentController extends Controller
             'previous_grade' => $previousGrade,
             'previous_level' => $previousLevel,
             'grade' => $topicMastery,
-            'current_level' => $proficiencyLevel,
+            'current_level' => $this->determineProficiencyLevel($topicMastery),
         ]);
+    
+        // Update correct/incorrect tracking
+        $proficiency->correct_attempts += $correctAnswers;
+        $proficiency->incorrect_attempts += $incorrectAnswers;
+    
+        // Mastery determination based on consistent correct attempts
+        $masteryAchieved = $this->checkMastery($proficiency->correct_attempts, $proficiency->incorrect_attempts);
     
         // Update the current proficiency record
         $newTotalScore = ($proficiency->average_score * $proficiency->attempts) + $topicMastery;
@@ -914,7 +932,7 @@ class StudentPracticeAssessmentController extends Controller
         $proficiency->attempts = $attempts;
         $proficiency->average_score = $attempts > 0 ? $newTotalScore / $attempts : $topicMastery;
         $proficiency->grade = $topicMastery;
-        $proficiency->proficiency_level = match (true) {
+        $proficiency->proficiency_level = $masteryAchieved ? 'mastered' : match (true) {
             $proficiency->average_score < 60 => 'beginner',
             $proficiency->average_score >= 60 && $proficiency->average_score <= 80 => 'intermediate',
             default => 'advanced',
@@ -922,6 +940,7 @@ class StudentPracticeAssessmentController extends Controller
     
         $proficiency->save();
     }
+    
     
 
     public function viewAssessmentReport($practiceAssessmentId){

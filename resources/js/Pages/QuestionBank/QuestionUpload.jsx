@@ -1,7 +1,5 @@
-"use client";
-
-import { useState, useRef } from "react";
-import { useForm } from "@inertiajs/react";
+import { useState, useRef, useEffect } from "react";
+import { useForm, usePage } from "@inertiajs/react";
 import { Upload, Download, CheckCircle, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -9,6 +7,9 @@ const QuestionUpload = () => {
     const { data, setData, post, errors, processing, reset } = useForm({
         file: null,
     });
+
+    const { flash } = usePage().props;
+
     const [downloadLink, setDownloadLink] = useState(null);
     const [uploadSuccess, setUploadSuccess] = useState(false);
 
@@ -18,7 +19,6 @@ const QuestionUpload = () => {
     const handleFileChange = (e) => {
         if (e.target.files.length > 0) {
             setData("file", e.target.files[0]);
-            handleSubmit();
         }
     };
 
@@ -31,6 +31,13 @@ const QuestionUpload = () => {
             },
         });
     };
+
+    // Watch for changes in `data.file`
+    useEffect(() => {
+        if (data.file) {
+            handleSubmit();
+        }
+    }, [data.file]);
 
     const handleButtonClick = () => {
         fileInputRef.current.click();
@@ -146,6 +153,28 @@ const QuestionUpload = () => {
                         <div className="alert alert-error">
                             <AlertCircle className="w-6 h-6" />
                             <span>{errors.file}</span>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {flash.message && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -50 }}
+                        className="toast toast-end"
+                    >
+                        <div
+                            className={`alert ${
+                                flash.type === "error"
+                                    ? "alert-error"
+                                    : "alert-success"
+                            }`}
+                        >
+                            <AlertCircle className="w-6 h-6" />
+                            <span>{flash.message}</span>
                         </div>
                     </motion.div>
                 )}

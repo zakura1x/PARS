@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "@inertiajs/react";
 import { Upload, Download, CheckCircle, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,7 +16,6 @@ const MassUploadStudent = () => {
     const handleFileChange = (e) => {
         if (e.target.files.length > 0) {
             setData("file", e.target.files[0]);
-            handleSubmit();
         }
     };
 
@@ -29,6 +28,13 @@ const MassUploadStudent = () => {
             },
         });
     };
+
+    // Watch for changes in `data.file`
+    useEffect(() => {
+        if (data.file) {
+            handleSubmit();
+        }
+    }, [data.file]);
 
     const handleButtonClick = () => {
         fileInputRef.current.click();
