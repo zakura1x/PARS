@@ -868,70 +868,61 @@ class StudentPracticeAssessmentController extends Controller
     private function updateTopicProficiency($studentId, $topicId, $numerator, $denominator, $assessmentId)
     {
         $topicMastery = ($denominator > 0) ? ($numerator / $denominator) * 100 : 0;
-
-        //Get previous attempts
+    
+        // Get previous attempts
         $topicProficiency = StudentTopicProficiency::where('student_id', $studentId)
             ->where('topic_id', $topicId)
             ->first();
+    
         $attempts = $topicProficiency ? $topicProficiency->attempts + 1 : 1;
-
-        //determine proficiency level
+    
+        // Determine proficiency level
         $proficiencyLevel = $this->determineProficiencyLevel($topicMastery);
-
-        StudentTopicProficiency::updateOrCreate(
-            ['student_id' => $studentId, 'topic_id' => $topicId],
+    
+        // Fetch or create the current proficiency record
+        $proficiency = StudentTopicProficiency::firstOrCreate(
             [
-                'proficiency_level' => $proficiencyLevel,
-                'grade' => $topicMastery,
-                'attempts' => $attempts,
+                'student_id' => $studentId,
+                'topic_id' => $topicId,
+            ],
+            [
+                'proficiency_level' => 'beginner', // Fallback level
+                'grade' => 0.00, // Fallback grade
+                'average_score' => 0.00, // Fallback average score
+                'attempts' => 0, // Fallback attempts
             ]
         );
     
-        //$proficiencyScore = $totalDenominator > 0 ? $totalNumerator / $totalDenominator : 0;
+        // Handle fallback for historical proficiency
+        $previousGrade = $proficiency->grade ?? 0.00;
+        $previousLevel = $proficiency->proficiency_level ?? 'beginner';
     
-        // Fetch or create the current proficiency record
-        // $proficiency = StudentTopicProficiency::firstOrNew(
-        //     [
-        //         'student_id' => $studentId,
-        //         'topic_id' => $topicId,
-        //     ],
-        //     [
-        //         'proficiency_level' => 'beginner', // Fallback level
-        //         'grade' => 0.00, // Fallback grade
-        //         'average_score' => 0.00, // Fallback average score
-        //         'attempts' => 0, // Fallback attempts
-        //     ]
-        // );
-
-        // // Handle fallback for historical proficiency (if no grade exists)
-        // $previousGrade = $proficiency->grade ?? 0.00; // Use 0 if no grade exists
-        // $previousLevel = $proficiency->proficiency_level ?? 'beginner'; // Use 'beginner' if no level exists
+        // Save the current proficiency to the historical table
+        StudentAssessmentTopicProficiencies::create([
+            'assessment_id' => $assessmentId,
+            'student_id' => $studentId,
+            'topic_id' => $topicId,
+            'previous_grade' => $previousGrade,
+            'previous_level' => $previousLevel,
+            'grade' => $topicMastery,
+            'current_level' => $proficiencyLevel,
+        ]);
     
-        // //Save the current proficiency to the historical table
-        // StudentAssessmentTopicProficiencies::create([
-        //     'assessment_id' => $assessmentId,
-        //     'student_id' => $studentId,
-        //     'topic_id' => $topicId,
-        //     'previous_grade' => $previousGrade, // Save the current grade before updating
-        //     'previous_level' => $previousLevel, // Save the current level before updating
-        //     'grade' => $proficiencyScore * 100, // Convert to percentage
-        //     'current_level' => $this->determineProficiencyLevel($proficiencyScore),
-        // ]);
+        // Update the current proficiency record
+        $newTotalScore = ($proficiency->average_score * $proficiency->attempts) + $topicMastery;
     
-        // //Update the current proficiency record
-        // $newTotalScore = ($proficiency->average_score * $proficiency->attempts) + ($proficiencyScore * 100);
-        // $proficiency->attempts += 1; // Increment attempts
-        // $proficiency->average_score = $proficiency->attempts > 0 ? $newTotalScore / $proficiency->attempts : $proficiencyScore * 100;
-        // $proficiency->grade = $proficiencyScore * 100; // Current assessment grade
-        // $proficiency->proficiency_level = match (true) {
-        //     $proficiency->average_score < 60 => 'beginner',
-        //     $proficiency->average_score >= 60 && $proficiency->average_score <= 80 => 'intermediate',
-        //     default => 'advanced',
-        // };
-        // $proficiency->save();
-
-        
+        $proficiency->attempts = $attempts;
+        $proficiency->average_score = $attempts > 0 ? $newTotalScore / $attempts : $topicMastery;
+        $proficiency->grade = $topicMastery;
+        $proficiency->proficiency_level = match (true) {
+            $proficiency->average_score < 60 => 'beginner',
+            $proficiency->average_score >= 60 && $proficiency->average_score <= 80 => 'intermediate',
+            default => 'advanced',
+        };
+    
+        $proficiency->save();
     }
+    
 
     public function viewAssessmentReport($practiceAssessmentId){
         $assessment = StudentPracticeAssessment::with('results', 'questions.question')
