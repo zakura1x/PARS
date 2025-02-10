@@ -898,18 +898,18 @@ class StudentPracticeAssessmentController extends Controller
         );
     
         // Count mastered questions in the topic
-        $masteredQuestions = StudentQuestionUsage::where('student_id', $studentId)
-            ->whereHas('question', fn($q) => $q->where('topic_id', $topicId))
-            ->where('is_mastered', true)
-            ->count();
+        // $masteredQuestions = StudentQuestionUsage::where('student_id', $studentId)
+        //     ->whereHas('question', fn($q) => $q->where('topic_id', $topicId))
+        //     ->where('is_mastered', true)
+        //     ->count();
     
-        // Count total distinct questions answered in the topic
-        $totalQuestions = StudentQuestionUsage::where('student_id', $studentId)
-            ->whereHas('question', fn($q) => $q->where('topic_id', $topicId))
-            ->count();
+        // // Count total distinct questions answered in the topic
+        // $totalQuestions = StudentQuestionUsage::where('student_id', $studentId)
+        //     ->whereHas('question', fn($q) => $q->where('topic_id', $topicId))
+        //     ->count();
     
         // Calculate mastery percentage (based on mastered questions, not raw attempts)
-        $masteryPercentage = ($totalQuestions > 0) ? ($masteredQuestions / $totalQuestions) * 100 : 0;
+        //$masteryPercentage = ($totalQuestions > 0) ? ($masteredQuestions / $totalQuestions) * 100 : 0;
     
         // Save historical proficiency
         StudentAssessmentTopicProficiencies::create([
