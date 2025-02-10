@@ -829,7 +829,7 @@ class StudentPracticeAssessmentController extends Controller
                 $denominator += $difficultyWeight * $questionWeight;
             }
     
-            $this->updateTopicProficiency($assessment->student_id, $topicId, $numerator, $denominator, $assessment->id, $correctAnswers, $incorrectAnswers);
+            $this->updateTopicProficiency($assessment->student_id, $topicId, $numerator, $denominator, $assessment->id);
         }
     
         return $assessment;
@@ -877,69 +877,69 @@ class StudentPracticeAssessmentController extends Controller
     /**
      * Update Topic Proficiency
      */
-    private function updateTopicProficiency($studentId, $topicId, $numerator, $denominator, $assessmentId, $correctAnswers, $incorrectAnswers)
+    private function updateTopicProficiency($studentId, $topicId, $numerator, $denominator, $assessmentId)
     {
         $topicMastery = ($denominator > 0) ? ($numerator / $denominator) * 100 : 0;
     
-        // Get previous topic proficiency data
-        $topicProficiency = StudentTopicProficiency::where('student_id', $studentId)
-            ->where('topic_id', $topicId)
-            ->first();
-    
-        $attempts = $topicProficiency ? $topicProficiency->attempts + 1 : 1;
-        
-        // Fetch or create the current proficiency record
+        // Fetch student's proficiency record for the topic
         $proficiency = StudentTopicProficiency::firstOrCreate(
             [
                 'student_id' => $studentId,
                 'topic_id' => $topicId,
             ],
             [
-                'proficiency_level' => 'beginner', // Fallback level
-                'grade' => 0.00, // Fallback grade
-                'average_score' => 0.00, // Fallback average score
-                'attempts' => 0, // Fallback attempts
-                'correct_attempts' => 0, // Correct answer tracking
-                'incorrect_attempts' => 0, // Incorrect answer tracking
+                'proficiency_level' => 'beginner', // Default level
+                'grade' => 0.00,
+                'average_score' => 0.00,
+                'attempts' => 0,
+                'mastered_questions' => 0, // New field to track mastered questions
+                'total_questions' => 0, // Track total questions answered in the topic
             ]
         );
     
-        // Handle fallback for historical proficiency
-        $previousGrade = $proficiency->grade ?? 0.00;
-        $previousLevel = $proficiency->proficiency_level ?? 'beginner';
+        // Count mastered questions in the topic
+        $masteredQuestions = StudentQuestionUsage::where('student_id', $studentId)
+            ->whereHas('question', fn($q) => $q->where('topic_id', $topicId))
+            ->where('is_mastered', true)
+            ->count();
     
-        // Save the current proficiency to the historical table
+        // Count total distinct questions answered in the topic
+        $totalQuestions = StudentQuestionUsage::where('student_id', $studentId)
+            ->whereHas('question', fn($q) => $q->where('topic_id', $topicId))
+            ->count();
+    
+        // Calculate mastery percentage (based on mastered questions, not raw attempts)
+        $masteryPercentage = ($totalQuestions > 0) ? ($masteredQuestions / $totalQuestions) * 100 : 0;
+    
+        // Save historical proficiency
         StudentAssessmentTopicProficiencies::create([
             'assessment_id' => $assessmentId,
             'student_id' => $studentId,
             'topic_id' => $topicId,
-            'previous_grade' => $previousGrade,
-            'previous_level' => $previousLevel,
+            'previous_grade' => $proficiency->grade,
+            'previous_level' => $proficiency->proficiency_level,
             'grade' => $topicMastery,
             'current_level' => $this->determineProficiencyLevel($topicMastery),
         ]);
     
-        // Update correct/incorrect tracking
-        $proficiency->correct_attempts += $correctAnswers;
-        $proficiency->incorrect_attempts += $incorrectAnswers;
-    
-        // Mastery determination based on consistent correct attempts
-        $masteryAchieved = $this->checkMastery($proficiency->correct_attempts, $proficiency->incorrect_attempts);
-    
-        // Update the current proficiency record
-        $newTotalScore = ($proficiency->average_score * $proficiency->attempts) + $topicMastery;
-    
-        $proficiency->attempts = $attempts;
-        $proficiency->average_score = $attempts > 0 ? $newTotalScore / $attempts : $topicMastery;
+        // Update topic proficiency record
+        $proficiency->attempts += 1;
+        $proficiency->mastered_questions = $masteredQuestions;
+        $proficiency->total_questions = $totalQuestions;
+        $proficiency->average_score = (($proficiency->average_score * ($proficiency->attempts - 1)) + $topicMastery) / $proficiency->attempts;
         $proficiency->grade = $topicMastery;
-        $proficiency->current_level = $masteryAchieved ? 'mastered' : match (true) {
-            $proficiency->average_score < 60 => 'beginner',
-            $proficiency->average_score >= 60 && $proficiency->average_score <= 80 => 'intermediate',
-            default => 'advanced',
+    
+        // Determine proficiency level based on mastery percentage
+        $proficiency->current_level = match (true) {
+            $masteryPercentage >= 80 => 'mastered',
+            $masteryPercentage >= 60 => 'advanced',
+            $masteryPercentage >= 40 => 'intermediate',
+            default => 'beginner',
         };
     
         $proficiency->save();
     }
+    
     
     
 
