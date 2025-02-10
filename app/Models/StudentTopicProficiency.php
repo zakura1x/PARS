@@ -18,8 +18,8 @@ class StudentTopicProficiency extends Model
         'attempts',
         'proficiency_level',
         'grade',
-        'mastered_questions',
-        'total_questions'
+        // 'mastered_questions',
+        // 'total_questions'
     ];
 
     public function student() {

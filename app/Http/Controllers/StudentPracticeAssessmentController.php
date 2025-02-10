@@ -892,8 +892,8 @@ class StudentPracticeAssessmentController extends Controller
                 'grade' => 0.00,
                 'average_score' => 0.00,
                 'attempts' => 0,
-                'mastered_questions' => 0, // New field to track mastered questions
-                'total_questions' => 0, // Track total questions answered in the topic
+                // 'mastered_questions' => 0, // New field to track mastered questions
+                // 'total_questions' => 0, // Track total questions answered in the topic
             ]
         );
     
@@ -924,18 +924,19 @@ class StudentPracticeAssessmentController extends Controller
     
         // Update topic proficiency record
         $proficiency->attempts += 1;
-        $proficiency->mastered_questions = $masteredQuestions;
-        $proficiency->total_questions = $totalQuestions;
+        // $proficiency->mastered_questions = $masteredQuestions;
+        // $proficiency->total_questions = $totalQuestions;
         $proficiency->average_score = (($proficiency->average_score * ($proficiency->attempts - 1)) + $topicMastery) / $proficiency->attempts;
         $proficiency->grade = $topicMastery;
     
         // Determine proficiency level based on mastery percentage
-        $proficiency->proficiency_level = match (true) {
-            $masteryPercentage >= 80 => 'mastered',
-            $masteryPercentage >= 60 => 'advanced',
-            $masteryPercentage >= 40 => 'intermediate',
-            default => 'beginner',
-        };
+        // $proficiency->proficiency_level = match (true) {
+        //     $masteryPercentage >= 80 => 'mastered',
+        //     $masteryPercentage >= 60 => 'advanced',
+        //     $masteryPercentage >= 40 => 'intermediate',
+        //     default => 'beginner',
+        // };
+        $proficiency->proficiency_level = $this->determineProficiencyLevel($topicMastery);
     
         $proficiency->save();
     }
