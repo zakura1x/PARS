@@ -137,6 +137,8 @@ Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function 
     Route::get('/student-practice-assessments/result/{practiceAssessmentId}', [StudentPracticeAssessmentController::class,'viewAssessmentReport'])->name('practice-assessment.view-result');
 
     //Assessment
+    //Route for the Assessment index
+    Route::get('/assessment/student/index', [AssessmentController::class, 'studentIndex'])->name('student.assessment.index');
     // Route for the input code view
     Route::get('/assessment/input/code', [AssessmentController::class, 'inputCode'])->name('assessment.inputCode');
     // Route for joining the assessment

@@ -580,6 +580,23 @@ class AssessmentController extends Controller
     /**
      * Student View
      */
+
+     
+    public function studentIndex()
+    {
+        //Get the Id of the authenticated
+        $studentId = Auth::id();
+
+        //Retrieve the assessment the students joined
+        $assessments = Assessment::whereHas('studentAssessments', function ($query) use ($studentId){
+            $query->where('user_id', $studentId);
+        })->get();
+
+        return inertia('Assessment/Student/StudentAssessmentIndex',[
+            'assessments' => $assessments
+        ]);
+    }
+
     public function inputCode(){
         return inertia('Assessment/Student/StudentInputCode');
     }

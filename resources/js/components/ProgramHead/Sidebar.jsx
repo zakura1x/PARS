@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import { Link, usePage } from "@inertiajs/react";
 import { getMenuByRole } from "../../config/menuConfig";
+import { ChevronDown, ChevronUp } from "lucide-react"; // Import icons
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
     const { auth } = usePage().props;
@@ -10,8 +13,19 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
     const menuItems = getMenuByRole(auth.user.role);
 
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 768) {
+                setIsHovered(false);
+            }
+        };
+
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
     const handleSummaryClick = (summaryKey) => {
-        setActiveSummary((prev) => (prev === summaryKey ? null : summaryKey)); // Toggle the section
+        setActiveSummary((prev) => (prev === summaryKey ? null : summaryKey));
     };
 
     const handleItemClick = (itemKey) => {
@@ -20,14 +34,12 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
     const handleMouseEnter = () => {
         if (window.innerWidth >= 768) {
-            // Check if screen width is medium or larger
             setIsHovered(true);
         }
     };
 
     const handleMouseLeave = () => {
         if (window.innerWidth >= 768) {
-            // Check if screen width is medium or larger
             setIsHovered(false);
         }
     };
@@ -36,7 +48,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         <aside
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
-            className={`fixed left-0 top-0 flex h-screen flex-col duration-300 ease-linear lg:static lg:translate-x-0  bg-[#42604C] text-white z-40 ${
+            className={`fixed left-0 top-0 flex h-screen flex-col transition-all duration-300 ease-in-out lg:static lg:translate-x-0 bg-[#42604C] text-white z-40 ${
                 isOpen || isHovered
                     ? "translate-x-0 w-72"
                     : "-translate-x-full w-16"
@@ -52,7 +64,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 )}
 
                 <button
-                    className="btn btn-square btn-ghost"
+                    className="btn btn-square btn-ghost hover:bg-green-700 transition-colors duration-200"
                     onClick={toggleSidebar}
                 >
                     <svg
@@ -79,55 +91,68 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 <ul className="menu rounded-box w-64 text-lg">
                     {menuItems.map((menu, menuIndex) => (
                         <li key={menuIndex} className="font-medium text-[1rem]">
-                            <h3 className="text-[0.875rem] font-semibold text-slate-400 tracking-wider pb-1 pt-0">
+                            <h3 className="text-[0.875rem] font-semibold text-slate-400 tracking-wider pb-1 pt-2">
                                 {menu.section}
                             </h3>
                             {menu.details.map((detail, detailIndex) => {
-                                // Use a unique key for each section
                                 const summaryKey = `${menuIndex}-${detailIndex}`;
+                                const isActive = activeSummary === summaryKey;
 
                                 return (
                                     <details
                                         key={detailIndex}
-                                        open={activeSummary === summaryKey}
-                                        className="mb-1"
+                                        open={isActive}
+                                        className="mb-1 group"
                                     >
                                         <summary
-                                            className={`cursor-pointer hover:bg-green-100 hover:text-black ${
-                                                activeSummary === summaryKey
-                                                    ? "bg-green-100 text-black"
-                                                    : ""
+                                            className={`cursor-pointer flex items-center justify-between py-2 px-3 rounded-md transition-colors duration-200 ${
+                                                isActive
+                                                    ? "bg-emerald-600 text-white"
+                                                    : "hover:bg-emerald-700 hover:text-white"
                                             }`}
                                             onClick={(e) => {
-                                                e.preventDefault(); // Prevent browser default toggle
+                                                e.preventDefault();
                                                 handleSummaryClick(summaryKey);
                                             }}
                                         >
-                                            {" "}
-                                            {detail.icon} {detail.title}
+                                            <span className="flex items-center">
+                                                {detail.icon}
+                                                <span className="ml-2">
+                                                    {detail.title}
+                                                </span>
+                                            </span>
+                                            {/* {isActive ? (
+                                                <ChevronUp size={18} />
+                                            ) : (
+                                                <ChevronDown size={18} />
+                                            )} */}
                                         </summary>
-                                        <ul className="pl-5 text-slate-400 py-1">
+                                        <ul className="pl-5 py-1 space-y-1">
                                             {detail.items.map((item) => (
                                                 <li
                                                     key={item.key}
-                                                    className={`hover:text-white ${
+                                                    className={`rounded-md transition-colors duration-200 ${
                                                         activeItem === item.key
-                                                            ? "text-white"
-                                                            : ""
+                                                            ? "bg-emerald-800 text-white"
+                                                            : "text-slate-300 hover:bg-emerald-600 hover:text-white"
                                                     }`}
                                                     onClick={() =>
                                                         handleItemClick(
-                                                            summaryKey,
                                                             item.key
                                                         )
                                                     }
                                                 >
                                                     {item.href ? (
-                                                        <Link href={item.href}>
+                                                        <Link
+                                                            href={item.href}
+                                                            className="block py-2 px-3"
+                                                        >
                                                             {item.label}
                                                         </Link>
                                                     ) : (
-                                                        <a>{item.label}</a>
+                                                        <a className="block py-2 px-3">
+                                                            {item.label}
+                                                        </a>
                                                     )}
                                                 </li>
                                             ))}
