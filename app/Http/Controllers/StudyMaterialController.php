@@ -252,6 +252,7 @@ class StudyMaterialController extends Controller
                     $attachment->public_url = Storage::url($attachment->file_path);
                     return $attachment;
                 });
+                $material->links = $material->links ?? [];
                 return $material;
             });
 

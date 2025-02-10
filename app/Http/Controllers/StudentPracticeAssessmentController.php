@@ -932,7 +932,7 @@ class StudentPracticeAssessmentController extends Controller
         $proficiency->attempts = $attempts;
         $proficiency->average_score = $attempts > 0 ? $newTotalScore / $attempts : $topicMastery;
         $proficiency->grade = $topicMastery;
-        $proficiency->proficiency_level = $masteryAchieved ? 'mastered' : match (true) {
+        $proficiency->current_level = $masteryAchieved ? 'mastered' : match (true) {
             $proficiency->average_score < 60 => 'beginner',
             $proficiency->average_score >= 60 && $proficiency->average_score <= 80 => 'intermediate',
             default => 'advanced',
@@ -979,9 +979,6 @@ class StudentPracticeAssessmentController extends Controller
         
     }
     
-    
-
-
     /**
      * Display the specified resource.
      * To be remove/ change
