@@ -1,4 +1,10 @@
-import { TbCloudQuestion } from "react-icons/tb";
+import {
+    LayoutDashboard,
+    BookOpen,
+    ClipboardList,
+    User,
+    Folder,
+} from "lucide-react";
 
 const studentMenu = [
     {
@@ -6,7 +12,7 @@ const studentMenu = [
         details: [
             {
                 title: "Dashboard",
-                icon: <TbCloudQuestion size={26} />,
+                icon: <LayoutDashboard size={26} />,
                 items: [
                     { label: "Dashboard", href: "/dashboard/student", key: 5 },
                 ],
@@ -18,7 +24,7 @@ const studentMenu = [
         details: [
             {
                 title: "My Assessments",
-                icon: <TbCloudQuestion size={26} />,
+                icon: <ClipboardList size={26} />,
                 items: [
                     {
                         label: "Coded Assessment",
@@ -30,7 +36,7 @@ const studentMenu = [
             },
             {
                 title: "Practice Assessments",
-                icon: <TbCloudQuestion size={26} />,
+                icon: <BookOpen size={26} />,
                 items: [
                     {
                         label: "All Practice Assessments",
@@ -51,7 +57,7 @@ const studentMenu = [
         details: [
             {
                 title: "Account",
-                icon: <TbCloudQuestion size={26} />,
+                icon: <User size={26} />,
                 items: [
                     { label: "My Profile", href: "/student/profile", key: 3 },
                     { label: "Settings", href: "/student/settings", key: 4 },
@@ -64,7 +70,7 @@ const studentMenu = [
         details: [
             {
                 title: "Materials",
-                icon: <TbCloudQuestion size={26} />,
+                icon: <Folder size={26} />,
                 items: [
                     {
                         label: "Subjects",
