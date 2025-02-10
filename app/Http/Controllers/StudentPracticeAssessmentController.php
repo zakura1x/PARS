@@ -930,7 +930,7 @@ class StudentPracticeAssessmentController extends Controller
         $proficiency->grade = $topicMastery;
     
         // Determine proficiency level based on mastery percentage
-        $proficiency->current_level = match (true) {
+        $proficiency->proficiency_level = match (true) {
             $masteryPercentage >= 80 => 'mastered',
             $masteryPercentage >= 60 => 'advanced',
             $masteryPercentage >= 40 => 'intermediate',
