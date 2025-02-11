@@ -238,7 +238,8 @@ class QuestionController extends Controller
             'correct_answer' => 'required|array|min:1',
             'correct_answer.*' => 'string|max:255',
             'weight' => 'required|integer|min:1',
-            'attachment_path' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
+            'attachment_path' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'is_used' => 'nullable|boolean',
         ]);
 
         $question = Question::findOrFail($id);
@@ -261,7 +262,7 @@ class QuestionController extends Controller
             'correct_answer' => $validate['correct_answer'],
             'weight' => $validate['weight'],
             'attachment_path' => $validate['attachment_path'] ?? $question->attachment_path,
-            
+            'is_used' => $validate['is_used'],
         ]);
 
         //dd($question);

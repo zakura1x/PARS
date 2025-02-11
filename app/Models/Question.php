@@ -25,7 +25,6 @@ class Question extends Model
         'correct_answer',
         'solution',
         'is_used',
-        'is_mastered'
     ];
 
     protected $casts =[
