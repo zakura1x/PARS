@@ -59,6 +59,15 @@ class Question extends Model
         return $this->hasMany(StudentAssessmentQuestion::class);
     }
 
+    public function studentAnswersForAssessment($assessmentId)
+    {
+        return $this->hasMany(StudentAssessmentQuestion::class, 'question_id')
+            ->whereHas('studentAssessment', function ($query) use ($assessmentId) {
+                $query->where('assessment_id', $assessmentId);
+            });
+    }
+
+
 
     //Methods
     public static function resetIsUsed($topicId){

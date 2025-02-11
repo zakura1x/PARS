@@ -1210,7 +1210,11 @@ class AssessmentController extends Controller
         $questions = Question::whereHas('assessments', function ($query) use ($assessmentId) {
             $query->where('assessments.id', $assessmentId);
         })
-        ->with('studentAnswers')
+        ->with(['studentAnswersForAssessment' => function ($query) use ($assessmentId){
+            $query->whereHas('studentAssessment', function ($query) use ($assessmentId){
+                $query->where('assessment_id', $assessmentId);
+            });
+        }])
         ->select(['id', 'question_text', 'options'])
         ->get();
     
@@ -1221,7 +1225,7 @@ class AssessmentController extends Controller
             $optionCounts = array_fill_keys($options, 0);
 
             //Count student response per option
-            foreach($question->studentAnswers as $answer){
+            foreach($question->studentAnswersForAssessment as $answer){
                 $studentAnswer = is_string($answer->student_answer) ? json_decode($answer->student_answer, true) : $answer->student_answer;
 
 
