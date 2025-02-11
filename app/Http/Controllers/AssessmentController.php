@@ -321,28 +321,29 @@ class AssessmentController extends Controller
 
                 //If insufficient questions for the difficulty level
                 if ($questionsForDifficulty->count() < $count) {
-                    $remainingQuestionsNeeded = $count - $questionsForDifficulty->count();
+                    throw new \Exception("Insufficient questions available for topic ID: {$topicId} and difficulty: {$difficultyLevel}.");
+                    // $remainingQuestionsNeeded = $count - $questionsForDifficulty->count();
 
-                    // Reset used questions for this difficulty level
-                    Question::where('topic_id', $topicId)
-                        ->where('purpose_type', 'examination')
-                        ->where('difficulty', $difficultyLevel)
-                        ->update(['is_used' => false]);
+                    // // Reset used questions for this difficulty level
+                    // Question::where('topic_id', $topicId)
+                    //     ->where('purpose_type', 'examination')
+                    //     ->where('difficulty', $difficultyLevel)
+                    //     ->update(['is_used' => false]);
 
-                    // Re-fetch additional questions after reset
-                    $additionalQuestions = Question::where('topic_id', $topicId)
-                        ->where('purpose_type', 'examination')
-                        ->where('difficulty', $difficultyLevel)
-                        ->whereNotIn('id', $selectedQuestionIds)
-                        ->inRandomOrder()
-                        ->take($remainingQuestionsNeeded)
-                        ->get();
+                    // // Re-fetch additional questions after reset
+                    // $additionalQuestions = Question::where('topic_id', $topicId)
+                    //     ->where('purpose_type', 'examination')
+                    //     ->where('difficulty', $difficultyLevel)
+                    //     ->whereNotIn('id', $selectedQuestionIds)
+                    //     ->inRandomOrder()
+                    //     ->take($remainingQuestionsNeeded)
+                    //     ->get();
 
-                    if ($additionalQuestions->isEmpty()) {
-                        throw new \Exception("Insufficient questions available for topic ID: {$topicId} and difficulty: {$difficultyLevel}.");
-                    }
+                    // if ($additionalQuestions->isEmpty()) {
+                    //     throw new \Exception("Insufficient questions available for topic ID: {$topicId} and difficulty: {$difficultyLevel}.");
+                    // }
 
-                    $questionsForDifficulty = $questionsForDifficulty->merge($additionalQuestions);
+                    // $questionsForDifficulty = $questionsForDifficulty->merge($additionalQuestions);
                 }
 
 
