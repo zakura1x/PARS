@@ -129,8 +129,18 @@ class QuestionController extends Controller
         ]);
     
         try {
-            Excel::import(new QuestionImport, $request->file('file'));
-            return to_route('questionIndex')->with(['message' => 'Questions were uploaded successfully']);
+            $import = new QuestionImport();
+            Excel::import($import, $request->file('file'));
+    
+            // Store duplicates in session to display in the view
+            if (!empty($import->duplicates)) {
+                return to_route('questionIndex')->with([
+                    'message' => 'Some questions were not imported due to duplication.',
+                    'duplicates' => $import->duplicates
+                ]);
+            }
+    
+            return to_route('questionIndex')->with(['message' => 'Questions were uploaded successfully.']);
         } catch (\Exception $e) {
             return back()->with(['message' => 'An error occurred while importing questions.']);
         }

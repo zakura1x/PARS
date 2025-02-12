@@ -7,6 +7,9 @@ const StudentShowTopics = ({
     subTopics = [],
     isLoading,
 }) => {
+    console.log("parentTopics:", parentTopics);
+    console.log("subTopics:", subTopics);
+
     const sortedParentTopics = Array.isArray(parentTopics)
         ? parentTopics.sort((a, b) => (a.order ?? a.id) - (b.order ?? b.id))
         : Object.values(parentTopics).sort(

@@ -242,7 +242,7 @@ class StudyMaterialController extends Controller
     }
 
     public function studentShowStudyMaterial($topicId){
-        $topic = Topics::with('subject')->findOrFail($topicId);
+        $topic = Topics::with(relations: 'subject')->findOrFail($topicId);
 
         $studyMaterials = StudyMaterial::with('attachments')
             ->where('topic_id', $topicId)

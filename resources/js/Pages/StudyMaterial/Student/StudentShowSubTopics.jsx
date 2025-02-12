@@ -45,7 +45,7 @@ const StudentShowSubTopics = ({
                         {subTopics.map((subtopic) => (
                             <Link
                                 key={subtopic.id}
-                                href={`/student/topics/${subtopic.id}`}
+                                href={`/study-materials/${subtopic.id}`}
                                 className="btn btn-outline flex items-center space-x-2"
                             >
                                 <GiNotebook className="text-xl text-primary" />

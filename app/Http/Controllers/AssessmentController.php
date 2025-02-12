@@ -281,84 +281,56 @@ class AssessmentController extends Controller
 
     private function generateExamQuestions($subjectId)
     {
-        $questions = collect();
-        $selectedQuestionIds = [];
-
-        //Fetch the TOS for the subject
-        $tableOfSpecification = TableOfSpecification::where('subject_id', $subjectId)->get();
-
-        if ($tableOfSpecification->isEmpty()) {
-            throw new \Exception("No Table of Specification found for the selected subject.");
-        }
-
-        //\Log::info("Processing TOS for subject ID: {$subjectId}");
-        //\Log::info("TOS found: " . $tableOfSpecification->count());
-
-        //Generate the questions based on the TOS
-        foreach($tableOfSpecification as $tos){
-            //\Log::info("Processing topic ID: {$tos->topic_id}");
-            //\Log::info("Difficulty distribution: " . json_encode($tos->difficulty));
-
-            $topicId = $tos->topic_id;
-            //$difficultyDistribution = json_decode($tos->difficulty, true);
-            $difficultyDistribution = $tos->difficulty;
-            $totalQuestionsForTopic = $tos->num_questions;
-
-            //Fetch the questions for each difficulty level
-            foreach($difficultyDistribution as $difficultyLevel => $count){
-                if($count <= 0){
-                    continue; //SKip if no questions required for the difficulty
-                }
-
-                $questionsForDifficulty = Question::where('topic_id', $topicId)
-                ->where('purpose_type', 'examination')
-                ->where('difficulty', $difficultyLevel)
-                ->where('is_used', false)
-                ->whereNotIn('id', $selectedQuestionIds)
-                ->inRandomOrder()
-                ->take($count)
-                ->get();
-
-                //If insufficient questions for the difficulty level
-                if ($questionsForDifficulty->count() < $count) {
-                    throw new \Exception("Insufficient questions available for topic ID: {$topicId} and difficulty: {$difficultyLevel}.");
-                    // $remainingQuestionsNeeded = $count - $questionsForDifficulty->count();
-
-                    // // Reset used questions for this difficulty level
-                    // Question::where('topic_id', $topicId)
-                    //     ->where('purpose_type', 'examination')
-                    //     ->where('difficulty', $difficultyLevel)
-                    //     ->update(['is_used' => false]);
-
-                    // // Re-fetch additional questions after reset
-                    // $additionalQuestions = Question::where('topic_id', $topicId)
-                    //     ->where('purpose_type', 'examination')
-                    //     ->where('difficulty', $difficultyLevel)
-                    //     ->whereNotIn('id', $selectedQuestionIds)
-                    //     ->inRandomOrder()
-                    //     ->take($remainingQuestionsNeeded)
-                    //     ->get();
-
-                    // if ($additionalQuestions->isEmpty()) {
-                    //     throw new \Exception("Insufficient questions available for topic ID: {$topicId} and difficulty: {$difficultyLevel}.");
-                    // }
-
-                    // $questionsForDifficulty = $questionsForDifficulty->merge($additionalQuestions);
-                }
-
-
-                //Mark fetched questions as used and track ids
-                foreach ($questionsForDifficulty as $question){
-                    $question->update(['is_used' => true, 'updated_at'=> now()]);
-                    $selectedQuestionIds[] = $question->id;
-                }
-
-                //add the question now to the main collection
-                $questions = $questions->merge($questionsForDifficulty);
+        DB::beginTransaction();
+    
+        try {
+            $questions = collect();
+            $selectedQuestionIds = [];
+    
+            $tableOfSpecification = TableOfSpecification::where('subject_id', $subjectId)->get();
+    
+            if ($tableOfSpecification->isEmpty()) {
+                throw new \Exception("No Table of Specification found for the selected subject.");
             }
+    
+            foreach ($tableOfSpecification as $tos) {
+                $topicId = $tos->topic_id;
+                $difficultyDistribution = $tos->difficulty;
+                $totalQuestionsForTopic = $tos->num_questions;
+    
+                foreach ($difficultyDistribution as $difficultyLevel => $count) {
+                    if ($count <= 0) {
+                        continue;
+                    }
+    
+                    $questionsForDifficulty = Question::where('topic_id', $topicId)
+                        ->where('purpose_type', 'examination')
+                        ->where('difficulty', $difficultyLevel)
+                        ->where('is_used', false)
+                        ->whereNotIn('id', $selectedQuestionIds)
+                        ->inRandomOrder()
+                        ->take($count)
+                        ->get();
+    
+                    if ($questionsForDifficulty->count() < $count) {
+                        throw new \Exception("Insufficient questions available for topic ID: {$topicId} and difficulty: {$difficultyLevel}.");
+                    }
+    
+                    foreach ($questionsForDifficulty as $question) {
+                        $question->update(['is_used' => true, 'updated_at' => now()]);
+                        $selectedQuestionIds[] = $question->id;
+                    }
+    
+                    $questions = $questions->merge($questionsForDifficulty);
+                }
+            }
+    
+            DB::commit();
+            return $questions;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
         }
-
-        return $questions;
     }
 
     /**

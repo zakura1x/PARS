@@ -158,6 +158,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function 
     Route::get('/study-materials/index', [StudyMaterialController::class, 'studentIndex'])->name('student-study-materials.index');
     Route::get('/study-materials/view/{topicId}', [StudyMaterialController::class, 'studentShowTopics'])->name('student-study-materials.show');
     Route::get('/study-materials/subtopic/{topicId}', [StudyMaterialController::class, 'studentShowSubTopics'])->name('student-study-materials.subtopic');
+    Route::get('/study-materials/{topicId}', [StudyMaterialController::class, 'studentShowStudyMaterial'])->name('student-study-materials.study-material');
 });
 
 //Route::post('/assessment/{assessmentId}/submit', [AssessmentController::class, 'submitAssessment']);
