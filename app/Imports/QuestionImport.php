@@ -41,21 +41,13 @@ class QuestionImport implements ToCollection, WithHeadingRow
 
             // Check for existing question
             $existingQuestion = Question::where([
-                'subject_id'   => $subject->id,
-                'topic_id'     => $topic->id,
                 'question_text'=> $row['question_text'],
-                'format_type'  => $row['format_type'],
-                'purpose_type' => $row['purpose_type'],
             ])->exists();
 
             if ($existingQuestion) {
                 // Store duplicate questions
                 $this->duplicates[] = [
-                    'subject'   => $row['subject_name'],
-                    'topic'     => $row['topic_name'],
                     'question'  => $row['question_text'],
-                    'format'    => $row['format_type'],
-                    'purpose'   => $row['purpose_type'],
                 ];
                 continue;
             }
