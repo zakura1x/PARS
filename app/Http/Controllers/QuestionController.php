@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Question;
 use App\Http\Requests\StoreQuestionRequest;
 use App\Http\Requests\UpdateQuestionRequest;
+use App\Imports\QuestionImport;
 use App\Models\Subject;
 use App\Models\Topics;
 use Illuminate\Http\Request;
@@ -120,81 +121,21 @@ class QuestionController extends Controller
     public function uploadIndex(){
         return inertia('QuestionBank/QuestionUpload');
     }
-
+    
     public function uploadQuestions(Request $request)
     {
         $request->validate([
             'file' => 'required|mimes:xlsx,xls|max:2048',
         ]);
     
-        // Load the uploaded Excel file
-        $file = $request->file('file');
-        $rows = Excel::toArray(null, $file); // Read all rows into an array
-    
-        // Extract rows from the first sheet
-        $data = $rows[0] ?? [];
-    
-        if (empty($data)) {
-            return back()->with(['message' => 'The uploaded file is empty or not formatted correctly.']);
+        try {
+            Excel::import(new QuestionImport, $request->file('file'));
+            return to_route('questionIndex')->with(['message' => 'Questions were uploaded successfully']);
+        } catch (\Exception $e) {
+            return back()->with(['message' => 'An error occurred while importing questions.']);
         }
-    
-        // Define the expected header format
-        $expectedHeaders = [
-            'subject_name', 'topic_name', 'format_type', 'purpose_type',
-            'difficulty', 'question_text', 'options', 'correct_answer', 'weight'
-        ];
-    
-        // Validate if the first row matches the expected headers
-        $headerRow = array_map('trim', $data[0] ?? []);
-    
-        if (count($headerRow) < count($expectedHeaders) || array_diff($expectedHeaders, $headerRow)) {
-            return back()->with(['message' => 'Invalid Excel format. Please use the correct template.']);
-        }
-    
-        // Process rows (skip header row)
-        foreach ($data as $key => $row) {
-            if ($key === 0) continue; // Skip header row
-    
-            // Map the excel columns
-            $rowData = array_combine($expectedHeaders, array_slice($row, 0, count($expectedHeaders)));
-    
-            // Validate row data
-            $validator = Validator::make($rowData, [
-                'subject_name'   => 'required|exists:subjects,name',
-                'topic_name'     => 'required|exists:topics,name',
-                'format_type'    => 'required|in:multiple_choice,enumeration,true_or_false,fill_in_the_blank',
-                'purpose_type'   => 'required|in:practice,assessment,examination',
-                'difficulty'     => 'required|in:remembering,understanding,applying,analyzing,evaluating,create',
-                'question_text'  => 'required|string|max:255',
-                'options'        => 'nullable|json',
-                'correct_answer' => 'required|json',
-                'weight'         => 'required|integer|min:1',
-            ]);
-    
-            if ($validator->fails()) {
-                continue;
-            }
-    
-            // Convert subject_name and topic_name to their respective IDs
-            $subject = Subject::where('name', $rowData['subject_name'])->first();
-            $topic = Topics::where('name', $rowData['topic_name'])->first();
-    
-            Question::create([
-                'user_id'        => Auth::id(),
-                'subject_id'     => $subject->id,
-                'topic_id'       => $topic->id,
-                'format_type'    => $rowData['format_type'],
-                'purpose_type'   => $rowData['purpose_type'],
-                'difficulty'     => $rowData['difficulty'],
-                'question_text'  => $rowData['question_text'],
-                'options'        => json_decode($rowData['options'], true),
-                'correct_answer' => json_decode($rowData['correct_answer'], true),
-                'weight'         => $rowData['weight'],
-            ]);
-        }
-    
-        return to_route('questionIndex')->with(['message' => 'Questions were uploaded successfully']);
     }
+    
     
 
     /**
