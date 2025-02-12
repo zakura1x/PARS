@@ -935,6 +935,16 @@ class AssessmentController extends Controller
         };
     }
 
+    private function determineProficiencyLevel($percentage)
+    {
+        return match (true){
+            $percentage >= 80 => 'advanced',
+            $percentage >= 60 => 'intermediate',
+            default => 'beginner',
+        };
+    }
+
+
     /**
      * Update Topic Proficiency
      */
@@ -943,7 +953,7 @@ class AssessmentController extends Controller
         $totalNumerator = array_sum($numerator);
         $totalDenominator = array_sum($denominator);
 
-        $proficiencyScore = $totalDenominator > 0 ? ($totalNumerator / $totalDenominator) * 100 : 0;
+        $topicMastery = ($totalDenominator > 0) ? ($totalNumerator / $totalDenominator) * 100 : 0;
 
         // Fetch or create the current proficiency record
         $proficiency = StudentTopicProficiency::firstOrNew(
@@ -960,17 +970,10 @@ class AssessmentController extends Controller
         );
 
         // Update the current proficiency record
-        $newTotalScore = ($proficiency->average_score * $proficiency->attempts) + $proficiencyScore;
-        $proficiency->attempts += 1; // Increment attempts
-        $proficiency->average_score = $proficiency->attempts > 0 ? $newTotalScore / $proficiency->attempts : $proficiencyScore;
-        $proficiency->grade = $proficiencyScore; // Current assessment grade
-        $proficiency->proficiency_level = match (true) {
-            $proficiency->average_score < 60 => 'beginner',
-            $proficiency->average_score >= 60 && $proficiency->average_score <= 80 => 'intermediate',
-            default => 'advanced',
-        };
-        // Determine mastery based on proficiency trends
-        $proficiency->is_mastered = $proficiency->average_score >= 80 && $proficiency->attempts >= 3;
+        $proficiency->attempts += 1;
+        $proficiency->average_score = (($proficiency->average_score * ($proficiency->attempts - 1)) + $topicMastery) / $proficiency->attempts;
+        $proficiency->grade = $topicMastery;
+        $proficiency->proficiency_level = $this->determineProficiencyLevel($topicMastery);
 
         $proficiency->save();
     }

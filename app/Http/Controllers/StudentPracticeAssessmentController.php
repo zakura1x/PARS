@@ -209,7 +209,7 @@ class StudentPracticeAssessmentController extends Controller
      */
     private function generateProficiencyQuestions($studentId, $topicIds, $totalItems)
     {
-        $questions = collect(); // Use collection instead of array
+        $questions = collect(); // Use collection for easy merging
 
         // Determine questions per topic
         $questionsPerTopic = (int) ceil($totalItems / count($topicIds));
@@ -220,8 +220,16 @@ class StudentPracticeAssessmentController extends Controller
                 ->where('topic_id', $topicId)
                 ->first();
 
-            // Log proficiency
-            //Log::info("Proficiency for student $studentId and topic $topicId:", ['proficiency' => $proficiency]);
+            // If no record, estimate proficiency based on past performance
+            if (!$proficiency) {
+                $averageScore = StudentAssessmentTopicProficiencies::where('student_id', $studentId)
+                    ->where('topic_id', $topicId)
+                    ->avg('grade') ?? 0;
+
+                $proficiencyLevel = $this->determineProficiencyLevel($averageScore);
+            } else {
+                $proficiencyLevel = $proficiency->proficiency_level;
+            }
 
             // Bloom levels weighting based on proficiency
             $proficiencyWeighting = [
@@ -230,58 +238,61 @@ class StudentPracticeAssessmentController extends Controller
                 'advanced' => ['Evaluating' => 0.3, 'Creating' => 0.3, 'Analyzing' => 0.2, 'Applying' => 0.2],
             ];
 
-            $bloomWeights = $proficiencyWeighting[$proficiency?->proficiency_level] ?? $proficiencyWeighting['beginner'];
+            $bloomWeights = $proficiencyWeighting[$proficiencyLevel] ?? $proficiencyWeighting['beginner'];
 
-            // Calculate number of questions per Bloom level
-            $questionsPerLevel = [];
+            // Distribute questions per Bloom level while ensuring total matches questionsPerTopic
             $totalWeight = array_sum($bloomWeights);
+            $remainingQuestions = $questionsPerTopic;
+            $lastLevel = array_key_last($bloomWeights);
+            $questionsPerLevel = [];
+
             foreach ($bloomWeights as $level => $weight) {
-                $questionsPerLevel[$level] = (int) ceil(($weight / $totalWeight) * $questionsPerTopic);
+                $questionsPerLevel[$level] = ($level === $lastLevel)
+                    ? $remainingQuestions // Assign remaining to last level
+                    : (int) floor(($weight / $totalWeight) * $questionsPerTopic);
+                $remainingQuestions -= $questionsPerLevel[$level];
             }
 
-            // Log questions per level
-            //Log::info("Questions per level for topic $topicId:", ['questionsPerLevel' => $questionsPerLevel]);
-
-            // Retrieve questions per Bloom level
+            // Retrieve and select questions per Bloom level
             $topicQuestions = collect();
+
             foreach ($bloomWeights as $level => $weight) {
                 $levelQuestions = Question::where('topic_id', $topicId)
                     ->where('purpose_type', 'practice')
                     ->where('difficulty', $level)
-                    ->with(['studentQuestionUsages' => function ($query) use ($studentId){
+                    ->with(['studentQuestionUsages' => function ($query) use ($studentId) {
                         $query->where('student_id', $studentId);
                     }])
                     ->get();
 
-                //Randomization rules
-                $weightedQuestions = $levelQuestions->map(function ($question){
+                // Weight selection based on prior attempts
+                $weightedQuestions = $levelQuestions->map(function ($question) {
                     $usage = $question->studentQuestionUsages->first();
-                    $selectionPercentage = $usage?->selection_percentage ?? 100;
                     return [
                         'question' => $question,
-                        'weight' => $selectionPercentage/100,
+                        'weight' => $usage?->selection_percentage ?? 100,
                     ];
                 });
 
-                //Normalize weights
+                // Normalize weights
                 $totalWeight = $weightedQuestions->sum('weight');
-                $normalizedQuestions = $weightedQuestions->map(function ($item) use ($totalWeight){
+                $normalizedQuestions = $weightedQuestions->map(function ($item) use ($totalWeight) {
                     return [
                         'question' => $item['question'],
                         'normalizedWeight' => $totalWeight > 0 ? $item['weight'] / $totalWeight : 0,
                     ];
                 });
 
-                //Random Selection based on weights
+                // Random selection based on normalized weights
                 $selected = collect();
                 $needed = $questionsPerLevel[$level];
-                for ($i = 0; $i < $needed; $i++){
+                for ($i = 0; $i < $needed; $i++) {
                     $random = mt_rand() / mt_getrandmax();
                     $cumulativeWeight = 0;
 
-                    foreach ($normalizedQuestions as $item){
+                    foreach ($normalizedQuestions as $item) {
                         $cumulativeWeight += $item['normalizedWeight'];
-                        if($random <= $cumulativeWeight){
+                        if ($random <= $cumulativeWeight) {
                             if (!$selected->contains('id', $item['question']->id)) {
                                 $selected->push($item['question']);
                             }
@@ -293,39 +304,48 @@ class StudentPracticeAssessmentController extends Controller
                 $topicQuestions = $topicQuestions->merge($selected);
             }
 
-             // Handle fallback if questions are insufficient
+            // Handle insufficient questions by redistributing proportionally
+            $actualCount = $topicQuestions->count();
+            $shortfall = $questionsPerTopic - $actualCount;
+
+            if ($shortfall > 0) {
+                foreach ($questionsPerLevel as $level => &$count) {
+                    $count += (int) round(($count / $questionsPerTopic) * $shortfall);
+                }
+            }
+
+            // Final fallback: Add remaining random questions if still insufficient
             if ($topicQuestions->count() < $questionsPerTopic) {
                 $remaining = $questionsPerTopic - $topicQuestions->count();
                 $additionalQuestions = Question::where('topic_id', $topicId)
                     ->where('purpose_type', 'practice')
-                    ->whereNotIn('id', $topicQuestions->pluck('id')) // Ensure no duplication
+                    ->whereNotIn('id', $topicQuestions->pluck('id'))
                     ->inRandomOrder()
                     ->take($remaining)
                     ->get();
-                
-                // Log additional questions
-                //Log::info("Additional questions for topic $topicId:", ['questions' => $additionalQuestions]);
-
                 $topicQuestions = $topicQuestions->merge($additionalQuestions);
             }
 
-            //Update the selection percentage for the selected questions
-            foreach($topicQuestions as $question){
+            // Update question selection percentage based on mastery
+            foreach ($topicQuestions as $question) {
                 $studentUsage = StudentQuestionUsage::updateOrCreate(
                     ['student_id' => $studentId, 'question_id' => $question->id],
                     ['updated_at' => now()]
                 );
 
-                //Reduce selection percentage for correct answers
-                $studentUsage->selection_percentage = $studentUsage->selection_percentage ?? 100;
+                if ($studentUsage->correct_attempts >= 3) {
+                    $studentUsage->selection_percentage = max(10, $studentUsage->selection_percentage - 20);
+                }
+
                 $studentUsage->save();
             }
-            
+
             $questions = $questions->merge($topicQuestions);
         }
 
         return $questions;
     }
+
 
     /**
      * Summary of generateCriteriaQuestions
@@ -879,7 +899,10 @@ class StudentPracticeAssessmentController extends Controller
      */
     private function updateTopicProficiency($studentId, $topicId, $numerator, $denominator, $assessmentId)
     {
-        $topicMastery = ($denominator > 0) ? ($numerator / $denominator) * 100 : 0;
+        $totalNumerator = array_sum($numerator);
+        $totalDenominator = array_sum($denominator);
+
+        $topicMastery = ($totalDenominator > 0) ? ($totalNumerator / $totalDenominator) * 100 : 0;
     
         // Fetch student's proficiency record for the topic
         $proficiency = StudentTopicProficiency::firstOrCreate(
@@ -928,14 +951,7 @@ class StudentPracticeAssessmentController extends Controller
         // $proficiency->total_questions = $totalQuestions;
         $proficiency->average_score = (($proficiency->average_score * ($proficiency->attempts - 1)) + $topicMastery) / $proficiency->attempts;
         $proficiency->grade = $topicMastery;
-    
-        // Determine proficiency level based on mastery percentage
-        // $proficiency->proficiency_level = match (true) {
-        //     $masteryPercentage >= 80 => 'mastered',
-        //     $masteryPercentage >= 60 => 'advanced',
-        //     $masteryPercentage >= 40 => 'intermediate',
-        //     default => 'beginner',
-        // };
+
         $proficiency->proficiency_level = $this->determineProficiencyLevel($topicMastery);
     
         $proficiency->save();
