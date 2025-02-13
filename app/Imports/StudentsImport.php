@@ -15,8 +15,16 @@ class StudentsImport implements ToModel, WithHeadingRow
     {
         $row = array_change_key_case(array_map('trim', $row), CASE_LOWER);
 
+            // Skip empty rows (if all values are empty)
+        if (empty(array_filter($row))) {
+            Log::info('Skipping empty row.');
+            return null;
+        }
+
         // Log the keys to debug
-        //Log::info('Row keys: ', array_keys($row));
+        Log::info('Row keys: ', array_keys($row));
+        Log::info($row['gender']);
+        Log::info($row['birthdate_yyyy_mm_dd']);
 
         $user = User::create([
             'first_name' => $row['first_name'],
@@ -29,8 +37,8 @@ class StudentsImport implements ToModel, WithHeadingRow
 
         return new Student([
             'user_id' => $user->id,
-            'gender' => strtolower($row['gender']),
             'birth_date' => $row['birthdate_yyyy_mm_dd'],
+            'gender' => strtolower($row['gender']),
         ]);
     }
 }
