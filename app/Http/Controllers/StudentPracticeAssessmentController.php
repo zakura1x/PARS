@@ -835,8 +835,8 @@ class StudentPracticeAssessmentController extends Controller
     
         // Update topic proficiency
         foreach ($questionsByTopic as $topicId => $topicQuestions) {
-            $numerator = 0;
-            $denominator = 0;
+            $numerator = [];
+            $denominator = [];
     
             foreach ($topicQuestions as $question) {
                 $isCorrect = $question->is_correct;
@@ -845,8 +845,8 @@ class StudentPracticeAssessmentController extends Controller
     
                 $score = $isCorrect ? 1 : 0;
     
-                $numerator += $score * $difficultyWeight * $questionWeight;
-                $denominator += $difficultyWeight * $questionWeight;
+                $numerator[] = $score * $difficultyWeight * $questionWeight;
+                $denominator[] = $difficultyWeight * $questionWeight;
             }
     
             $this->updateTopicProficiency($assessment->student_id, $topicId, $numerator, $denominator, $assessment->id);
