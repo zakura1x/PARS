@@ -11,7 +11,9 @@ const AssessmentStatus = () => {
             fetch(`/assessment/${assessment.id}/student-status`)
                 .then((response) => response.json())
                 .then((data) => setStudentStatus(data))
-                .catch((error) => console.error("Error fetching student status:", error));
+                .catch((error) =>
+                    console.error("Error fetching student status:", error)
+                );
         };
 
         // Start polling
@@ -23,15 +25,19 @@ const AssessmentStatus = () => {
 
     // Function to handle ending the assessment
     const endAssessment = () => {
-        router.post(`/assessment/${assessment.id}/end`, {}, {
-            onSuccess: () => {
-                // Redirect to the assessment results page
-                router.visit(`/assessment/${assessment.id}/results`);
-            },
-            onError: (errors) => {
-                console.error("Failed to end the assessment", errors);
-            },
-        });
+        router.post(
+            `/assessment/${assessment.id}/end`,
+            {},
+            {
+                onSuccess: () => {
+                    // Redirect to the assessment results page
+                    router.visit(`/assessment/${assessment.id}/results`);
+                },
+                onError: (errors) => {
+                    console.error("Failed to end the assessment", errors);
+                },
+            }
+        );
     };
 
     return (
@@ -53,7 +59,7 @@ const AssessmentStatus = () => {
                         <tbody>
                             {studentStatus.map((student) => (
                                 <tr key={student.id}>
-                                    <td>{student.id}</td>
+                                    <td>{student.idNumber}</td>
                                     <td>{student.name}</td>
                                     <td>{student.status}</td>
                                 </tr>
@@ -62,14 +68,13 @@ const AssessmentStatus = () => {
                     </table>
                 </div>
             ) : (
-                <p className="text-gray-500">No students have joined the assessment yet.</p>
+                <p className="text-gray-500">
+                    No students have joined the assessment yet.
+                </p>
             )}
 
             <div className="mt-6">
-                <button
-                    onClick={endAssessment}
-                    className="btn btn-error"
-                >
+                <button onClick={endAssessment} className="btn btn-error">
                     End Assessment
                 </button>
             </div>

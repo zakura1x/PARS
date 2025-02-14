@@ -82,7 +82,7 @@ const AssessmentWaitingProf = ({
                             <tbody>
                                 {waitingStudents.map((student) => (
                                     <tr key={student.id}>
-                                        <td>{student.id}</td>
+                                        <td>{student.idNumber}</td>
                                         <td>{student.name}</td>
                                         <td>{student.email}</td>
                                     </tr>
