@@ -42,7 +42,7 @@ const AssessmentStatus = () => {
 
     return (
         <div className="p-6 bg-base-100 rounded-lg shadow-md">
-            <h1 className="text-2xl font-bold mb-4">{assessment.name}</h1>
+            <h1 className="text-2xl font-bold mb-4">{assessment.full_name}</h1>
             <p className="text-gray-700 mb-2">Status: {assessment.status}</p>
 
             <h2 className="text-xl font-semibold mb-4">Student Status</h2>
