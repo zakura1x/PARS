@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { router, useForm, usePage } from "@inertiajs/react";
 import { Users, ClipboardCopy, Loader2 } from "lucide-react";
 
 const AssessmentWaitingProf = ({
@@ -6,10 +7,11 @@ const AssessmentWaitingProf = ({
     initialWaitingStudents,
     assessmentCode,
 }) => {
+    const { flash } = usePage().props;
     const [waitingStudents, setWaitingStudents] = useState(
         initialWaitingStudents
     );
-    const [isLoading, setIsLoading] = useState(false);
+    const { post, processing } = useForm();
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -21,20 +23,16 @@ const AssessmentWaitingProf = ({
         return () => clearInterval(interval);
     }, [assessment.id]);
 
-    const startAssessment = async () => {
-        setIsLoading(true);
-        try {
-            const response = await fetch(`/assessment/start/${assessment.id}`, {
-                method: "POST",
-            });
-            if (!response.ok) throw new Error("Failed to start the assessment");
-            window.location.href = `/assessment/${assessment.id}/status`;
-        } catch (error) {
-            console.error("Failed to start the assessment", error);
-            // You can implement a toast notification here using daisyUI's toast component
-        } finally {
-            setIsLoading(false);
-        }
+    const startAssessment = (assessmentId) => {
+        post(`/assessment/start/${assessmentId}`, {
+            onSuccess: () => {
+                // Redirect to the assessment status page
+                router.visit(`/assessment/${assessmentId}/status`);
+            },
+            onError: (errors) => {
+                console.error("Failed to start the assessment", errors);
+            },
+        });
     };
 
     const copyAssessmentCode = () => {
@@ -103,10 +101,10 @@ const AssessmentWaitingProf = ({
                     </button>
                     <button
                         className="btn btn-primary"
-                        onClick={startAssessment}
-                        disabled={isLoading}
+                        onClick={() => startAssessment(assessment.id)}
+                        disabled={processing}
                     >
-                        {isLoading && (
+                        {processing && (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         )}
                         Start Assessment

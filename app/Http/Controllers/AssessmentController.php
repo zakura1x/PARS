@@ -1024,6 +1024,7 @@ class AssessmentController extends Controller
 
     public function startAssessmentNow($assessmentId)
     {
+        //dd('reaced');
         $assessment = Assessment::findOrFail($assessmentId);
 
         // Ensure the assessment is approved and pending
