@@ -60,7 +60,7 @@ const AssessmentStatus = () => {
                             {studentStatus.map((student) => (
                                 <tr key={student.id}>
                                     <td>{student.idNumber}</td>
-                                    <td>{student.name}</td>
+                                    <td>{student.full_name}</td>
                                     <td>{student.status}</td>
                                 </tr>
                             ))}

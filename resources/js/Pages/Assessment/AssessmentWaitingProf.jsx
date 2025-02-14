@@ -24,10 +24,9 @@ const AssessmentWaitingProf = ({
     const startAssessment = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch(
-                `/api/assessment/start/${assessment.id}`,
-                { method: "POST" }
-            );
+            const response = await fetch(`/assessment/start/${assessment.id}`, {
+                method: "POST",
+            });
             if (!response.ok) throw new Error("Failed to start the assessment");
             window.location.href = `/assessment/${assessment.id}/status`;
         } catch (error) {
@@ -83,7 +82,7 @@ const AssessmentWaitingProf = ({
                                 {waitingStudents.map((student) => (
                                     <tr key={student.id}>
                                         <td>{student.idNumber}</td>
-                                        <td>{student.name}</td>
+                                        <td>{student.full_name}</td>
                                         <td>{student.email}</td>
                                     </tr>
                                 ))}
