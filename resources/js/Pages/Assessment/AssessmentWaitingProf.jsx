@@ -1,97 +1,93 @@
-import React, { useEffect, useState } from "react";
-import { router, useForm, usePage } from "@inertiajs/react";
+import { useEffect, useState } from "react"
+import { Users, ClipboardCopy, Loader2 } from "lucide-react"
 
-const AssessmentWaitingProf = ({
-    assessment,
-    initialWaitingStudents,
-    assessmentCode,
-}) => {
-    const { flash } = usePage().props;
-    const [waitingStudents, setWaitingStudents] = useState(
-        initialWaitingStudents
-    );
+const AssessmentWaitingProf = ({ assessment, initialWaitingStudents, assessmentCode }) => {
+  const [waitingStudents, setWaitingStudents] = useState(initialWaitingStudents)
+  const [isLoading, setIsLoading] = useState(false)
 
-    const { post } = useForm();
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetch(`/api/assessment/${assessment.id}/waiting-students`)
+        .then((response) => response.json())
+        .then((data) => setWaitingStudents(data))
+    }, 5000) // Poll every 5 seconds
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            fetch(`/assessment/${assessment.id}/waiting-students`)
-                .then((response) => response.json())
-                .then((data) => setWaitingStudents(data));
-        }, 5000); // Poll every 5 seconds
+    return () => clearInterval(interval)
+  }, [assessment.id])
 
-        return () => {
-            clearInterval(interval);
-        };
-    }, [assessment.id]);
+  const startAssessment = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch(`/api/assessment/start/${assessment.id}`, { method: "POST" })
+      if (!response.ok) throw new Error("Failed to start the assessment")
+      window.location.href = `/assessment/${assessment.id}/status`
+    } catch (error) {
+      console.error("Failed to start the assessment", error)
+      // You can implement a toast notification here using daisyUI's toast component
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-    // Function to handle starting the assessment
-    const startAssessment = (assessmentId) => {
-        post(
-            `/assessment/start/${assessmentId}`,
-            {},
-            {
-                onSuccess: () => {
-                    // Redirect to the assessment status page
-                    router.visit(`/assessment/${assessmentId}/status`);
-                },
-                onError: (errors) => {
-                    console.error("Failed to start the assessment", errors);
-                },
-            }
-        );
-    };
+  const copyAssessmentCode = () => {
+    navigator.clipboard.writeText(assessmentCode)
+    // You can implement a toast notification here using daisyUI's toast component
+  }
 
-    return (
-        <div className="p-6 m-6 bg-background rounded-lg shadow-md">
-            <h1 className="text-2xl font-bold mb-4">{assessment.name}</h1>
-            <p className="text-gray-700 mb-2">Status: {assessment.status}</p>
-            <p className="text-gray-700 mb-4">
-                Access Code:{" "}
-                <span className="font-mono text-blue-600">
-                    {assessmentCode}
-                </span>
-            </p>
-
-            <h2 className="text-xl font-semibold mb-3">Waiting Students</h2>
-            {waitingStudents.length > 0 ? (
-                <div className="overflow-x-auto">
-                    <table className="table w-full">
-                        <thead>
-                            <tr>
-                                <th>Student ID</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {waitingStudents.map((student) => (
-                                <tr key={student.id}>
-                                    <td>{student.id}</td>
-                                    <td>{student.name}</td>
-                                    <td>{student.email}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            ) : (
-                <p className="text-gray-500">
-                    No students are currently waiting.
-                </p>
-            )}
-
-            <div className="mt-6 flex space-x-4">
-                <button
-                    onClick={() => startAssessment(assessment.id)}
-                    className="btn btn-primary"
-                >
-                    Start Assessment
-                </button>
-                <button className="btn btn-secondary">Cancel</button>
-            </div>
+  return (
+    <div className="card w-full max-w-4xl mx-auto bg-base-100 shadow-xl">
+      <div className="card-body">
+        <h2 className="card-title text-2xl">{assessment.name}</h2>
+        <div className="flex items-center space-x-2 mb-4">
+          <span className={`badge ${assessment.status === "Waiting" ? "badge-secondary" : "badge-primary"}`}>
+            {assessment.status}
+          </span>
+          <button className="btn btn-outline btn-sm" onClick={copyAssessmentCode}>
+            <ClipboardCopy className="w-4 h-4 mr-2" />
+            Copy Code: {assessmentCode}
+          </button>
         </div>
-    );
-};
+        <div className="flex items-center mb-4">
+          <Users className="w-5 h-5 mr-2" />
+          <h3 className="text-xl font-semibold">Waiting Students</h3>
+        </div>
+        {waitingStudents.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="table w-full">
+              <thead>
+                <tr>
+                  <th>Student ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                </tr>
+              </thead>
+              <tbody>
+                {waitingStudents.map((student) => (
+                  <tr key={student.id}>
+                    <td>{student.id}</td>
+                    <td>{student.name}</td>
+                    <td>{student.email}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-base-content opacity-70">No students are currently waiting.</p>
+        )}
+        <div className="card-actions justify-end mt-6">
+          <button className="btn btn-ghost" onClick={() => window.history.back()}>
+            Cancel
+          </button>
+          <button className="btn btn-primary" onClick={startAssessment} disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Start Assessment
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
-export default AssessmentWaitingProf;
+export default AssessmentWaitingProf
+

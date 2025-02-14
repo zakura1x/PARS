@@ -1113,8 +1113,13 @@ class AssessmentController extends Controller
 
     public function getWaitingStudents($assessmentId)
     {
-        $assessment = Assessment::findOrFail($assessmentId);
-        $waitingStudents = $assessment->students()->wherePivot('status', 'waiting')->get();
+        $waitingStudents = StudentAssessment::where('assessment_id', $assessmentId)
+            ->where('status', 'waiting')
+            ->with('student') // Load student details
+            ->get()
+            ->map(function ($studentAssessment) {
+                return $studentAssessment->student; // Extract student from StudentAssessment
+            });
 
         return response()->json($waitingStudents);
     }
