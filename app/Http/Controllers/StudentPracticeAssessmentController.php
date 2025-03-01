@@ -112,7 +112,7 @@ class StudentPracticeAssessmentController extends Controller
             'subject_id' => 'required|exists:subjects,id',
             'topics' => 'required|array',
             'topics.*' => 'exists:topics,id',
-            'total_items' => 'required|integer|min:1',
+            'total_items' => 'required|integer|min:10',
             'time_limit' => 'required|integer',
         ]);
 
