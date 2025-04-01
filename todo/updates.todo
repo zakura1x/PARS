@@ -1,46 +1,62 @@
 Requirements as of 04-01-2025:
 
+☐ Make sure all screens has working breadcrumbs
+☐ Make the font size during exam/prac assessments bigger
+☐ Complete all role-based UI for Student/Dean/Professor/Program Head
+
 Practice Assessment:
     ☐  Generating Assessment
         ☐ Add an auto generate button for selecting topics @critical
+        ☐ Remove based on examination dropdown option
     ☐ Answering Assessment
         ☐ Review answers before submitting
         ☐ Add a timer when the timer is around 5 minutes, a warning message will show up
     ☐ Assessment Result
         ☐ The system should show the topics that the student need to study based on the result
         ☐ A button should link the student to the practice assessment with the selected topics they need
+        ☐ Change color and fix the pie chart to depict proper message, make it a complete circle with shades or something
+        ☐ Add proficiency legends for clarify
+
 Assessment:
     ☐ Generating Assessment
         ☐ Show an error when there is insufficient questions from the question Bank
     ☐ Approval of Assessment
         Program Head:
             ☐ Program Head can change the questions of the assessment
+            ☐ Suggestion: Better if theres already replace button at PH side to avoid going back n forth from the professor
             ☐ Disapprove assessment should reset the questions status
             ☐ Comments can be seen by the professor
         Professor:
-            ☐ Professor can only add assessment based on their subject 
-            ☐ Professor can see the changes made by the Program Head 
-
+            ☐ Professor can only add assessment based on their subject
+            ☐ Professor can see the changes made by the Program Head
     ☐ Answering Assessment
         ☐ Review answers before submitting
         ☐ Add a timer when the timer is around 5 minutes, a warning message will show up
     ☐ Assessment Result
         ☐ The system should show the topics that the student need to study based on the result
         ☐ A button should link the student to the practice assessment with the selected topics they need
+        ☐ Change color and fix the pie chart to depict proper message, make it a complete circle with shades or something
+        ☐ Add proficiency legends for clarify
+        ☐ Add button export CSV file of item analysis
 
 Question Bank:
-    ☐ 
+    ☐ Remove all format types except multiple choice
+    ☐ Remove examination type
 
 Study Materials:
-    ☐ 
+    ☐
 
 Statistics:
     Program Head:
-        ☐ Show the students statistics 
-           ☐ When student is clicked, it will show the students 
+        ☐ Show the students statistics
+           ☐ When student is clicked, it will show the students
     Student:
-        
+        ☐ Show the past assessments per topic
+
 User Management:
-    ☐ Add an admin role 
+    ☐ Add an admin role
     ☐ Add a reset password
     ☐ Delete a student/user
+    ☐ Remove birthday/gender for users
+    ☐ Format of id number of faculty
+
