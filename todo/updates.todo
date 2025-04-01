@@ -1,0 +1,46 @@
+Requirements as of 04-01-2025:
+
+Practice Assessment:
+    ☐  Generating Assessment
+        ☐ Add an auto generate button for selecting topics @critical
+    ☐ Answering Assessment
+        ☐ Review answers before submitting
+        ☐ Add a timer when the timer is around 5 minutes, a warning message will show up
+    ☐ Assessment Result
+        ☐ The system should show the topics that the student need to study based on the result
+        ☐ A button should link the student to the practice assessment with the selected topics they need
+Assessment:
+    ☐ Generating Assessment
+        ☐ Show an error when there is insufficient questions from the question Bank
+    ☐ Approval of Assessment
+        Program Head:
+            ☐ Program Head can change the questions of the assessment
+            ☐ Disapprove assessment should reset the questions status
+            ☐ Comments can be seen by the professor
+        Professor:
+            ☐ Professor can only add assessment based on their subject 
+            ☐ Professor can see the changes made by the Program Head 
+
+    ☐ Answering Assessment
+        ☐ Review answers before submitting
+        ☐ Add a timer when the timer is around 5 minutes, a warning message will show up
+    ☐ Assessment Result
+        ☐ The system should show the topics that the student need to study based on the result
+        ☐ A button should link the student to the practice assessment with the selected topics they need
+
+Question Bank:
+    ☐ 
+
+Study Materials:
+    ☐ 
+
+Statistics:
+    Program Head:
+        ☐ Show the students statistics 
+           ☐ When student is clicked, it will show the students 
+    Student:
+        
+User Management:
+    ☐ Add an admin role 
+    ☐ Add a reset password
+    ☐ Delete a student/user
