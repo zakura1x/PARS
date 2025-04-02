@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('role');
             $table->boolean('status')->default(1);
+            $table->longText('avatar')->nullable(); // Add avatar as a BLOB
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes(); // Add this line for soft deletes

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class User extends Authenticatable
 {
@@ -27,6 +28,7 @@ class User extends Authenticatable
         'password',
         'role',
         'status',
+        'avatar',
     ];
 
     /**
@@ -38,6 +40,7 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
 
     protected $appends = ['full_name'];
 
@@ -52,6 +55,15 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function avatar(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => ($value && !str_starts_with($value, 'data:image')) 
+                ? 'data:image/png;base64,' . base64_encode($value) 
+                : $value, // If already formatted, return as is
+        );
     }
 
     public function getFullNameAttribute()

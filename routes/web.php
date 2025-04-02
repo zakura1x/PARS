@@ -29,6 +29,8 @@ Route::post('/logout',  [AuthController::class, 'logout'])->name('auth.signout')
 
 Route::middleware(['auth'])->group(function(){
    Route::get('/profile', [ProfileManagementController::class, 'index'])->name('profile');
+   Route::post('/profile/update-password', [ProfileManagementController::class, 'updatePassword'])->name('profile.update-password');
+   Route::post('/profile/update-avatar', [ProfileManagementController::class, 'updateAvatar'])->name('profile.update-avatar');
 });
 
 Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(function () {
