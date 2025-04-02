@@ -67,7 +67,7 @@ const Navbar = ({ toggleSidebar }) => {
                         className="mt-2 z-[1] p-2 shadow menu menu-sm dropdown-content bg-[#436850] rounded-box w-52 text-white"
                     >
                         <li>
-                            <a className="justify-between">Profile</a>
+                            <Link href="/profile">Profile</Link>
                         </li>
                         <li>
                             <Link

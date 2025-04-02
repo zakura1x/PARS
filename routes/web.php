@@ -4,6 +4,7 @@ use App\Exports\QuestionTemplateExport;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProfileManagementController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\StudentDashboardController;
 use App\Http\Controllers\StudentPracticeAssessmentController;
@@ -26,14 +27,12 @@ Route::get('/', [AuthController::class, 'login'])->name('login');
 Route::post('/login', [AuthController::class, 'signIn'])->name('auth.signin');
 Route::post('/logout',  [AuthController::class, 'logout'])->name('auth.signout');
 
-//TESTING
-// 
-
-// Route::middleware(['auth'])->group(function(){
-//     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-// });
+Route::middleware(['auth'])->group(function(){
+   Route::get('/profile', [ProfileManagementController::class, 'index'])->name('profile');
+});
 
 Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(function () {
+
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     //SUBJECT MANAGEMENT
@@ -161,18 +160,6 @@ Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function 
     Route::get('/study-materials/{topicId}', [StudyMaterialController::class, 'studentShowStudyMaterial'])->name('student-study-materials.study-material');
 });
 
-//Route::post('/assessment/{assessmentId}/submit', [AssessmentController::class, 'submitAssessment']);
-
-
-//TEster
-Route::get('/test-store', [StudentPracticeAssessmentController::class, 'testStore']);
 
 require_once __DIR__ . '/user_management.php';
-
-// Route::get('/test', function(){
-//     return inertia('');
-// });
-
-
-// Route::resource('auth', AuthController::class)->except('login');
 

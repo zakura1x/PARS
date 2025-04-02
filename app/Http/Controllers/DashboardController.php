@@ -9,6 +9,7 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
+        //dd($user);
 
         if (!$user) {
             // Redirect to login if the user is not authenticated
