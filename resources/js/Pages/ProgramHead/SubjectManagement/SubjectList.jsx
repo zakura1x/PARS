@@ -6,7 +6,7 @@ import AddSubjectModal from "../../../components/SubjectManagement/AddSubjectMod
 import FlashMessage from "../../../components/Notifications/FlashMessage";
 
 const SubjectManagement = () => {
-    const { flash, subjects, auth } = usePage().props;
+    const { flash, subjects, auth, professors } = usePage().props;
     const [searchQuery, setSearchQuery] = useState("");
     const [showModal, setShowModal] = useState(false);
 
@@ -15,7 +15,7 @@ const SubjectManagement = () => {
         id: null,
         subject_id: "",
         name: "",
-        created_by: auth.user.id,
+        professor_id: "",
     });
 
     // Filtered subjects based on search query
@@ -47,7 +47,7 @@ const SubjectManagement = () => {
             id: subject.id,
             subject_id: subject.subject_id,
             name: subject.name,
-            status: subject.status,
+            professor_id: subject.professor_id ?? "",
         });
         setShowModal(true);
     };
@@ -81,6 +81,7 @@ const SubjectManagement = () => {
                 post={post}
                 put={put}
                 reset={reset}
+                professors={professors}
             />
         </div>
     );

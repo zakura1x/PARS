@@ -15,11 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('subject_id')->unique();
             $table->string('name');
-            $table->unsignedBigInteger('created_by');
+            $table->unsignedBigInteger('professor_id')->nullable();
             //$table->boolean('status')->default(true);
             $table->timestamps();
 
-            $table->foreign('created_by')->references('id')->on('users');
+            $table->foreign('professor_id')->references('id')->on('professors');
             $table->softDeletes();
         });
     }

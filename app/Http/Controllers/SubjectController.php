@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Professor;
 use App\Models\Subject;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,10 +15,10 @@ class SubjectController extends Controller
      */
     public function index()
     {
-        $subjects = Subject::latest() // Orders by created_at in descending order
-        ->paginate(10);
+        $subjects = Subject::with('professors.user')->latest()->paginate(10);
+        $professors = Professor::with('user')->get();
 
-        return inertia('ProgramHead/SubjectManagement/SubjectList', ['subjects' => $subjects]);
+        return inertia('ProgramHead/SubjectManagement/SubjectList', ['subjects' => $subjects, 'professors' => $professors]);
     }
 
     /**
@@ -25,7 +26,7 @@ class SubjectController extends Controller
      */
     public function create()
     {
-        //
+        
     }
 
     /**
@@ -37,13 +38,14 @@ class SubjectController extends Controller
         $validateSubject = $request->validate([
             'subject_id' => 'required|string|max:255|unique:subjects,subject_id',
             'name' => 'required|string|max:255',
+            'professor_id' => 'nullable|exists:professors,id'
         ]);
 
         // Create a new subject
         Subject::create([
             'subject_id' => $validateSubject['subject_id'],
             'name' => $validateSubject['name'],
-            'created_by' => Auth::id(),
+            'professor_id' => $validateSubject['professor_id'],
         ]);
 
         //Send a message to inertia
@@ -66,7 +68,7 @@ class SubjectController extends Controller
         $validated = $request->validate([
             'subject_id' => 'required|string|max:255|unique:subjects,subject_id,' . $id,
             'name' => 'required|string|max:255',
-            'status' => 'required|boolean',
+            'professor_id' => 'nullable|exists:professors,id'
         ]);
 
         $subject = Subject::findOrFail($id);

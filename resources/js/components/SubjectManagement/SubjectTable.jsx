@@ -17,6 +17,7 @@ const SubjectTable = ({ subjects, onEditSubject }) => {
                     <tr className="bg-gray-200 text-gray-700 text-sm">
                         <th className="py-3 px-4 text-left">Subject ID</th>
                         <th className="py-3 px-4 text-left">Subject Name</th>
+                        <th className="py-3 px-4 text-left">Professor</th> {/* ✅ NEW */}
                         <th className="py-3 px-4 text-left">Created By</th>
                         <th className="py-3 px-4 text-left">Date Added</th>
                         <th className="py-3 px-4 text-center">Actions</th>
@@ -47,6 +48,15 @@ const SubjectTable = ({ subjects, onEditSubject }) => {
 
                                 {/* Subject Name */}
                                 <td className="py-3 px-4">{subject.name}</td>
+
+                                {/* ✅ Professor Name */}
+                                <td className="py-3 px-4">
+                                    {subject.professor?.user?.full_name || (
+                                        <span className="italic text-gray-400">
+                                            No Professor Assigned
+                                        </span>
+                                    )}
+                                </td>
 
                                 {/* Created By */}
                                 <td className="py-3 px-4">

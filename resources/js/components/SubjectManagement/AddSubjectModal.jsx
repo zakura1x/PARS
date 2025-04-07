@@ -12,6 +12,7 @@ const AddSubjectModal = ({
     post,
     put,
     reset,
+    professors,
 }) => {
     if (!showModal) return null;
 
@@ -93,6 +94,38 @@ const AddSubjectModal = ({
                         {errors.name && (
                             <p className="text-red-500 text-sm mt-1">
                                 {errors.name}
+                            </p>
+                        )}
+                    </div>
+                    {/* Professor Dropdown */}
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                            Professor
+                        </label>
+                        <select
+                            value={data.professor_id || ""}
+                            onChange={(e) =>
+                                setData({
+                                    ...data,
+                                    professor_id: e.target.value,
+                                })
+                            }
+                            className={`block w-full rounded-md border p-2 shadow-sm focus:ring-blue-500 ${
+                                errors.professor_id
+                                    ? "border-red-500 focus:ring-red-500"
+                                    : "focus:ring-blue-300"
+                            }`}
+                        >
+                            <option value="">-- Select Professor --</option>
+                            {professors.map((prof) => (
+                                <option key={prof.id} value={prof.id}>
+                                    {prof.user.full_name}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.professor_id && (
+                            <p className="text-red-500 text-sm mt-1">
+                                {errors.professor_id}
                             </p>
                         )}
                     </div>

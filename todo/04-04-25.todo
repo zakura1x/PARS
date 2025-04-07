@@ -1,0 +1,15 @@
+Professor:
+    ☐ Create an assessment based on the subject
+    ☐ Send an approval request to the Program Head
+    AFTER APPROVAL:
+        ☐ View the assessment
+        ☐ Start the assessment
+
+Program Head:
+    ✔ Assign a professor to a subject @done (4/7/2025, 10:33:04 PM)
+        ☐ UI - Subject can be edited and add the assigning of professor
+        
+    APPROVAL:
+        ☐ Approve the assessment
+        ☐ Disapprove the assessment with comments
+        ☐ Can modify the questions for the assessment
