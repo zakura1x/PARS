@@ -25,7 +25,7 @@ const AddSubjectModal = ({
 
         if (data.id) {
             // Use PUT for editing
-            post(url, data, {
+            put(url, data, {
                 onSuccess: (response) => {
                     console.log(response);
                     setShowModal(false); // Close the modal

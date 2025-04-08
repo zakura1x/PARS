@@ -40,7 +40,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     //SUBJECT MANAGEMENT
     Route::get('/subjectList', [SubjectController::class, 'index'])->name('subjectList');
     Route::post('/addSubject',[SubjectController::class,'store'])->name('subject-store');
-    Route::post('/subjects/edit/{id}', [SubjectController::class, 'edit'])->name('subjects-edit');
+    Route::put('/subjects/edit/{id}', [SubjectController::class, 'edit'])->name('subjects-edit');
 
     //MASTER TOPIC MANAGEMENT
     // Route::get('/topicList', [TopicMasterController::class, 'index'])->name('topicList');
