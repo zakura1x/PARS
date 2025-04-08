@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('assessments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
-            $table->string('type');
             $table->foreignId('subject_id')->constrained('subjects')->onDelete('cascade');
             
             //Fillable
@@ -25,6 +24,7 @@ return new class extends Migration
             $table->boolean('approved')->default(false);
             $table->foreignId('approved_by')->nullable()->constrained('users')->onDelete('set null');
             $table->text('rejection_reason')->nullable();
+
             
             // New columns
             $table->integer('time_limit')->nullable();

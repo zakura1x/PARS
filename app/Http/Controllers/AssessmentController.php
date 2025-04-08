@@ -93,153 +93,135 @@ class AssessmentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'type' => 'required|in:assessment,exam',
-            'subject_id' => 'required|exists:subjects,id',
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string|max:255',
-            'topics' => 'array|nullable',
-            'topics.*' => 'exists:topics,id',
-            'total_items' => 'integer|min:1|nullable',
-            'time_limit' => 'required|integer',
-        ]);
+    // public function store(Request $request)
+    // {
+    //     $validated = $request->validate([
+    //         'subject_id' => 'required|exists:subjects,id',
+    //         'title' => 'required|string|max:255',
+    //         'description' => 'nullable|string|max:255',
+    //         'topics' => 'array|nullable',
+    //         'topics.*' => 'exists:topics,id',
+    //         'total_items' => 'integer|min:1|nullable',
+    //         'time_limit' => 'required|integer',
+    //     ]);
 
-        //Initialize variables
-        $type = $validated['type'];
-        $subjectId = $validated['subject_id'];
-        $topics = $validated['topics'] ?: Subject::find($subjectId)->topics->pluck('id')->toArray();
-        $totalItems = $validated['total_items'];
+    //     //Initialize variables
+    //     $subjectId = $validated['subject_id'];
+    //     $topics = $validated['topics'] ?: Subject::find($subjectId)->topics->pluck('id')->toArray();
+    //     $totalItems = $validated['total_items'];
 
-        // Check if TopicGradingCriteria is available for the selected topics
-        if ($type === 'assessment') {
-            foreach ($topics as $topicId) {
-                $criteria = TopicGradingCriteria::where('topic_id', $topicId)->exists();
-                if (!$criteria) {
-                    return response()->json(['message' => 'Assessment cannot be created because TopicGradingCriteria is not yet set by the faculty for topic ID: ' . $topicId], 422);
-                }
-            }
-        }
-        // Check if TableOfSpecification is available for the selected subject
-        if ($type === 'exam') {
-            $tableOfSpecifications = TableOfSpecification::where('subject_id', $subjectId)->exists();
-            if (!$tableOfSpecifications) {
-                return response()->json(['message' => 'Assessment cannot be created because TableOfSpecification is not yet set by the faculty for subject ID: ' . $subjectId], 422);
-            }
-        }
+    //     // Check if TableOfSpecification is available for the selected subject
+    //     $tableOfSpecifications = TableOfSpecification::where('subject_id', $subjectId)->exists();
+    //     if (!$tableOfSpecifications) {
+    //         return back()->with(['message'=> 'Table of Specification is not available for this subject.']);
+    //     }
 
-        // Check if there are available questions for the selected topics
-        foreach ($topics as $topicId) {
-            $questionsAvailable = Question::where('topic_id', $topicId)->exists();
-            if (!$questionsAvailable) {
-                return response()->json(['message' => 'Assessment cannot be created because questions are not yet available for topic ID: ' . $topicId], 422);
-            }
-        }
+    //     // Check if there are available questions for the selected topics
+    //     foreach ($topics as $topicId) {
+    //         $questionsAvailable = Question::where('topic_id', $topicId)->exists();
+    //         if (!$questionsAvailable) {
+    //             return back()->with(['message'=> 'No questions available for the selected topics.']);
+    //         }
+    //     }
 
-        $questions = [];
-        if($type === 'assessment'){
-            $questions = $this->generateCriteriaQuestions( $topics, $totalItems);
-        }else if($type === 'exam'){
-            $questions = $this->generateExamQuestions( $subjectId);
-        }
+    //     $questions = [];
+    //         $questions = $this->generateExamQuestions( $subjectId);
 
-        if (empty($questions) || $questions->isEmpty()) {
-            return response()->json(['message' => 'No questions available for this assessment.'], 422);
-        }
+    //     if (empty($questions) || $questions->isEmpty()) {
+    //         return back()->with(['message'=> 'No questions available for the selected topics.']);
+    //     }
 
-        //Create the assessment
-        $assessment = Assessment::create([
-            'created_by' => Auth::id(),
-            'type' => $type,
-            'subject_id' => $subjectId,
-            'title' => $validated['title'],
-            'description' => $validated['description'],
-            'time_limit' => $validated['time_limit']
-        ]);
+    //     //Create the assessment
+    //     $assessment = Assessment::create([
+    //         'created_by' => Auth::id(),
+    //         'subject_id' => $subjectId,
+    //         'title' => $validated['title'],
+    //         'description' => $validated['description'],
+    //         'time_limit' => $validated['time_limit']
+    //     ]);
 
-        //Attach the questions to the assessment
-        foreach ($questions as $question) {
-            StudentAssessmentQuestion::create([
-                'assessment_id' => $assessment->id,
-                'question_id' => $question->id,
-            ]);
-        }
+    //     //Attach the questions to the assessment
+    //     foreach ($questions as $question) {
+    //         StudentAssessmentQuestion::create([
+    //             'assessment_id' => $assessment->id,
+    //             'question_id' => $question->id,
+    //         ]);
+    //     }
 
-        return inertia('PracticeAssessment/PracticeStart', ['practiceAssessmentId' => $assessment]);
-    }
+    //     return inertia('PracticeAssessment/PracticeStart', ['practiceAssessmentId' => $assessment]);
+    // }
 
-    private function generateCriteriaQuestions($topicIds, $totalItems)
-    {
-        $questions = collect(); // Use collection instead of array
+    // private function generateCriteriaQuestions($topicIds, $totalItems)
+    // {
+    //     $questions = collect(); // Use collection instead of array
 
-        foreach ($topicIds as $topicId) {
-            // Step 1: Get the grading criteria for the topic
-            $criteria = TopicGradingCriteria::getCriteriaByTopic($topicId);
+    //     foreach ($topicIds as $topicId) {
+    //         // Step 1: Get the grading criteria for the topic
+    //         $criteria = TopicGradingCriteria::getCriteriaByTopic($topicId);
 
-            foreach ($criteria as $criterion) {
-                // Step 2: Calculate the number of questions based on the percentage
-                $questionsForCriterion = (int) floor(($criterion->percentage / 100) * $totalItems);
+    //         foreach ($criteria as $criterion) {
+    //             // Step 2: Calculate the number of questions based on the percentage
+    //             $questionsForCriterion = (int) floor(($criterion->percentage / 100) * $totalItems);
 
-                // Ensure the minimum number of questions is met
-                $questionsForCriterion = max($questionsForCriterion, $criterion->min_questions);
+    //             // Ensure the minimum number of questions is met
+    //             $questionsForCriterion = max($questionsForCriterion, $criterion->min_questions);
 
-                // Map difficulty to Bloom's levels
-                $bloomLevels = TopicGradingCriteria::getBloomLevelsForDifficulty($criterion->difficulty);
+    //             // Map difficulty to Bloom's levels
+    //             $bloomLevels = TopicGradingCriteria::getBloomLevelsForDifficulty($criterion->difficulty);
 
-                // Step 4: Check unused questions and retrieve questions per Bloom level
-                $criterionQuestions = collect();
-                foreach ($bloomLevels as $level) {
-                    $levelQuestions = Question::where('topic_id', $topicId)
-                        ->where('purpose_type', 'assessment')
-                        ->where('difficulty', $level)
-                        ->where('is_used', false) // Check is_used directly
-                        ->inRandomOrder()
-                        ->take($questionsForCriterion)
-                        ->get();
+    //             // Step 4: Check unused questions and retrieve questions per Bloom level
+    //             $criterionQuestions = collect();
+    //             foreach ($bloomLevels as $level) {
+    //                 $levelQuestions = Question::where('topic_id', $topicId)
+    //                     ->where('purpose_type', 'assessment')
+    //                     ->where('difficulty', $level)
+    //                     ->where('is_used', false) // Check is_used directly
+    //                     ->inRandomOrder()
+    //                     ->take($questionsForCriterion)
+    //                     ->get();
 
-                    $criterionQuestions = $criterionQuestions->merge($levelQuestions);
-                }
+    //                 $criterionQuestions = $criterionQuestions->merge($levelQuestions);
+    //             }
 
-                // Step 5: If not enough questions, fallback to other difficulty levels
-                if ($criterionQuestions->count() < $questionsForCriterion) {
-                    $remaining = $questionsForCriterion - $criterionQuestions->count();
+    //             // Step 5: If not enough questions, fallback to other difficulty levels
+    //             if ($criterionQuestions->count() < $questionsForCriterion) {
+    //                 $remaining = $questionsForCriterion - $criterionQuestions->count();
 
-                    $additionalQuestions = Question::where('topic_id', $topicId)
-                        ->where('purpose_type', 'assessment')
-                        ->where('is_used', false) // Check is_used directly
-                        ->whereNotIn('difficulty', $bloomLevels) // Exclude selected Bloom levels
-                        ->inRandomOrder()
-                        ->take($remaining)
-                        ->get();
+    //                 $additionalQuestions = Question::where('topic_id', $topicId)
+    //                     ->where('purpose_type', 'assessment')
+    //                     ->where('is_used', false) // Check is_used directly
+    //                     ->whereNotIn('difficulty', $bloomLevels) // Exclude selected Bloom levels
+    //                     ->inRandomOrder()
+    //                     ->take($remaining)
+    //                     ->get();
 
-                    $criterionQuestions = $criterionQuestions->merge($additionalQuestions);
-                }
+    //                 $criterionQuestions = $criterionQuestions->merge($additionalQuestions);
+    //             }
 
-                // Step 6: If still not enough questions, get random questions regardless of difficulty
-                if ($criterionQuestions->count() < $questionsForCriterion) {
-                    $remaining = $questionsForCriterion - $criterionQuestions->count();
-                    $randomQuestions = Question::where('topic_id', $topicId)
-                        ->where('purpose_type', 'assessment')
-                        ->where('is_used', false) // Check is_used directly
-                        ->inRandomOrder()
-                        ->take($remaining)
-                        ->get();
+    //             // Step 6: If still not enough questions, get random questions regardless of difficulty
+    //             if ($criterionQuestions->count() < $questionsForCriterion) {
+    //                 $remaining = $questionsForCriterion - $criterionQuestions->count();
+    //                 $randomQuestions = Question::where('topic_id', $topicId)
+    //                     ->where('purpose_type', 'assessment')
+    //                     ->where('is_used', false) // Check is_used directly
+    //                     ->inRandomOrder()
+    //                     ->take($remaining)
+    //                     ->get();
 
-                    $criterionQuestions = $criterionQuestions->merge($randomQuestions);
-                }
+    //                 $criterionQuestions = $criterionQuestions->merge($randomQuestions);
+    //             }
 
-                // Step 7: Mark fetched questions as used
-                foreach ($criterionQuestions as $question) {
-                    $question->update(['is_used' => true, 'updated_at' => now()]);
-                }
+    //             // Step 7: Mark fetched questions as used
+    //             foreach ($criterionQuestions as $question) {
+    //                 $question->update(['is_used' => true, 'updated_at' => now()]);
+    //             }
 
-                $questions = $questions->merge($criterionQuestions);
-            }
-        }
+    //             $questions = $questions->merge($criterionQuestions);
+    //         }
+    //     }
 
-        return $questions;
-    }
+    //     return $questions;
+    // }
 
     public function storeExam(Request $request){
         $validatedData = $request->validate([
@@ -254,13 +236,12 @@ class AssessmentController extends Controller
             $questions = $this->generateExamQuestions($validatedData['subject_id']);
 
             if($questions->isEmpty()){
-                return back()->withErrors(['message' => 'No questions available to generate from this Subject']);
+                return back()->with(['message'=> 'No questions available for the selected subject.']);
             }
 
             //Create the assessment Record
             $assessment = Assessment::create([
                 'created_by' => Auth::id(),
-                'type' => 'examination',
                 'subject_id' => $validatedData['subject_id'],
                 'title' => $validatedData['title'],
                 'description' => $validatedData['description'] ?? null,
@@ -340,7 +321,7 @@ class AssessmentController extends Controller
     {
         $assessment = Assessment::with('questions.topic')->findOrFail($assessmentId);
 
-        if($assessment->status !== 'draft'){
+        if($assessment->status !== 'draft' || $assessment->status !== 'rejected'){
             return back()->withErrors(['message' => 'Assessment cannot be edited anymore']);
         }
 
