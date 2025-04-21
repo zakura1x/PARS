@@ -1,0 +1,61 @@
+DAY 1
+
+Assessment Controller:
+    ☐ View for the listings of assessments
+        ☐ Program head can view the list of assessments that needs approval
+        ☐ Program head can view the list of assessments that are already approved
+        ☐ Program head can view the list of assessments that are already rejected
+        ☐ Program head can view the list of assessments that were created by the program head 
+
+        ☐ Professor can view the list of assessments created by the professor 
+    ☐ View the details of the assessment
+
+Assessment Create Controller:
+    ✔ Form for creating a new assessment @done (4/14/2025, 11:33:02 PM)
+        ✔ Auto generate the questions @done (4/14/2025, 11:33:34 PM)
+        ✔ Set the status of the assessment to draft @done (4/14/2025, 11:33:37 PM)
+    ✔ Form for editing an existing assessment @done (4/14/2025, 11:36:32 PM)
+    ✔ Preview of the assessment @low @done (4/14/2025, 11:42:02 PM)
+    ✔ Form for deleting an assessment @done (4/15/2025, 12:12:42 AM)
+        ✔ Delete the Assessment @done (4/15/2025, 12:12:43 AM)
+        ✔ Reset the questions status() @done (4/15/2025, 12:12:44 AM
+        ✔ Fork the deleted assessment @done (4/15/2025, 12:33:03 AM)
+    
+    ✔ Generation of the assessment questions @done (4/15/2025, 12:33:12 AM)
+    ✔ Auto replacement of the questions @done (4/15/2025, 12:33:12 AM)
+
+Assessment Submission Controller:
+    ✔ Form for submitting the assessment to the program head @done (4/20/2025, 10:44:33 PM)
+    ✔ Set the status of the assessment to pending @done (4/20/2025, 10:44:36 PM)
+
+Assessment Approval Controller:
+    ✔ Approval form of the program head @done (4/20/2025, 10:51:54 PM)
+        Approval Process:
+            ✔ Approve the assessment @done (4/20/2025, 10:52:00 PM)
+            ✔ Disapprove the assessment with comments @done (4/20/2025, 10:54:42 PM)
+            ✔ Modify the question of the assessment @done (4/20/2025, 11:06:53 PM)
+               ✔ Replace the question @done (4/20/2025, 11:06:56 PM)
+
+Assessment Disapproval Controller:
+    ☐ View for displaying the disapproval of the assessment
+        ☐ Show the comments of the program head
+        ☐ Show the questions of the assessment
+            ☐ Reset the questions status
+
+    ☐ Fork the assessment
+        ☐ Copy all the questions of the assessment
+
+Assessment Process Controller:
+    ☐ Start the assessment on the professor/program head
+    ☐ Students can join the assessment via code
+    ☐ Students can submit the assessment 
+    ☐ Students can view the assessment after all the students have submitted
+    
+    ☐ Professor should end the assessment
+    ☐ The system should automatically end the assessment based on the time @low
+
+    ☐ Grade the students
+    ☐ Analytics of the assessment 
+
+    ☐ System should suggest the topics that the students need to work on
+    ☐ Feedback for the students

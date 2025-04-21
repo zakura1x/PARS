@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('assessment_id')->constrained('assessments')->onDelete('cascade');
             $table->foreignId('question_id')->constrained('questions')->onDelete('cascade');
-
+            $table->unsignedBigInteger('replaced_question_id')->nullable();
+            $table->foreign('replaced_question_id')->references('id')->on('questions');
+            
             $table->timestamps();
 
             //Implement a softDelete

@@ -20,6 +20,11 @@ class Professor extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function subjects()
+    {
+        return $this->hasMany(Subject::class);
+    }
+
     //$professor->full_name; -- TO GET THE FULL NAME
     public function getFullNameAttribute()
     {

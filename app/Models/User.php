@@ -15,6 +15,12 @@ class User extends Authenticatable
     use HasFactory, Notifiable ;
     //SoftDeletes add after migration 
 
+    // Add role constants
+    const ROLE_ADMIN = 'admin';
+    const ROLE_PROGRAM_HEAD = 'program_head';
+    const ROLE_PROFESSOR = 'professor';
+    const ROLE_STUDENT = 'student';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -71,6 +77,18 @@ class User extends Authenticatable
         return "{$this->first_name} {$this->last_name}";
     }
 
+    /**
+     * Check if user has any of the given roles
+     *
+     * @param array|string $roles
+     * @return bool
+     */
+    public function hasAnyRole($roles): bool
+    {
+        $roles = is_array($roles) ? $roles : [$roles];
+        return in_array($this->role, $roles);
+    }
+
     public function studentAssessments()
     {
         return $this->hasMany(StudentAssessment::class, 'student_id');
@@ -87,6 +105,11 @@ class User extends Authenticatable
             ->withPivot('status') // Include the `status` column from the pivot table
             ->withTimestamps();  // Include timestamps if present in the pivot table
     }
+    public function professor()
+    {
+        return $this->hasOne(Professor::class);
+    }
+
 
 
 }

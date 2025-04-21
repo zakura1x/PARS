@@ -26,6 +26,7 @@ class Assessment extends Model
         'time_limit',
         'started_at',
         'ended_at',
+        'is_forked',
     ];
 
     protected $dates =[

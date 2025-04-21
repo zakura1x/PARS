@@ -30,6 +30,7 @@ return new class extends Migration
             $table->integer('time_limit')->nullable();
             $table->timestamp('started_at')->nullable();
             $table->timestamp('ended_at')->nullable();
+            $table->boolean('is_forked')->default(false);
             
             $table->timestamps();
             $table->softDeletes();
