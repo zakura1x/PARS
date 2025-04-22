@@ -1,7 +1,7 @@
 DAY 1
 
 Assessment Controller:
-    ☐ View for the listings of assessments
+    ✔ View for the listings of assessments @done (4/21/2025, 10:21:22 PM)
         ☐ Program head can view the list of assessments that needs approval
         ☐ Program head can view the list of assessments that are already approved
         ☐ Program head can view the list of assessments that are already rejected
