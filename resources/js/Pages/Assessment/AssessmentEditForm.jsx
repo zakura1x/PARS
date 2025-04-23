@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useForm } from "@inertiajs/react";
+import { Link, useForm, router } from "@inertiajs/react";
 import {
     ChevronDown,
     ChevronUp,
@@ -10,15 +10,107 @@ import {
     Edit,
     Copy,
     Trash2,
+    X,
+    Check,
 } from "lucide-react";
 
+const ConfirmationDialog = ({
+    isOpen,
+    onClose,
+    onConfirm,
+    title,
+    message,
+    confirmText = "Yes",
+    cancelText = "No",
+    isLoading = false,
+    isDanger = false,
+}) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+                <h3 className="text-lg font-bold mb-2">{title}</h3>
+                <p className="mb-6">{message}</p>
+                <div className="flex justify-end space-x-3">
+                    <button
+                        onClick={onClose}
+                        disabled={isLoading}
+                        className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
+                    >
+                        {cancelText}
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        disabled={isLoading}
+                        className={`px-4 py-2 text-white rounded hover:opacity-90 disabled:opacity-50 ${
+                            isDanger ? "bg-red-600" : "bg-blue-600"
+                        }`}
+                    >
+                        {isLoading ? "Processing..." : confirmText}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const EditTitleDialog = ({ isOpen, onClose, initialTitle, onSave }) => {
+    const [title, setTitle] = useState(initialTitle);
+
+    useEffect(() => {
+        if (isOpen) {
+            setTitle(initialTitle);
+        }
+    }, [isOpen, initialTitle]);
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+                <h3 className="text-lg font-bold mb-4">
+                    Edit Assessment Title
+                </h3>
+                <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded mb-4"
+                    placeholder="Enter new title"
+                />
+                <div className="flex justify-end space-x-3">
+                    <button
+                        onClick={onClose}
+                        className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 flex items-center"
+                    >
+                        <X size={16} className="mr-1" /> Cancel
+                    </button>
+                    <button
+                        onClick={() => onSave(title)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center"
+                    >
+                        <Check size={16} className="mr-1" /> Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const AssessmentReview = ({ assessment, questions }) => {
-    // Initialize all sections as expanded by default
+    // State management
     const [expandedSections, setExpandedSections] = useState({});
     const [expandAll, setExpandAll] = useState(true);
     const [expandedQuestions, setExpandedQuestions] = useState({});
     const [replacingQuestionId, setReplacingQuestionId] = useState(null);
     const [messages, setMessages] = useState({});
+    const [dialogConfig, setDialogConfig] = useState({
+        isOpen: false,
+        action: null,
+        isLoading: false,
+    });
+    const [editTitleDialog, setEditTitleDialog] = useState(false);
     const { post, processing } = useForm({});
 
     // Group questions by topic
@@ -31,7 +123,7 @@ const AssessmentReview = ({ assessment, questions }) => {
         return acc;
     }, {});
 
-    // Initialize expanded states when component mounts
+    // Initialize expanded states
     useEffect(() => {
         const initialExpandedSections = {};
         const initialExpandedQuestions = {};
@@ -47,6 +139,217 @@ const AssessmentReview = ({ assessment, questions }) => {
         setExpandedQuestions(initialExpandedQuestions);
     }, []);
 
+    // Action handlers
+    const handleSubmitForApproval = () => {
+        setDialogConfig((prev) => ({ ...prev, isLoading: true }));
+        router.put(
+            `/assessment/update/approval/${assessment.id}`,
+            {},
+            {
+                onSuccess: () => {
+                    setMessages({
+                        success:
+                            "Assessment submitted for approval successfully!",
+                    });
+                    setDialogConfig({
+                        isOpen: false,
+                        action: null,
+                        isLoading: false,
+                    });
+                },
+                onError: (error) => {
+                    setMessages({
+                        error: error.message || "Failed to submit for approval",
+                    });
+                    setDialogConfig({
+                        isOpen: false,
+                        action: null,
+                        isLoading: false,
+                    });
+                },
+            }
+        );
+    };
+
+    const handleStartAssessment = () => {
+        setDialogConfig((prev) => ({ ...prev, isLoading: true }));
+        router.put(
+            `/api/assessments/${assessment.id}/start`,
+            {},
+            {
+                onSuccess: () => {
+                    setMessages({
+                        success: "Assessment started successfully!",
+                    });
+                    setDialogConfig({
+                        isOpen: false,
+                        action: null,
+                        isLoading: false,
+                    });
+                },
+                onError: (error) => {
+                    setMessages({
+                        error: error.message || "Failed to start assessment",
+                    });
+                    setDialogConfig({
+                        isOpen: false,
+                        action: null,
+                        isLoading: false,
+                    });
+                },
+            }
+        );
+    };
+
+    const handleDeleteAssessment = () => {
+        setDialogConfig((prev) => ({ ...prev, isLoading: true }));
+        router.delete(`/api/assessments/${assessment.id}`, {
+            onSuccess: () => {
+                router.visit("/assessments");
+            },
+            onError: (error) => {
+                setMessages({
+                    error: error.message || "Failed to delete assessment",
+                });
+                setDialogConfig({
+                    isOpen: false,
+                    action: null,
+                    isLoading: false,
+                });
+            },
+        });
+    };
+
+    const handleCopyAssessment = () => {
+        setDialogConfig((prev) => ({ ...prev, isLoading: true }));
+        router.post(
+            `/api/assessments/${assessment.id}/copy`,
+            {},
+            {
+                onSuccess: () => {
+                    setMessages({ success: "Assessment copied successfully!" });
+                    setDialogConfig({
+                        isOpen: false,
+                        action: null,
+                        isLoading: false,
+                    });
+                },
+                onError: (error) => {
+                    setMessages({
+                        error: error.message || "Failed to copy assessment",
+                    });
+                    setDialogConfig({
+                        isOpen: false,
+                        action: null,
+                        isLoading: false,
+                    });
+                },
+            }
+        );
+    };
+
+    const handleViewStatus = () => {
+        router.visit(`/assessments/${assessment.id}/status`);
+    };
+
+    const handleSaveTitle = (newTitle) => {
+        router.post(
+            `/api/assessments/${assessment.id}/update-title`,
+            {
+                title: newTitle,
+            },
+            {
+                onSuccess: () => {
+                    setMessages({
+                        success: "Assessment title updated successfully!",
+                    });
+                    setEditTitleDialog(false);
+                },
+                onError: (error) => {
+                    setMessages({
+                        error: error.message || "Failed to update title",
+                    });
+                    setEditTitleDialog(false);
+                },
+            }
+        );
+    };
+
+    const handleActionClick = (action) => {
+        if (action === "edit") {
+            setEditTitleDialog(true);
+            return;
+        }
+
+        if (action === "view-status") {
+            handleViewStatus();
+            return;
+        }
+
+        setDialogConfig({
+            isOpen: true,
+            action,
+            isLoading: false,
+        });
+    };
+
+    const handleConfirm = () => {
+        switch (dialogConfig.action) {
+            case "submit":
+                handleSubmitForApproval();
+                break;
+            case "start":
+                handleStartAssessment();
+                break;
+            case "delete":
+                handleDeleteAssessment();
+                break;
+            case "copy":
+                handleCopyAssessment();
+                break;
+            default:
+                setDialogConfig({
+                    isOpen: false,
+                    action: null,
+                    isLoading: false,
+                });
+        }
+    };
+
+    const handleCancel = () => {
+        setDialogConfig({ isOpen: false, action: null, isLoading: false });
+    };
+
+    // Dialog configurations
+    const dialogMessages = {
+        submit: {
+            title: "Submit for Approval",
+            message:
+                "Are you sure you want to send this to the program head for approval?",
+            confirmText: "Submit",
+        },
+        start: {
+            title: "Start Assessment",
+            message:
+                "This will make the assessment available to students. Are you sure?",
+            confirmText: "Start",
+        },
+        delete: {
+            title: "Delete Assessment",
+            message:
+                "This will permanently delete the assessment. Are you sure?",
+            confirmText: "Delete",
+            isDanger: true,
+        },
+        copy: {
+            title: "Copy Assessment",
+            message:
+                "This will create a duplicate of this assessment. Are you sure?",
+            confirmText: "Copy",
+        },
+    };
+
+    // Helper functions
     const toggleSection = (sectionName) => {
         setExpandedSections((prev) => ({
             ...prev,
@@ -74,26 +377,27 @@ const AssessmentReview = ({ assessment, questions }) => {
 
     const handleReplaceQuestion = (questionId) => {
         setReplacingQuestionId(questionId);
-
-        post(`/assessment/replace-question/${questionId}/${assessment.id}`, {
-            preserveScroll: true,
-            onSuccess: (response) => {
-                setMessages({
-                    success: "Question replaced successfully!",
-                    replacement: response.props.replacement,
-                });
-                setReplacingQuestionId(null);
-            },
-            onError: (err) => {
-                setMessages({
-                    error: err.message || "Failed to replace question.",
-                });
-                setReplacingQuestionId(null);
-            },
-        });
+        post(
+            `/api/assessments/${assessment.id}/questions/${questionId}/replace`,
+            {
+                preserveScroll: true,
+                onSuccess: (response) => {
+                    setMessages({
+                        success: "Question replaced successfully!",
+                        replacement: response.props.replacement,
+                    });
+                    setReplacingQuestionId(null);
+                },
+                onError: (err) => {
+                    setMessages({
+                        error: err.message || "Failed to replace question.",
+                    });
+                    setReplacingQuestionId(null);
+                },
+            }
+        );
     };
 
-    // Helper function to check if an option is correct
     const isCorrectAnswer = (question, option) => {
         return question.correct_answer.includes(option);
     };
@@ -112,8 +416,8 @@ const AssessmentReview = ({ assessment, questions }) => {
                 </div>
                 <div className="bg-green-200 p-3 rounded-md w-64">
                     <div className="text-sm font-medium uppercase">STATUS</div>
-                    <div className="bg-white p-2 rounded-md mt-1 text-transform: uppercase">
-                        {assessment.status}
+                    <div className="bg-white p-2 rounded-md mt-1">
+                        {assessment.status || "Pending"}
                     </div>
                 </div>
             </div>
@@ -134,13 +438,14 @@ const AssessmentReview = ({ assessment, questions }) => {
                 </div>
             )}
 
-            {/* Assessment Actions */}
+            {/* Action Buttons */}
             <div className="flex justify-between items-center p-4 bg-gray-50 border-b">
                 <div className="flex space-x-2">
                     {/* Submit for approval */}
                     <button
+                        onClick={() => handleActionClick("submit")}
                         className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-md relative group"
-                        title="Submit for approval"
+                        disabled={dialogConfig.isLoading}
                     >
                         <CheckCircle size={20} />
                         <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
@@ -148,10 +453,11 @@ const AssessmentReview = ({ assessment, questions }) => {
                         </span>
                     </button>
 
-                    {/* Start the assessment */}
+                    {/* Start assessment */}
                     <button
+                        onClick={() => handleActionClick("start")}
                         className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md relative group"
-                        title="Start assessment"
+                        disabled={dialogConfig.isLoading}
                     >
                         <Play size={20} />
                         <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
@@ -161,8 +467,9 @@ const AssessmentReview = ({ assessment, questions }) => {
 
                     {/* View Status */}
                     <button
+                        onClick={() => handleActionClick("view-status")}
                         className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-md relative group"
-                        title="View status"
+                        disabled={dialogConfig.isLoading}
                     >
                         <Eye size={20} />
                         <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
@@ -170,10 +477,11 @@ const AssessmentReview = ({ assessment, questions }) => {
                         </span>
                     </button>
 
-                    {/* Edit Assessment details */}
+                    {/* Edit Assessment */}
                     <button
+                        onClick={() => handleActionClick("edit")}
                         className="p-2 text-gray-600 hover:text-yellow-600 hover:bg-yellow-50 rounded-md relative group"
-                        title="Edit assessment"
+                        disabled={dialogConfig.isLoading}
                     >
                         <Edit size={20} />
                         <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
@@ -183,8 +491,9 @@ const AssessmentReview = ({ assessment, questions }) => {
 
                     {/* Copy Assessment */}
                     <button
+                        onClick={() => handleActionClick("copy")}
                         className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-md relative group"
-                        title="Copy assessment"
+                        disabled={dialogConfig.isLoading}
                     >
                         <Copy size={20} />
                         <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
@@ -194,8 +503,9 @@ const AssessmentReview = ({ assessment, questions }) => {
 
                     {/* Delete Assessment */}
                     <button
+                        onClick={() => handleActionClick("delete")}
                         className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-md relative group"
-                        title="Delete assessment"
+                        disabled={dialogConfig.isLoading}
                     >
                         <Trash2 size={20} />
                         <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
@@ -204,10 +514,11 @@ const AssessmentReview = ({ assessment, questions }) => {
                     </button>
                 </div>
 
-                {/* Expand/Collapse Button (kept on the right) */}
+                {/* Expand/Collapse Button */}
                 <button
                     onClick={handleExpandAll}
                     className="text-sm text-gray-600 hover:underline flex items-center"
+                    disabled={dialogConfig.isLoading}
                 >
                     {expandAll ? (
                         <>
@@ -222,6 +533,23 @@ const AssessmentReview = ({ assessment, questions }) => {
                     )}
                 </button>
             </div>
+
+            {/* Confirmation Dialog */}
+            <ConfirmationDialog
+                isOpen={dialogConfig.isOpen}
+                onClose={handleCancel}
+                onConfirm={handleConfirm}
+                isLoading={dialogConfig.isLoading}
+                {...dialogMessages[dialogConfig.action]}
+            />
+
+            {/* Edit Title Dialog */}
+            <EditTitleDialog
+                isOpen={editTitleDialog}
+                onClose={() => setEditTitleDialog(false)}
+                initialTitle={assessment.title}
+                onSave={handleSaveTitle}
+            />
 
             {/* Questions by Topic */}
             <div className="p-4 space-y-4">
