@@ -2,6 +2,7 @@
 
 use App\Exports\QuestionTemplateExport;
 use App\Http\Controllers\Assessment\AssessmentCreateController;
+use App\Http\Controllers\Assessment\AssessmentSubmissionController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
@@ -110,12 +111,13 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
 
     //Assessment
     Route::get('/assessment/index/program-head', [AssessmentController::class, 'indexForProf'])->name('assessment-PH.index');
-    //Route::get('/assessment/index/professor', [AssessmentController::class, 'indexForProf'])->name('assessment-prof.index');
     
-    
-    
+
     Route::get('/assessment/approval/form/{assessmentId}', [AssessmentController::class, 'assessmentApprovalForm'])->name('assessment-approval.form');
-    Route::put('/assessment/update/approval/{assessmentId}', [AssessmentController::class,'updateForApproval'])->name('assessment-update.approval');
+
+    //Update the status of the assessment
+    Route::put('/assessment/update/approval/{assessmentId}', [AssessmentSubmissionController::class,'submitForApproval'])->name('assessment-update.approval');
+    
     Route::put('/assessment/update/approve/{assessmentId}', [AssessmentController::class,'approveAssessment'])->name('assessment.approve');
     Route::put('/assessment/update/reject/{assessmentId}', [AssessmentController::class,'rejectAssessment'])->name('assessment.reject');
 

@@ -125,8 +125,12 @@ class AssessmentCreateController extends Controller
                     $questions = $questions->merge($questionsForDifficulty);
                 }
             }
+
+            dd("Found {$questionsForDifficulty->count()} of {$count} for topic {$topicId} difficulty {$difficultyLevel}");
+
     
             DB::commit();
+
             return $questions;
         } catch (\Exception $e) {
             DB::rollBack();
@@ -142,9 +146,11 @@ class AssessmentCreateController extends Controller
     {
         $assessment = Assessment::with('questions.topic')->findOrFail($assessmentId);
 
-        if($assessment->status !== 'draft' || $assessment->status !== 'rejected'){
+        if($assessment->status !== 'draft' && $assessment->status !== 'rejected'){
             return back()->withErrors(['message' => 'Assessment cannot be edited anymore']);
         }
+
+        //dd($assessment->questions->toArray());
 
         // Get all the questions related to the assessment
         //$questions = $assessment->questions;
