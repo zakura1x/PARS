@@ -382,67 +382,7 @@ class AssessmentController extends Controller
         }
     }
 
-    public function replaceQuestionByProgramHead($questionId, $assessmentId)
-    {
-        if (Auth::user()->role !== 'program_head') {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-    
-        DB::beginTransaction();
-    
-        try {
-            $oldQuestion = Question::findOrFail($questionId);
-    
-            // Get pivot data before detaching
-            $pivot = DB::table('assessment_question')
-                ->where('assessment_id', $assessmentId)
-                ->where('question_id', $oldQuestion->id)
-                ->first();
-    
-            if (!$pivot) {
-                return back()->withErrors(['message' => 'Question is not part of this assessment']);
-            }
-    
-            // Determine the actual original question
-            $originalQuestionId = $pivot->original_question_id ?? $oldQuestion->id;
-    
-            $oldQuestion->update(['is_used' => false]);
-    
-            $replacement = Question::where('topic_id', $oldQuestion->topic_id)
-                ->where('difficulty', $oldQuestion->difficulty)
-                ->where('purpose_type', 'examination')
-                ->where('is_used', false)
-                ->inRandomOrder()
-                ->first();
-    
-            if (!$replacement) {
-                $oldQuestion->update(['is_used' => true]);
-                return back()->withErrors(['message' => 'No replacement found']);
-            }
-    
-            $replacement->update(['is_used' => true]);
-    
-            // Detach the old question
-            $oldQuestion->assessments()->detach($assessmentId);
-    
-            // Attach the new one with correct original reference
-            $replacement->assessments()->attach($assessmentId, [
-                'replaced_by_program_head' => true,
-                'original_question_id' => $originalQuestionId,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-    
-            DB::commit();
-    
-            return back()->with(['message' => 'Question replaced successfully.']);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error replacing question: ' . $e->getMessage());
-            return back()->withErrors(['message' => 'An error occurred while replacing the question.']);
-        }
-    }
-    
+
 
     
     public function updateForApproval($assessmentId)

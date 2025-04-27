@@ -139,6 +139,17 @@ const AssessmentReview = ({ assessment, questions }) => {
         setExpandedQuestions(initialExpandedQuestions);
     }, []);
 
+    // Button visibility based on status
+    const showButtons = {
+        submit: assessment.status === "draft",
+        start: assessment.status === "active",
+        viewStatus: ["on_going", "completed"].includes(assessment.status),
+        edit: assessment.status === "draft",
+        copy: assessment.status === "rejected",
+        delete: assessment.status === "draft",
+        replaceQuestion: assessment.status === "draft",
+    };
+
     // Action handlers
     const handleSubmitForApproval = () => {
         setDialogConfig((prev) => ({ ...prev, isLoading: true }));
@@ -223,7 +234,7 @@ const AssessmentReview = ({ assessment, questions }) => {
     const handleCopyAssessment = () => {
         setDialogConfig((prev) => ({ ...prev, isLoading: true }));
         router.post(
-            `/api/assessments/${assessment.id}/copy`,
+            `/assessment/copy/${assessment.id}`,
             {},
             {
                 onSuccess: () => {
@@ -249,12 +260,12 @@ const AssessmentReview = ({ assessment, questions }) => {
     };
 
     const handleViewStatus = () => {
-        router.visit(`/assessments/${assessment.id}/status`);
+        router.visit(`/assessment/${assessment.id}/results`);
     };
 
     const handleSaveTitle = (newTitle) => {
         router.post(
-            `/api/assessments/${assessment.id}/update-title`,
+            `/assessment/update/title/${assessment.id}`,
             {
                 title: newTitle,
             },
@@ -377,25 +388,22 @@ const AssessmentReview = ({ assessment, questions }) => {
 
     const handleReplaceQuestion = (questionId) => {
         setReplacingQuestionId(questionId);
-        post(
-            `/api/assessments/${assessment.id}/questions/${questionId}/replace`,
-            {
-                preserveScroll: true,
-                onSuccess: (response) => {
-                    setMessages({
-                        success: "Question replaced successfully!",
-                        replacement: response.props.replacement,
-                    });
-                    setReplacingQuestionId(null);
-                },
-                onError: (err) => {
-                    setMessages({
-                        error: err.message || "Failed to replace question.",
-                    });
-                    setReplacingQuestionId(null);
-                },
-            }
-        );
+        post(`/assessment/replace-question/${questionId}/${assessment.id}`, {
+            preserveScroll: true,
+            onSuccess: (response) => {
+                setMessages({
+                    success: "Question replaced successfully!",
+                    replacement: response.props.replacement,
+                });
+                setReplacingQuestionId(null);
+            },
+            onError: (err) => {
+                setMessages({
+                    error: err.message || "Failed to replace question.",
+                });
+                setReplacingQuestionId(null);
+            },
+        });
     };
 
     const isCorrectAnswer = (question, option) => {
@@ -422,6 +430,46 @@ const AssessmentReview = ({ assessment, questions }) => {
                 </div>
             </div>
 
+            {/* Program Head Comments */}
+            {assessment.comments && (
+                <div className="p-4">
+                    <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
+                        <div className="flex">
+                            <div className="flex-shrink-0">
+                                <svg
+                                    className="h-5 w-5 text-blue-400"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                >
+                                    <path
+                                        fillRule="evenodd"
+                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z"
+                                        clipRule="evenodd"
+                                    />
+                                </svg>
+                            </div>
+                            <div className="ml-3">
+                                <h3 className="text-sm font-medium text-blue-800">
+                                    Program Head Comments
+                                </h3>
+                                <div className="mt-2 text-sm text-blue-700">
+                                    <p>{assessment.comments}</p>
+                                </div>
+                                {assessment.commented_at && (
+                                    <div className="mt-1 text-xs text-blue-600">
+                                        Commented on:{" "}
+                                        {new Date(
+                                            assessment.commented_at
+                                        ).toLocaleString()}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Messages */}
             {messages.success && (
                 <div className="p-4">
@@ -442,76 +490,88 @@ const AssessmentReview = ({ assessment, questions }) => {
             <div className="flex justify-between items-center p-4 bg-gray-50 border-b">
                 <div className="flex space-x-2">
                     {/* Submit for approval */}
-                    <button
-                        onClick={() => handleActionClick("submit")}
-                        className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-md relative group"
-                        disabled={dialogConfig.isLoading}
-                    >
-                        <CheckCircle size={20} />
-                        <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                            Submit for approval
-                        </span>
-                    </button>
+                    {showButtons.submit && (
+                        <button
+                            onClick={() => handleActionClick("submit")}
+                            className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-md relative group"
+                            disabled={dialogConfig.isLoading}
+                        >
+                            <CheckCircle size={20} />
+                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                Submit for approval
+                            </span>
+                        </button>
+                    )}
 
                     {/* Start assessment */}
-                    <button
-                        onClick={() => handleActionClick("start")}
-                        className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md relative group"
-                        disabled={dialogConfig.isLoading}
-                    >
-                        <Play size={20} />
-                        <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                            Start assessment
-                        </span>
-                    </button>
+                    {showButtons.start && (
+                        <button
+                            onClick={() => handleActionClick("start")}
+                            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md relative group"
+                            disabled={dialogConfig.isLoading}
+                        >
+                            <Play size={20} />
+                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                Start assessment
+                            </span>
+                        </button>
+                    )}
 
                     {/* View Status */}
-                    <button
-                        onClick={() => handleActionClick("view-status")}
-                        className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-md relative group"
-                        disabled={dialogConfig.isLoading}
-                    >
-                        <Eye size={20} />
-                        <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                            View status
-                        </span>
-                    </button>
+                    {showButtons.viewStatus && (
+                        <button
+                            onClick={() => handleActionClick("view-status")}
+                            className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-md relative group"
+                            disabled={dialogConfig.isLoading}
+                        >
+                            <Eye size={20} />
+                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                View status
+                            </span>
+                        </button>
+                    )}
 
                     {/* Edit Assessment */}
-                    <button
-                        onClick={() => handleActionClick("edit")}
-                        className="p-2 text-gray-600 hover:text-yellow-600 hover:bg-yellow-50 rounded-md relative group"
-                        disabled={dialogConfig.isLoading}
-                    >
-                        <Edit size={20} />
-                        <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                            Edit assessment
-                        </span>
-                    </button>
+                    {showButtons.edit && (
+                        <button
+                            onClick={() => handleActionClick("edit")}
+                            className="p-2 text-gray-600 hover:text-yellow-600 hover:bg-yellow-50 rounded-md relative group"
+                            disabled={dialogConfig.isLoading}
+                        >
+                            <Edit size={20} />
+                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                Edit assessment
+                            </span>
+                        </button>
+                    )}
 
                     {/* Copy Assessment */}
-                    <button
-                        onClick={() => handleActionClick("copy")}
-                        className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-md relative group"
-                        disabled={dialogConfig.isLoading}
-                    >
-                        <Copy size={20} />
-                        <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                            Copy assessment
-                        </span>
-                    </button>
+                    {showButtons.copy && (
+                        <button
+                            onClick={() => handleActionClick("copy")}
+                            className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-md relative group"
+                            disabled={dialogConfig.isLoading}
+                        >
+                            <Copy size={20} />
+                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                Copy assessment
+                            </span>
+                        </button>
+                    )}
 
                     {/* Delete Assessment */}
-                    <button
-                        onClick={() => handleActionClick("delete")}
-                        className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-md relative group"
-                        disabled={dialogConfig.isLoading}
-                    >
-                        <Trash2 size={20} />
-                        <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                            Delete assessment
-                        </span>
-                    </button>
+                    {showButtons.delete && (
+                        <button
+                            onClick={() => handleActionClick("delete")}
+                            className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-md relative group"
+                            disabled={dialogConfig.isLoading}
+                        >
+                            <Trash2 size={20} />
+                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                Delete assessment
+                            </span>
+                        </button>
+                    )}
                 </div>
 
                 {/* Expand/Collapse Button */}
@@ -622,27 +682,31 @@ const AssessmentReview = ({ assessment, questions }) => {
                                                             />
                                                         )}
                                                     </button>
-                                                    <button
-                                                        className={`text-gray-400 hover:text-gray-600 ${
-                                                            replacingQuestionId ===
-                                                            question.id
-                                                                ? "animate-spin"
-                                                                : ""
-                                                        }`}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleReplaceQuestion(
+                                                    {showButtons.replaceQuestion && (
+                                                        <button
+                                                            className={`text-gray-400 hover:text-gray-600 ${
+                                                                replacingQuestionId ===
                                                                 question.id
-                                                            );
-                                                        }}
-                                                        disabled={
-                                                            replacingQuestionId ===
-                                                                question.id ||
-                                                            processing
-                                                        }
-                                                    >
-                                                        <RefreshCw size={16} />
-                                                    </button>
+                                                                    ? "animate-spin"
+                                                                    : ""
+                                                            }`}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleReplaceQuestion(
+                                                                    question.id
+                                                                );
+                                                            }}
+                                                            disabled={
+                                                                replacingQuestionId ===
+                                                                    question.id ||
+                                                                processing
+                                                            }
+                                                        >
+                                                            <RefreshCw
+                                                                size={16}
+                                                            />
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
 

@@ -76,30 +76,7 @@ class AssessmentSubmissionController extends Controller
      * Approval of the assessment
      * Button Approve
      */
-    public function approveAssessment(Request $request, $assessmentId){
-        $assessment = Assessment::findOrFail($assessmentId);
 
-        //Only program head can approve or disapprove
-        if(Auth::user()->role !== 'program_head'){
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-
-        //Check if the assessment is already approved
-        if($assessment->approved){
-            return back()->withErrors(['message' => 'Assessment is not yet ready for approval']);
-        }elseif($assessment->status !== 'pending'){
-            return back()->withErrors(['message' => 'Assessment is not yet ready for approval']);
-        }
-
-        //Approve the assessment
-        $assessment->update([
-            'approved' => true,
-            'approved_by' => Auth::user()->id,
-            'status' => 'active'
-        ]);
-
-        return to_route('assessment-PH.index')->with(['message' => 'Assessment approved successfully']);
-    }
 
     
 

@@ -41,6 +41,11 @@ class Question extends Model
         return $this->belongsToMany(Assessment::class, 'assessment_questions', 'question_id', 'assessment_id');
     }
 
+    public function originalQuestion()
+    {
+        return $this->belongsTo(Question::class, 'original_question_id');
+    }
+
     public function topic(){
         return $this->belongsTo(Topics::class);
     }

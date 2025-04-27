@@ -23,13 +23,14 @@ return new class extends Migration
             $table->string('access_code')->unique();
             $table->boolean('approved')->default(false);
             $table->foreignId('approved_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->text('rejection_reason')->nullable();
+            $table->text('comment')->nullable();
 
             
             // New columns
             $table->integer('time_limit')->nullable();
             $table->timestamp('started_at')->nullable();
             $table->timestamp('ended_at')->nullable();
+
             $table->boolean('is_forked')->default(false);
             
             $table->timestamps();

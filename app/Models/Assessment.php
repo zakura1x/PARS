@@ -43,7 +43,9 @@ class Assessment extends Model
 
     public function questions()
     {
-        return $this->belongsToMany(Question::class, 'assessment_questions');
+        return $this->belongsToMany(Question::class, 'assessment_questions')
+            ->withPivot(['original_question_id', 'replaced_by_program_head'])
+            ->withTimestamps();
     }
 
     public function assessmentQuestions()

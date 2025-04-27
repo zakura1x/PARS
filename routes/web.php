@@ -1,6 +1,7 @@
 <?php
 
 use App\Exports\QuestionTemplateExport;
+use App\Http\Controllers\Assessment\AssessmentApprovalController;
 use App\Http\Controllers\Assessment\AssessmentCreateController;
 use App\Http\Controllers\Assessment\AssessmentSubmissionController;
 use App\Http\Controllers\AssessmentController;
@@ -43,13 +44,6 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::get('/subjectList', [SubjectController::class, 'index'])->name('subjectList');
     Route::post('/addSubject',[SubjectController::class,'store'])->name('subject-store');
     Route::put('/subjects/edit/{id}', [SubjectController::class, 'edit'])->name('subjects-edit');
-
-    //MASTER TOPIC MANAGEMENT
-    // Route::get('/topicList', [TopicMasterController::class, 'index'])->name('topicList');
-    // Route::post('/topic-masters/add',[TopicMasterController::class,'store'])->name('topic-masters.store');
-    // Route::get('/topic-masters/{id}/edit', [TopicMasterController::class, 'edit'])->name('topic-masters.edit');
-    // Route::put('/topic-masters/{id}', [TopicMasterController::class, 'update'])->name('topic-masters.update');
-    // Route::delete('/topic-masters/{id}', [TopicMasterController::class, 'destroy'])->name('topic-masters.destroy');
 
     //TOPIC/SUBTOPICS MANAGEMENT
     Route::get('/topic/lists', [TopicsController::class, 'index'])->name('topics.index');
@@ -112,14 +106,25 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     //Assessment
     Route::get('/assessment/index/program-head', [AssessmentController::class, 'indexForProf'])->name('assessment-PH.index');
     
-
+    //Approval Form
     Route::get('/assessment/approval/form/{assessmentId}', [AssessmentController::class, 'assessmentApprovalForm'])->name('assessment-approval.form');
+    //Update the title of the assessment
+    Route::put('/assessment/update/title/{assessmentId}', [AssessmentCreateController::class, 'updateTitle'])->name('assessment-update.title');
 
     //Update the status of the assessment
     Route::put('/assessment/update/approval/{assessmentId}', [AssessmentSubmissionController::class,'submitForApproval'])->name('assessment-update.approval');
+    //Replace the question by the program head
+    Route::post('/assessment/replace/question/program-head/{questionId}/{assessmentId}', [AssessmentApprovalController::class, 'replaceQuestionByProgramHead'])->name('question.replace.program-head');
     
-    Route::put('/assessment/update/approve/{assessmentId}', [AssessmentController::class,'approveAssessment'])->name('assessment.approve');
-    Route::put('/assessment/update/reject/{assessmentId}', [AssessmentController::class,'rejectAssessment'])->name('assessment.reject');
+    //Approve the assessment
+    Route::post('/assessment/update/approve/{assessmentId}', [AssessmentApprovalController
+    ::class,'approveAssessment'])->name('assessment.approve');
+
+    //Disapprove the assessment
+    Route::post('/assessment/update/reject/{assessmentId}', [AssessmentApprovalController::class,'rejectAssessment'])->name('assessment.reject');
+
+    //Fork the assessment
+    Route::post('/assessment/copy/{assessmentId}', [AssessmentCreateController::class, 'forkAssessment'])->name('assessment.fork');
 
     //Assessment Prof View Start of Assessment
     Route::put('/assessment/update/to/wait/{assessmentId}', [AssessmentController::class,'updateToWait'])->name('assessment.update.wait');

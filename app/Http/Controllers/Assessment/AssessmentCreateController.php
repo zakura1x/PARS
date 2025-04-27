@@ -126,7 +126,7 @@ class AssessmentCreateController extends Controller
                 }
             }
 
-            dd("Found {$questionsForDifficulty->count()} of {$count} for topic {$topicId} difficulty {$difficultyLevel}");
+            //dd("Found {$questionsForDifficulty->count()} of {$count} for topic {$topicId} difficulty {$difficultyLevel}");
 
     
             DB::commit();
@@ -144,10 +144,42 @@ class AssessmentCreateController extends Controller
      */
     public function edit($assessmentId)
     {
-        $assessment = Assessment::with('questions.topic')->findOrFail($assessmentId);
+        // Load assessment with questions and their pivot data
+        $assessment = Assessment::with(['questions' => function($query) {
+            $query->with('topic')
+                ->with(['originalQuestion' => function($q) {
+                    $q->select('id', 'question_text');
+                }]);
+        }])->findOrFail($assessmentId);
 
-        if($assessment->status !== 'draft' && $assessment->status !== 'rejected'){
-            return back()->withErrors(['message' => 'Assessment cannot be edited anymore']);
+        // Process each question to include original question data
+        $assessment->questions->each(function($question) {
+            // Get the original question ID from pivot
+            $originalId = $question->pivot->original_question_id ?? $question->id;
+            
+            // If this is a replacement question, load the original
+            if ($originalId !== $question->id) {
+                $question->original_question = Question::find($originalId);
+                $question->is_replacement = true;
+            }
+        });
+
+        $user = auth()->user();
+
+
+        //dd($assessment->toArray());
+
+        if($user->hasAnyRole(['program_head']) && $assessment->status === 'pending'){
+            return inertia('Assessment/AssessmentPendingForm', [
+                'assessment' => $assessment,
+                'questions' => $assessment->questions->map(function($question) {
+                    return [
+                        ...$question->toArray(),
+                        'original_question' => $question->original_question ?? null,
+                        'is_replacement' => $question->is_replacement ?? false
+                    ];
+                })
+            ]);
         }
 
         //dd($assessment->questions->toArray());
@@ -160,6 +192,31 @@ class AssessmentCreateController extends Controller
         return inertia('Assessment/AssessmentEditForm', [
             'assessment' => $assessment,
             'questions' => $assessment->questions
+        ]);
+    }
+
+    /**
+     * Edit the title of the assessment
+     */
+    public function updateTitle(Request $request, $assessmentId)
+    {
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255'
+        ]);
+
+        $assessment = Assessment::findOrFail($assessmentId);
+
+        //Check the status of the assessment
+        if ($assessment->status !== 'draft'){
+            return back()->with([
+                'message' => 'Assessment title cannot be updated'
+            ]);
+        }
+
+        $assessment->update($validatedData);
+
+        return back()->with([
+            'message' => 'Assessment title updated successfully'
         ]);
     }
 
@@ -324,7 +381,10 @@ class AssessmentCreateController extends Controller
             DB::commit();
 
             //return 
-
+            return inertia('Assessment/AssessmentEditForm', [
+                'assessment' => $newAssessment,
+                'questions' => $newAssessment->questions
+            ]);
 
             
         }catch(\Exception $e){

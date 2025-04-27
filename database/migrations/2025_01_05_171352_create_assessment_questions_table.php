@@ -15,12 +15,19 @@ return new class extends Migration
             $table->id();
             $table->foreignId('assessment_id')->constrained('assessments')->onDelete('cascade');
             $table->foreignId('question_id')->constrained('questions')->onDelete('cascade');
+            
+            // Track the very first question (never changes)
+            $table->unsignedBigInteger('original_question_id')->nullable();
+            $table->foreign('original_question_id')->references('id')->on('questions');
+            
+            // Track the immediate previous question that was replaced
             $table->unsignedBigInteger('replaced_question_id')->nullable();
             $table->foreign('replaced_question_id')->references('id')->on('questions');
             
+            // Track who replaced it (program head or auto-replacement)
+            $table->boolean('replaced_by_program_head')->default(false);
+            
             $table->timestamps();
-
-            //Implement a softDelete
             $table->softDeletes();
         });
     }
