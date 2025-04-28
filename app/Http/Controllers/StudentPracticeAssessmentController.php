@@ -2,15 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreStudentPracticeAssessmentRequest;
-use App\Http\Requests\UpdateStudentPracticeAssessmentRequest;
 use App\Models\Question;
 use App\Models\StudentAssessmentTopicProficiencies;
 use App\Models\StudentPracticeAssessment;
 use App\Models\StudentPracticeAssessmentQuestion;
-use App\Models\StudentPracticeResult;
 use App\Models\StudentQuestionUsage;
 use App\Models\StudentTopicProficiency;
+use App\Models\StudentTopicScore;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Subject;
 use App\Models\TableOfSpecification;
@@ -661,10 +659,6 @@ class StudentPracticeAssessmentController extends Controller
         ]);
     }
 
-
-    
-
-
     public function saveAnswer(Request $request, $practiceAssessmentId, $questionId){
         $practiceAssessmentQuestion = StudentPracticeAssessmentQuestion::where('practice_assessment_id', $practiceAssessmentId)
         ->where('question_id', $questionId)
@@ -778,7 +772,7 @@ class StudentPracticeAssessmentController extends Controller
         }
 
         // Grade the assessment (regardless of whether time expired or student submitted manually)
-        $this->gradeAssessment(practiceAssessmentId: $practiceAssessmentId);
+        $this->gradeAssessment( $practiceAssessmentId);
 
         // Return the Inertia component with the assessment report
         return to_route('practice-assessment.view-result', $assessment->id);
@@ -882,17 +876,6 @@ class StudentPracticeAssessmentController extends Controller
         };
     }
 
-    private function checkMastery($correctAttempts, $incorrectAttempts)
-    {
-        // Mastery conditions based on attempt patterns
-        return match (true) {
-            $correctAttempts >= 5 => true, // 5+ correct answers
-            $incorrectAttempts >= 5 && $correctAttempts >= 3 => true, // 3+ correct after 5 incorrect
-            default => false,
-        };
-    }
-
-
 
     /**
      * Update Topic Proficiency
@@ -903,9 +886,15 @@ class StudentPracticeAssessmentController extends Controller
         $totalDenominator = array_sum($denominator);
 
         $topicMastery = ($totalDenominator > 0) ? ($totalNumerator / $totalDenominator) * 100 : 0;
+
+        StudentTopicScore::create([
+            'student_id' => $studentId,
+            'topic_id' => $topicId,
+            'score' => $topicMastery
+        ]);
     
         // Fetch student's proficiency record for the topic
-        $proficiency = StudentTopicProficiency::firstOrCreate(
+        $proficiency = StudentTopicProficiency::firstOrNew(
             [
                 'student_id' => $studentId,
                 'topic_id' => $topicId,
@@ -915,49 +904,57 @@ class StudentPracticeAssessmentController extends Controller
                 'grade' => 0.00,
                 'average_score' => 0.00,
                 'attempts' => 0,
-                // 'mastered_questions' => 0, // New field to track mastered questions
-                // 'total_questions' => 0, // Track total questions answered in the topic
             ]
         );
+
+        $proficiency->attempts += 1;
+
+        // Update running average
+        $proficiency->average_score = (($proficiency->average_score * ($proficiency->attempts - 1)) + $topicMastery) / $proficiency->attempts;
+        $proficiency->grade = $topicMastery;
+
+        // Get recent 3 attempts for the topic
+        $recentScores = StudentTopicScore::where('student_id', $studentId)
+        ->where('topic_id', $topicId)
+        ->orderByDesc('created_at')
+        ->take(3)
+        ->pluck('score');
+
+        if ($recentScores->count() >= 3) {
+            $min = $recentScores->min();
+            $max = $recentScores->max();
     
-        // Count mastered questions in the topic
-        // $masteredQuestions = StudentQuestionUsage::where('student_id', $studentId)
-        //     ->whereHas('question', fn($q) => $q->where('topic_id', $topicId))
-        //     ->where('is_mastered', true)
-        //     ->count();
+            if ($min >= 80 && ($max - $min) <= 5) {
+                $proficiency->proficiency_level = 'advanced';
+            } elseif ($min >= 60 && ($max - $min) <= 10) {
+                $proficiency->proficiency_level = 'intermediate';
+            } else {
+                $proficiency->proficiency_level = 'beginner';
+            }
+        }
+
+        // Assign proficiency category based on current topicMastery
+        $proficiency->proficiency_category = match (true) {
+            $topicMastery >= 90 => $proficiency->proficiency_level . '-high',
+            $topicMastery >= 80 => $proficiency->proficiency_level . '-low',
+            $topicMastery >= 70 => $proficiency->proficiency_level . '-high',
+            $topicMastery >= 60 => $proficiency->proficiency_level . '-low',
+            default => 'beginner',
+        };
+
+        $proficiency->save();
     
-        // // Count total distinct questions answered in the topic
-        // $totalQuestions = StudentQuestionUsage::where('student_id', $studentId)
-        //     ->whereHas('question', fn($q) => $q->where('topic_id', $topicId))
-        //     ->count();
-    
-        // Calculate mastery percentage (based on mastered questions, not raw attempts)
-        //$masteryPercentage = ($totalQuestions > 0) ? ($masteredQuestions / $totalQuestions) * 100 : 0;
-    
-        // Save historical proficiency
         StudentAssessmentTopicProficiencies::create([
             'assessment_id' => $assessmentId,
             'student_id' => $studentId,
             'topic_id' => $topicId,
-            'previous_grade' => $proficiency->grade,
-            'previous_level' => $proficiency->proficiency_level,
-            'grade' => $topicMastery,
-            'current_level' => $this->determineProficiencyLevel($topicMastery),
+            'previous_grade' => $proficiency->grade, // old
+            'previous_level' => $proficiency->proficiency_level, // old
+            'grade' => $topicMastery, // new
+            'current_level' => $proficiency->proficiency_level, // new
         ]);
     
-        // Update topic proficiency record
-        $proficiency->attempts += 1;
-        // $proficiency->mastered_questions = $masteredQuestions;
-        // $proficiency->total_questions = $totalQuestions;
-        $proficiency->average_score = (($proficiency->average_score * ($proficiency->attempts - 1)) + $topicMastery) / $proficiency->attempts;
-        $proficiency->grade = $topicMastery;
-
-        $proficiency->proficiency_level = $this->determineProficiencyLevel($topicMastery);
-    
-        $proficiency->save();
     }
-    
-    
     
 
     public function viewAssessmentReport($practiceAssessmentId){
