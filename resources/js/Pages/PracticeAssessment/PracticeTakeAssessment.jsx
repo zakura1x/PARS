@@ -9,8 +9,39 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
     const [timeLeft, setTimeLeft] = useState(0);
     const [fiveMinuteWarningShown, setFiveMinuteWarningShown] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [showReview, setShowReview] = useState(false); // New state for review mode
-    const [answers, setAnswers] = useState({}); // Track all answers for review
+    const [showReview, setShowReview] = useState(false);
+
+    // Initialize answers from localStorage or props
+    const [answers, setAnswers] = useState(() => {
+        const savedAnswers = localStorage.getItem(
+            `assessment_${assessment.id}_answers`
+        );
+        return savedAnswers
+            ? JSON.parse(savedAnswers)
+            : Array.isArray(assessment.questions)
+            ? assessment.questions.reduce(
+                  (acc, q, idx) => ({
+                      ...acc,
+                      [idx]: q.student_answer || [],
+                  }),
+                  {}
+              )
+            : Object.values(assessment.questions).reduce(
+                  (acc, q, idx) => ({
+                      ...acc,
+                      [idx]: q.student_answer || [],
+                  }),
+                  {}
+              );
+    });
+
+    // Save answers to localStorage whenever they change
+    useEffect(() => {
+        localStorage.setItem(
+            `assessment_${assessment.id}_answers`,
+            JSON.stringify(answers)
+        );
+    }, [answers, assessment.id]);
 
     // Calculate initial time left
     useEffect(() => {
@@ -108,10 +139,15 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
         setError(null);
 
         const selectedOption = data.answers[currentQuestionIndex];
-        setAnswers((prev) => ({
-            ...prev,
+        const newAnswers = {
+            ...answers,
             [currentQuestionIndex]: selectedOption,
-        }));
+        };
+        setAnswers(newAnswers);
+        localStorage.setItem(
+            `assessment_${assessment.id}_answers`,
+            JSON.stringify(newAnswers)
+        );
 
         if (!selectedOption || selectedOption.length === 0) {
             setError("You must select or provide an answer");
@@ -181,6 +217,8 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
                     preserveState: true,
                 }
             );
+            // Clear saved answers on successful submission
+            localStorage.removeItem(`assessment_${assessment.id}_answers`);
         } catch (error) {
             console.error("Error submitting assessment:", error);
             setError("Failed to submit assessment. Please try again.");
@@ -225,6 +263,7 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
     }, [timeLeft]);
 
     // Render the review screen
+    // Modify the review screen rendering to use the persisted answers
     const renderReviewScreen = () => (
         <div className="p-4 bg-white rounded-lg shadow-md">
             <h2 className="text-xl font-bold mb-4">Review Your Answers</h2>
@@ -232,8 +271,7 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
                 {questions.map((question, index) => (
                     <div key={index} className="border-b pb-4">
                         <h3 className="font-medium">
-                            Question {index + 1}:{" "}
-                            {question.question.question_text}
+                            Question {index + 1}: {question.question_text}
                         </h3>
                         <p className="mt-2">
                             <strong>Your answer:</strong>{" "}

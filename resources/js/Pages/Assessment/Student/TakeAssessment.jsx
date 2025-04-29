@@ -11,7 +11,38 @@ const TakeAssessment = ({ assessment }) => {
     const [fiveMinuteWarningShown, setFiveMinuteWarningShown] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showReview, setShowReview] = useState(false);
-    const [answers, setAnswers] = useState({});
+
+    // Initialize answers from localStorage or props
+    const [answers, setAnswers] = useState(() => {
+        const savedAnswers = localStorage.getItem(
+            `assessment_${assessment.id}_answers`
+        );
+        return savedAnswers
+            ? JSON.parse(savedAnswers)
+            : Array.isArray(assessment.questions)
+            ? assessment.questions.reduce(
+                  (acc, q, idx) => ({
+                      ...acc,
+                      [idx]: q.student_answer || [],
+                  }),
+                  {}
+              )
+            : Object.values(assessment.questions).reduce(
+                  (acc, q, idx) => ({
+                      ...acc,
+                      [idx]: q.student_answer || [],
+                  }),
+                  {}
+              );
+    });
+
+    // Save answers to localStorage whenever they change
+    useEffect(() => {
+        localStorage.setItem(
+            `assessment_${assessment.id}_answers`,
+            JSON.stringify(answers)
+        );
+    }, [answers, assessment.id]);
 
     // Timer initialization
     useEffect(() => {
@@ -107,10 +138,15 @@ const TakeAssessment = ({ assessment }) => {
         setError(null);
 
         const selectedOption = data.answers[currentQuestionIndex];
-        setAnswers((prev) => ({
-            ...prev,
+        const newAnswers = {
+            ...answers,
             [currentQuestionIndex]: selectedOption,
-        }));
+        };
+        setAnswers(newAnswers);
+        localStorage.setItem(
+            `assessment_${assessment.id}_answers`,
+            JSON.stringify(newAnswers)
+        );
 
         if (!selectedOption || selectedOption.length === 0) {
             setError("You must select or provide an answer");
@@ -177,6 +213,8 @@ const TakeAssessment = ({ assessment }) => {
                 {},
                 { preserveState: true }
             );
+            // Clear saved answers on successful submission
+            localStorage.removeItem(`assessment_${assessment.id}_answers`);
         } catch (error) {
             console.error("Error submitting assessment:", error);
             setError("Failed to submit assessment. Please try again.");
@@ -184,262 +222,251 @@ const TakeAssessment = ({ assessment }) => {
             setIsSubmitting(false);
         }
     };
+};
 
-    const handleAutoSubmit = async () => {
-        if (isSubmitting) return;
+const handleAutoSubmit = async () => {
+    if (isSubmitting) return;
 
-        toast.error(
-            "Time's up! Your assessment is being submitted automatically."
-        );
-        await handleSubmit();
+    toast.error("Time's up! Your assessment is being submitted automatically.");
+    await handleSubmit();
+};
+
+const handleConfirmSubmit = () => {
+    saveAnswer();
+    document.getElementById("confirm_modal").showModal();
+};
+
+const handleModalSubmit = () => {
+    document.getElementById("confirm_modal").close();
+    handleSubmit();
+};
+
+// Prevent accidental navigation
+useEffect(() => {
+    const handleBeforeUnload = (event) => {
+        if (timeLeft > 0) {
+            event.preventDefault();
+            event.returnValue =
+                "You have unsaved changes. Are you sure you want to leave?";
+        }
     };
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
-    const handleConfirmSubmit = () => {
-        saveAnswer();
-        document.getElementById("confirm_modal").showModal();
+    return () => {
+        window.removeEventListener("beforeunload", handleBeforeUnload);
     };
+}, [timeLeft]);
 
-    const handleModalSubmit = () => {
-        document.getElementById("confirm_modal").close();
-        handleSubmit();
-    };
+// Render the review screen
+const renderReviewScreen = () => (
+    <div className="p-4 bg-white rounded-lg shadow-md">
+        <h2 className="text-xl font-bold mb-4">Review Your Answers</h2>
+        <div className="space-y-4">
+            {questions.map((question, index) => (
+                <div key={index} className="border-b pb-4">
+                    <h3 className="font-medium">
+                        Question {index + 1}: {question.question_text}
+                    </h3>
+                    <p className="mt-2">
+                        <strong>Your answer:</strong>{" "}
+                        {answers[index]?.join(", ") || "Not answered"}
+                    </p>
+                    <button
+                        onClick={() => {
+                            setCurrentQuestionIndex(index);
+                            setShowReview(false);
+                        }}
+                        className="btn btn-sm btn-outline mt-2"
+                    >
+                        Edit Answer
+                    </button>
+                </div>
+            ))}
+        </div>
+        <div className="mt-6 flex justify-between">
+            <button onClick={toggleReview} className="btn">
+                Back to Questions
+            </button>
+            <button
+                onClick={handleConfirmSubmit}
+                className="btn btn-success"
+                disabled={isSubmitting}
+            >
+                {isSubmitting ? "Submitting..." : "Submit Assessment"}
+            </button>
+        </div>
+    </div>
+);
 
-    // Prevent accidental navigation
-    useEffect(() => {
-        const handleBeforeUnload = (event) => {
-            if (timeLeft > 0) {
-                event.preventDefault();
-                event.returnValue =
-                    "You have unsaved changes. Are you sure you want to leave?";
-            }
-        };
-        window.addEventListener("beforeunload", handleBeforeUnload);
-
-        return () => {
-            window.removeEventListener("beforeunload", handleBeforeUnload);
-        };
-    }, [timeLeft]);
-
-    // Render the review screen
-    const renderReviewScreen = () => (
-        <div className="p-4 bg-white rounded-lg shadow-md">
-            <h2 className="text-xl font-bold mb-4">Review Your Answers</h2>
-            <div className="space-y-4">
-                {questions.map((question, index) => (
-                    <div key={index} className="border-b pb-4">
-                        <h3 className="font-medium">
-                            Question {index + 1}: {question.question_text}
-                        </h3>
-                        <p className="mt-2">
-                            <strong>Your answer:</strong>{" "}
-                            {answers[index]?.join(", ") || "Not answered"}
-                        </p>
-                        <button
-                            onClick={() => {
-                                setCurrentQuestionIndex(index);
-                                setShowReview(false);
-                            }}
-                            className="btn btn-sm btn-outline mt-2"
-                        >
-                            Edit Answer
-                        </button>
-                    </div>
-                ))}
-            </div>
-            <div className="mt-6 flex justify-between">
-                <button onClick={toggleReview} className="btn">
-                    Back to Questions
-                </button>
-                <button
-                    onClick={handleConfirmSubmit}
-                    className="btn btn-success"
-                    disabled={isSubmitting}
-                >
-                    {isSubmitting ? "Submitting..." : "Submit Assessment"}
-                </button>
+return (
+    <div className="p-4 flex flex-col min-h-[90%] justify-center items-center">
+        {/* Timer Display */}
+        <div className="fixed top-4 right-4 bg-white p-4 shadow-lg rounded-lg z-50">
+            <div className="text-lg font-bold">Time Remaining:</div>
+            <div
+                className={`text-2xl font-mono ${
+                    timeLeft <= 300 ? "text-red-500" : "text-gray-800"
+                }`}
+            >
+                {formatTime(timeLeft)}
             </div>
         </div>
-    );
 
-    return (
-        <div className="p-4 flex flex-col min-h-[90%] justify-center items-center">
-            {/* Timer Display */}
-            <div className="fixed top-4 right-4 bg-white p-4 shadow-lg rounded-lg z-50">
-                <div className="text-lg font-bold">Time Remaining:</div>
-                <div
-                    className={`text-2xl font-mono ${
-                        timeLeft <= 300 ? "text-red-500" : "text-gray-800"
-                    }`}
-                >
-                    {formatTime(timeLeft)}
+        {showReview ? (
+            renderReviewScreen()
+        ) : (
+            <>
+                {/* Question Display */}
+                <div className="border p-4 rounded-md shadow w-[95%] bg-white">
+                    <p className="text-sm mb-2">
+                        Question {currentQuestionIndex + 1} of{" "}
+                        {questions.length}
+                    </p>
+                    <h2 className="text-lg font-medium mb-4">
+                        {currentQuestion.question_text}
+                    </h2>
+
+                    {currentQuestion.format_type === "multiple_choice" && (
+                        <ul className="space-y-2">
+                            {currentQuestion.options.map((option, index) => (
+                                <li key={index} className="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        name={`question-${currentQuestionIndex}`}
+                                        id={`option-${index}`}
+                                        value={option}
+                                        className="checkbox checkbox-success mr-2"
+                                        onChange={() =>
+                                            handleOptionChange(option)
+                                        }
+                                        checked={data.answers[
+                                            currentQuestionIndex
+                                        ].includes(option)}
+                                    />
+                                    <label htmlFor={`option-${index}`}>
+                                        {option}
+                                    </label>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+
+                    {currentQuestion.format_type === "true_false" && (
+                        <ul className="space-y-2">
+                            {["True", "False"].map((option, index) => (
+                                <li key={index} className="flex items-center">
+                                    <input
+                                        type="radio"
+                                        name={`question-${currentQuestionIndex}`}
+                                        id={`option-${index}`}
+                                        value={option}
+                                        className="radio radio-primary mr-2"
+                                        onChange={() =>
+                                            handleOptionChange(option)
+                                        }
+                                        checked={data.answers[
+                                            currentQuestionIndex
+                                        ].includes(option)}
+                                    />
+                                    <label htmlFor={`option-${index}`}>
+                                        {option}
+                                    </label>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+
+                    {currentQuestion.format_type === "essay" && (
+                        <textarea
+                            className="textarea textarea-bordered w-full"
+                            value={data.answers[currentQuestionIndex][0] || ""}
+                            onChange={handleEssayChange}
+                        ></textarea>
+                    )}
+
+                    {error && <p className="text-red-500 mt-2">{error}</p>}
                 </div>
-            </div>
 
-            {showReview ? (
-                renderReviewScreen()
-            ) : (
-                <>
-                    {/* Question Display */}
-                    <div className="border p-4 rounded-md shadow w-[95%] bg-white">
-                        <p className="text-sm mb-2">
-                            Question {currentQuestionIndex + 1} of{" "}
-                            {questions.length}
-                        </p>
-                        <h2 className="text-lg font-medium mb-4">
-                            {currentQuestion.question_text}
-                        </h2>
+                {/* Progress Bar */}
+                <div className="mt-4">
+                    <progress
+                        className="progress w-96"
+                        value={progress}
+                        max="100"
+                    ></progress>
+                </div>
 
-                        {currentQuestion.format_type === "multiple_choice" && (
-                            <ul className="space-y-2">
-                                {currentQuestion.options.map(
-                                    (option, index) => (
-                                        <li
-                                            key={index}
-                                            className="flex items-center"
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                name={`question-${currentQuestionIndex}`}
-                                                id={`option-${index}`}
-                                                value={option}
-                                                className="checkbox checkbox-success mr-2"
-                                                onChange={() =>
-                                                    handleOptionChange(option)
-                                                }
-                                                checked={data.answers[
-                                                    currentQuestionIndex
-                                                ].includes(option)}
-                                            />
-                                            <label htmlFor={`option-${index}`}>
-                                                {option}
-                                            </label>
-                                        </li>
-                                    )
-                                )}
-                            </ul>
-                        )}
-
-                        {currentQuestion.format_type === "true_false" && (
-                            <ul className="space-y-2">
-                                {["True", "False"].map((option, index) => (
-                                    <li
-                                        key={index}
-                                        className="flex items-center"
-                                    >
-                                        <input
-                                            type="radio"
-                                            name={`question-${currentQuestionIndex}`}
-                                            id={`option-${index}`}
-                                            value={option}
-                                            className="radio radio-primary mr-2"
-                                            onChange={() =>
-                                                handleOptionChange(option)
-                                            }
-                                            checked={data.answers[
-                                                currentQuestionIndex
-                                            ].includes(option)}
-                                        />
-                                        <label htmlFor={`option-${index}`}>
-                                            {option}
-                                        </label>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-
-                        {currentQuestion.format_type === "essay" && (
-                            <textarea
-                                className="textarea textarea-bordered w-full"
-                                value={
-                                    data.answers[currentQuestionIndex][0] || ""
-                                }
-                                onChange={handleEssayChange}
-                            ></textarea>
-                        )}
-
-                        {error && <p className="text-red-500 mt-2">{error}</p>}
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="mt-4">
-                        <progress
-                            className="progress w-96"
-                            value={progress}
-                            max="100"
-                        ></progress>
-                    </div>
-
-                    {/* Navigation Buttons */}
-                    <div className="flex flex-row space-x-2 justify-between mt-2">
-                        <button
-                            onClick={handlePrevious}
-                            disabled={currentQuestionIndex === 0 || loading}
-                            className={`btn ${
-                                currentQuestionIndex === 0 || loading
-                                    ? "btn-disabled"
-                                    : "btn"
-                            }`}
-                        >
-                            Previous Question
-                        </button>
-                        {currentQuestionIndex === questions.length - 1 ? (
-                            <div className="flex space-x-2">
-                                <button
-                                    onClick={toggleReview}
-                                    className="btn btn-info"
-                                    disabled={loading}
-                                >
-                                    Review Answers
-                                </button>
-                                <button
-                                    onClick={handleConfirmSubmit}
-                                    className="btn btn-success"
-                                    disabled={loading}
-                                >
-                                    Submit
-                                </button>
-                            </div>
-                        ) : (
+                {/* Navigation Buttons */}
+                <div className="flex flex-row space-x-2 justify-between mt-2">
+                    <button
+                        onClick={handlePrevious}
+                        disabled={currentQuestionIndex === 0 || loading}
+                        className={`btn ${
+                            currentQuestionIndex === 0 || loading
+                                ? "btn-disabled"
+                                : "btn"
+                        }`}
+                    >
+                        Previous Question
+                    </button>
+                    {currentQuestionIndex === questions.length - 1 ? (
+                        <div className="flex space-x-2">
                             <button
-                                onClick={handleNext}
+                                onClick={toggleReview}
+                                className="btn btn-info"
+                                disabled={loading}
+                            >
+                                Review Answers
+                            </button>
+                            <button
+                                onClick={handleConfirmSubmit}
                                 className="btn btn-success"
                                 disabled={loading}
                             >
-                                Next Question
+                                Submit
                             </button>
-                        )}
-                    </div>
-                </>
-            )}
-
-            {/* Confirmation Modal */}
-            <dialog id="confirm_modal" className="modal">
-                <div className="modal-box">
-                    <h3 className="font-bold text-lg">Confirm Submission</h3>
-                    <p className="py-4">
-                        Are you sure you want to submit your answers?
-                    </p>
-                    <div className="modal-action">
+                        </div>
+                    ) : (
                         <button
-                            className="btn"
-                            onClick={() =>
-                                document.getElementById("confirm_modal").close()
-                            }
-                        >
-                            Close
-                        </button>
-                        <button
+                            onClick={handleNext}
                             className="btn btn-success"
-                            onClick={handleModalSubmit}
-                            disabled={isSubmitting}
+                            disabled={loading}
                         >
-                            {isSubmitting ? "Submitting..." : "Submit"}
+                            Next Question
                         </button>
-                    </div>
+                    )}
                 </div>
-            </dialog>
-        </div>
-    );
-};
+            </>
+        )}
+
+        {/* Confirmation Modal */}
+        <dialog id="confirm_modal" className="modal">
+            <div className="modal-box">
+                <h3 className="font-bold text-lg">Confirm Submission</h3>
+                <p className="py-4">
+                    Are you sure you want to submit your answers?
+                </p>
+                <div className="modal-action">
+                    <button
+                        className="btn"
+                        onClick={() =>
+                            document.getElementById("confirm_modal").close()
+                        }
+                    >
+                        Close
+                    </button>
+                    <button
+                        className="btn btn-success"
+                        onClick={handleModalSubmit}
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? "Submitting..." : "Submit"}
+                    </button>
+                </div>
+            </div>
+        </dialog>
+    </div>
+);
+
 
 export default TakeAssessment;
