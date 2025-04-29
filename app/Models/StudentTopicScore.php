@@ -11,7 +11,7 @@ class StudentTopicScore extends Model
     use HasFactory;
 
     protected $fillable = [
-        'student_id',
+        'user_id',
         'topic_id',
         'score',
     ];
