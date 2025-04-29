@@ -18,4 +18,6 @@ class StudentTopicScore extends Model
 
     
 
+    
+
 }

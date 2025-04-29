@@ -148,7 +148,7 @@ class AutoSubmitPracticeAssessment implements ShouldQueue
         $topicMastery = ($totalDenominator > 0) ? ($totalNumerator / $totalDenominator) * 100 : 0;
 
         StudentTopicScore::create([
-            'student_id' => $studentId,
+            'user_id' => $studentId,
             'topic_id' => $topicId,
             'score' => $topicMastery
         ]);
@@ -174,7 +174,7 @@ class AutoSubmitPracticeAssessment implements ShouldQueue
         $proficiency->grade = $topicMastery;
 
         // Get recent 3 attempts for the topic
-        $recentScores = StudentTopicScore::where('student_id', $studentId)
+        $recentScores = StudentTopicScore::where('user_id', $studentId)
         ->where('topic_id', $topicId)
         ->orderByDesc('created_at')
         ->take(3)

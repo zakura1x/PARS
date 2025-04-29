@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Assessment;
 
 use App\Http\Controllers\Controller;
 use App\Models\Assessment;
-use App\Models\Student;
 use App\Models\StudentAssessment;
 use App\Models\StudentTopicProficiency;
 use App\Models\StudentTopicScore;
@@ -13,54 +12,57 @@ use Illuminate\Support\Facades\DB;
 
 class AssessmentGradeController extends Controller
 {
-    public function submitAssessment($assessmentId, $userId)
+    public function submitAssessment($assessmentId, $studentId)
     {
+        //dd('reached');
         $assessment = StudentAssessment::where('assessment_id', $assessmentId)
-        ->where('user_id', $userId)
-        ->with('questions.question')
-        ->firstOrFail();
+            ->where('user_id', $studentId) // Ensure it's scoped to the current student
+            ->with('questions.question')
+            ->firstOrFail();
+
+        //dd($assessment->assessment_id);
 
         $assessmentMain = Assessment::findOrFail($assessmentId);
 
-        // Get student ID here
-        $student = Student::where('user_id', $userId)->firstOrFail();
-        $studentId = $student->id;
+        DB::transaction(function () use ($assessment, $assessmentMain) {
 
-        DB::transaction(function () use ($assessment, $assessmentMain, $studentId) {
             $assessment->refresh();
 
+            // Prevent multiple submissions
             if ($assessment->status !== 'started') {
                 throw new \Exception('Assessment has already been submitted.');
             }
 
+            // Check if the assessment is already due
             if ($assessmentMain->time_limit && $assessmentMain->started_at) {
                 $dueTime = $assessmentMain->started_at->addMinutes($assessmentMain->time_limit);
                 $timedOut = now()->greaterThan($dueTime);
             }
 
             $assessment->update([
-                'status' => $timedOut ?? false ? 'timed_out' : 'completed',
+                'status' => $timedOut ? 'timed_out' : 'completed',
                 'submitted_at' => now()
             ]);
 
-            $this->gradeAssessment($assessment->assessment_id, $studentId);
+            // Grade the assessment
+            $this->gradeAssessment($assessment->assessment_id, $assessment->user_id );
         });
 
         return to_route('assessment.student-result', [
             'assessmentId' => $assessment->assessment_id,
-            'studentId' => $studentId, // Changed from user_id to student_id
+            'studentId' => $assessment->user_id,
         ]);
     }
 
 
     public function gradeAssessment($assessmentId, $studentId)
     {
-        // Changed to filter by student_id instead of user_id
+        //dd($assessmentId, $studentId);
         $assessment = StudentAssessment::where('assessment_id', $assessmentId)
-        ->whereHas('student', function($q) use ($studentId) {
-            $q->where('id', $studentId);
-        })
-        ->firstOrFail();
+            ->where('user_id', $studentId) // Ensure it's scoped to the current student
+            ->firstOrFail();
+        //dd($assessment);
+
 
         $questions = $assessment->questions()->with('question')->get();
 
@@ -157,7 +159,7 @@ class AssessmentGradeController extends Controller
 
         //save current score attempt to tracking table
         StudentTopicScore::create([
-            'student_id' => $studentId,
+            'user_id' => $studentId,
             'topic_id' => $topicId,
             'score' => $topicMastery,
         ]);
@@ -182,7 +184,7 @@ class AssessmentGradeController extends Controller
         $proficiency->grade = $topicMastery;
 
         // Fetch last 3 topic scores for consistency check
-        $recentScores = StudentTopicScore::where('student_id', $studentId)
+        $recentScores = StudentTopicScore::where('user_id', $studentId)
         ->where('topic_id', $topicId)
         ->latest()
         ->take(3)

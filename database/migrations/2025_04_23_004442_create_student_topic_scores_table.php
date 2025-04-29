@@ -14,9 +14,9 @@ return new class extends Migration
     {
         Schema::create('student_topic_scores', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('student_id')->constrained()->onDelete('cascade');
-            $table->foreignId('topic_id')->constrained()->onDelete('cascade');
-            $table->float('score'); // This is the topicMastery score
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('topic_id')->constrained('topics')->cascadeOnDelete();
+            $table->float('score');
             $table->timestamps();
         });
     }

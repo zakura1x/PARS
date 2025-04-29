@@ -156,7 +156,7 @@ class AutoSubmitAssessment implements ShouldQueue
 
         // Save current score attempt to tracking table
         StudentTopicScore::create([
-            'student_id' => $studentId,
+            'user_id' => $studentId,
             'topic_id' => $topicId,
             'score' => $topicMastery,
         ]);
@@ -181,7 +181,7 @@ class AutoSubmitAssessment implements ShouldQueue
         $proficiency->grade = $topicMastery;
 
         // Fetch last 3 topic scores for consistency check
-        $recentScores = StudentTopicScore::where('student_id', $studentId)
+        $recentScores = StudentTopicScore::where('user_id', $studentId)
             ->where('topic_id', $topicId)
             ->latest()
             ->take(3)
