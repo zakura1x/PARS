@@ -21,7 +21,7 @@ class DashboardController extends Controller
         $roleDashboardMap = [
             'program_head' => 'ProgramHead/Dashboard',
             // 'student' =>'Student/Dashboard',
-            // 'professor' => 'Professor/Dashboard',
+            'professor' => 'ProgramHead/Dashboard',
         ];
 
         return inertia($roleDashboardMap[$user->role] ?? 'default');

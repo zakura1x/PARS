@@ -120,16 +120,16 @@ class AutoSubmitPracticeAssessment implements ShouldQueue
     /**
      * Get Difficulty Weight for a Question
      */
-    private function getDifficultyWeight($difficulty)
+    private function getDifficultyWeight($bloomLevel)
     {
-        return match ($difficulty) {
-            'remembering' => 0.5,
-            'understanding' => 0.6,
-            'applying' => 0.7,
-            'analyzing' => 0.8,
-            'evaluating' => 0.9,
-            'create' => 1.8,
-            default => 1.0
+        return match ($bloomLevel) {
+            'remembering' => 0.5,    // Recall facts
+            'understanding' => 0.6, // Explain concepts
+            'applying' => 0.7,      // Use information in new situations
+            'analyzing' => 0.8,     // Distinguish between parts
+            'evaluating' => 0.9,    // Justify decisions
+            'create' => 1.8,        // Produce new work (highest cognitive skill)
+            default => 1.0          // Fallback
         };
     }
 

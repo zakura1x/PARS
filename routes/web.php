@@ -3,6 +3,7 @@
 use App\Exports\QuestionTemplateExport;
 use App\Http\Controllers\Assessment\AssessmentApprovalController;
 use App\Http\Controllers\Assessment\AssessmentCreateController;
+use App\Http\Controllers\Assessment\AssessmentGradeController;
 use App\Http\Controllers\Assessment\AssessmentSubmissionController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AuthController;
@@ -35,6 +36,12 @@ Route::middleware(['auth'])->group(function(){
    Route::post('/profile/update-password', [ProfileManagementController::class, 'updatePassword'])->name('profile.update-password');
    Route::post('/profile/update-avatar', [ProfileManagementController::class, 'updateAvatar'])->name('profile.update-avatar');
 });
+
+// Route::middleware(['auth', RoleMiddleware::class . ':professor'])->group(function () {
+//     Route::get('/dashboard/professor', [StudentDashboardController::class, 'index'])->name('professor.dashboard');
+
+// });
+
 
 Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(function () {
 
@@ -130,7 +137,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::put('/assessment/update/to/wait/{assessmentId}', [AssessmentController::class,'updateToWait'])->name('assessment.update.wait');
     Route::get('/assessment/initialize/assessment/{assessmentId}', [AssessmentController::class, 'initializeAssessment'])->name('assessment.initialize');
     Route::get('/assessment/{assessmentId}/waiting-students', [AssessmentController::class,'getWaitingStudents'])->name('assessment.get-students');
-    Route::put('/assessment/start/{assessmentId}', [AssessmentController::class, 'startAssessmentNow'])->name('assessment.start-now');
+    Route::post('/assessment/start/{assessmentId}', [AssessmentController::class, 'startAssessmentNow'])->name('assessment.start-now');
     Route::get('/assessment/{assessmentId}/status', [AssessmentController::class,'assessmentStatus'])->name('assessment.status');
     Route::get('/assessment/{assessmentId}/student-status', [AssessmentController::class,'getAssessmentStatus'])->name('assessment.get-student-status');
     Route::post('/assessment/{assessmentId}/end', [AssessmentController::class, 'endAssessment'])->name('assessment.end');
@@ -167,7 +174,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function 
     // Save answer for a question
     Route::post('/assessment/{assessmentId}/questions/{questionId}/save', [AssessmentController::class, 'saveAnswer']);
     // Submit the entire assessment
-    Route::put('/assessment/{assessmentId}/submit/{studentId}', [AssessmentController::class, 'submitAssessment'])->name('assessment.submit');
+    Route::put('/assessment/{assessmentId}/submit/{studentId}', [AssessmentGradeController::class, 'submitAssessment'])->name('assessment.submit');
     //View the assessment result
     Route::get('/assessment/{assessmentId}/student/{studentId}', [AssessmentController::class, 'showIndividualAssessment'])->name('assessment.student-result');
 

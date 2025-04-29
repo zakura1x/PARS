@@ -1,68 +1,78 @@
 <?php
 
-namespace App\Http\Controllers\Assessment;
+namespace App\Jobs;
 
-use App\Http\Controllers\Controller;
 use App\Models\Assessment;
 use App\Models\StudentAssessment;
+use App\Models\StudentAssessmentTopicProficiencies;
+use App\Models\StudentPracticeAssessment;
 use App\Models\StudentTopicProficiency;
 use App\Models\StudentTopicScore;
-use Illuminate\Http\Request;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 
-class AssessmentGradeController extends Controller
+class AutoSubmitAssessment implements ShouldQueue
 {
-    public function submitAssessment($assessmentId, $studentId)
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public function handle()
     {
-        //dd('reached');
-        $assessment = StudentAssessment::where('assessment_id', $assessmentId)
-            ->where('user_id', $studentId) // Ensure it's scoped to the current student
-            ->with('questions.question')
-            ->firstOrFail();
+        $assessments = Assessment::where('status', 'on_going')
+            ->with('questions') // Eager load if needed
+            ->get();
 
-        //dd($assessment->assessment_id);
-
-        $assessmentMain = Assessment::findOrFail($assessmentId);
-
-        DB::transaction(function () use ($assessment, $assessmentMain) {
-
-            $assessment->refresh();
-
-            // Prevent multiple submissions
-            if ($assessment->status !== 'started') {
-                throw new \Exception('Assessment has already been submitted.');
+        foreach ($assessments as $assessment) {
+            $timeLimitInSeconds = $this->timeToSeconds($assessment->time_limit);
+            $elapsedSeconds = now()->diffInSeconds($assessment->started_at);
+            
+            if ($elapsedSeconds >= $timeLimitInSeconds) {
+                // Get all student assessments for this assessment
+                $studentAssessments = StudentAssessment::where('assessment_id', $assessment->id)
+                    ->where('status', 'on_going')
+                    ->get();
+                
+                foreach ($studentAssessments as $studentAssessment) {
+                    $this->submitAssessment($assessment->id, $studentAssessment->user_id);
+                }
             }
-
-            // Check if the assessment is already due
-            if ($assessmentMain->time_limit && $assessmentMain->started_at) {
-                $dueTime = $assessmentMain->started_at->addMinutes($assessmentMain->time_limit);
-                $timedOut = now()->greaterThan($dueTime);
-            }
-
-            $assessment->update([
-                'status' => $timedOut ? 'timed_out' : 'completed',
-                'submitted_at' => now()
-            ]);
-
-            // Grade the assessment
-            $this->gradeAssessment($assessment->assessment_id, $assessment->user_id );
-        });
-
-        return to_route('assessment.student-result', [
-            'assessmentId' => $assessment->assessment_id,
-            'studentId' => $assessment->user_id,
-        ]);
+        }
     }
 
+    protected function timeToSeconds($time)
+    {
+        $parts = explode(':', $time);
+        return ($parts[0] * 3600) + ($parts[1] * 60) + $parts[2];
+    }
+
+    protected function submitAssessment($assessmentId, $studentId)
+    {
+        $assessment = StudentAssessment::where('assessment_id', $assessmentId)
+            ->where('user_id', $studentId)
+            ->firstOrFail();
+        
+        // Only submit if still ongoing
+        if ($assessment->status !== 'on_going') {
+            return;
+        }
+
+        $assessment->update([
+            'status' => 'timed_out',
+            'submitted_at' => now(),
+        ]);
+        
+        // Call grading logic
+        $this->gradeAssessment($assessmentId, $studentId);
+    }
 
     public function gradeAssessment($assessmentId, $studentId)
     {
-        //dd($assessmentId, $studentId);
         $assessment = StudentAssessment::where('assessment_id', $assessmentId)
-            ->where('user_id', $studentId) // Ensure it's scoped to the current student
+            ->where('user_id', $studentId)
             ->firstOrFail();
-        //dd($assessment);
-
 
         $questions = $assessment->questions()->with('question')->get();
 
@@ -92,18 +102,19 @@ class AssessmentGradeController extends Controller
         // Calculate the final score percentage for the assessment
         $scorePercentage = ($totalWeightedScore > 0) ? ($earnedWeightedScore / $totalWeightedScore) * 100 : 0;
 
-        DB::transaction(function () use ($assessmentId, $studentId, $assessment, $correctAnswers, $incorrectAnswers, $scorePercentage, $questionsByTopic) {
+        DB::transaction(function () use ($assessment, $correctAnswers, $incorrectAnswers, $scorePercentage, $questionsByTopic, $studentId) {
             // Re-fetch assessment inside transaction to prevent race conditions
             $assessment->refresh();
-            //dd($assessment->assessment_id);
 
-            $assessment->result()->create([
-                'total_questions' => $correctAnswers + $incorrectAnswers,
-                'correct_answers' => $correctAnswers,
-                'wrong_answers' => $incorrectAnswers,
-                'score' => $scorePercentage,
-            ]);
-
+            $assessment->result()->updateOrCreate(
+                ['student_assessment_id' => $assessment->id],
+                [
+                    'total_questions' => $correctAnswers + $incorrectAnswers,
+                    'correct_answers' => $correctAnswers,
+                    'wrong_answers' => $incorrectAnswers,
+                    'score' => $scorePercentage,
+                ]
+            );
 
             foreach ($questionsByTopic as $topicId => $topicQuestions) {
                 $numerator = [];
@@ -112,7 +123,7 @@ class AssessmentGradeController extends Controller
                 foreach ($topicQuestions as $question) {
                     $isCorrect = $question->is_correct;
                     $questionWeight = $question->question->weight ?? 1;
-                    $difficultyWeight = $this->getDifficultyWeight($question->question);
+                    $difficultyWeight = $this->getDifficultyWeight($question->question->bloom_level ?? 'remembering');
 
                     $score = $isCorrect ? 1 : 0;
                     $attemptWeight = 1;
@@ -121,18 +132,14 @@ class AssessmentGradeController extends Controller
                     $denominator[] = $difficultyWeight * $questionWeight;
                 }
 
-                $this->updateTopicProficiency($assessment->user_id, $topicId, $numerator, $denominator);
+                $this->updateTopicProficiency($studentId, $topicId, $numerator, $denominator);
             }
         });
 
         return $assessment;
     }
 
-    
-    /**
-     * Get Difficulty Weight for a Question based on Bloom's Taxonomy
-     */
-    private function getDifficultyWeight($bloomLevel)
+    protected function getDifficultyWeight($bloomLevel)
     {
         return match ($bloomLevel) {
             'remembering' => 0.5,    // Recall facts
@@ -145,19 +152,14 @@ class AssessmentGradeController extends Controller
         };
     }
 
-
-    /**
-     * Update Topic Proficiency
-     */
-    private function updateTopicProficiency($studentId, $topicId, $numerator, $denominator)
+    protected function updateTopicProficiency($studentId, $topicId, $numerator, $denominator)
     {
         $totalNumerator = array_sum($numerator);
         $totalDenominator = array_sum($denominator);
 
         $topicMastery = ($totalDenominator > 0) ? ($totalNumerator / $totalDenominator) * 100 : 0;
 
-
-        //save current score attempt to tracking table
+        // Save current score attempt to tracking table
         StudentTopicScore::create([
             'student_id' => $studentId,
             'topic_id' => $topicId,
@@ -185,10 +187,10 @@ class AssessmentGradeController extends Controller
 
         // Fetch last 3 topic scores for consistency check
         $recentScores = StudentTopicScore::where('student_id', $studentId)
-        ->where('topic_id', $topicId)
-        ->latest()
-        ->take(3)
-        ->pluck('score');
+            ->where('topic_id', $topicId)
+            ->latest()
+            ->take(3)
+            ->pluck('score');
 
         // Determine level based on consistency
         if ($recentScores->count() >= 3) {
