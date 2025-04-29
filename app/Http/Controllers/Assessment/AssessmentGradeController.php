@@ -15,57 +15,52 @@ class AssessmentGradeController extends Controller
 {
     public function submitAssessment($assessmentId, $userId)
     {
-        //dd('reached');
         $assessment = StudentAssessment::where('assessment_id', $assessmentId)
-            ->where('user_id', $userId) // Ensure it's scoped to the current student
-            ->with('questions.question')
-            ->firstOrFail();
- 
-        //dd($assessment->assessment_id);
+        ->where('user_id', $userId)
+        ->with('questions.question')
+        ->firstOrFail();
 
         $assessmentMain = Assessment::findOrFail($assessmentId);
 
-        DB::transaction(function () use ($assessment, $assessmentMain) {
+        // Get student ID here
+        $student = Student::where('user_id', $userId)->firstOrFail();
+        $studentId = $student->id;
 
-            $studentId = auth()->user()->student->id;
-
+        DB::transaction(function () use ($assessment, $assessmentMain, $studentId) {
             $assessment->refresh();
 
-            // Prevent multiple submissions
             if ($assessment->status !== 'started') {
                 throw new \Exception('Assessment has already been submitted.');
             }
 
-            // Check if the assessment is already due
             if ($assessmentMain->time_limit && $assessmentMain->started_at) {
                 $dueTime = $assessmentMain->started_at->addMinutes($assessmentMain->time_limit);
                 $timedOut = now()->greaterThan($dueTime);
             }
 
             $assessment->update([
-                'status' => $timedOut ? 'timed_out' : 'completed',
+                'status' => $timedOut ?? false ? 'timed_out' : 'completed',
                 'submitted_at' => now()
             ]);
 
-            // Grade the assessment
-            $this->gradeAssessment($assessment->assessment_id, $studentId );
+            $this->gradeAssessment($assessment->assessment_id, $studentId);
         });
 
         return to_route('assessment.student-result', [
             'assessmentId' => $assessment->assessment_id,
-            'studentId' => $assessment->user_id,
+            'studentId' => $studentId, // Changed from user_id to student_id
         ]);
     }
 
 
     public function gradeAssessment($assessmentId, $studentId)
     {
-        //dd($assessmentId, $studentId);
+        // Changed to filter by student_id instead of user_id
         $assessment = StudentAssessment::where('assessment_id', $assessmentId)
-            ->where('user_id', $studentId) // Ensure it's scoped to the current student
-            ->firstOrFail();
-        //dd($assessment);
-
+        ->whereHas('student', function($q) use ($studentId) {
+            $q->where('id', $studentId);
+        })
+        ->firstOrFail();
 
         $questions = $assessment->questions()->with('question')->get();
 
