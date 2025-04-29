@@ -185,7 +185,7 @@ const AssessmentReview = ({ assessment, questions }) => {
     const handleStartAssessment = () => {
         setDialogConfig((prev) => ({ ...prev, isLoading: true }));
         router.put(
-            `/assessment/start/${assessment.id}`,
+            `/assessment/update/to/wait/${assessment.id}`,
             {},
             {
                 onSuccess: () => {
@@ -211,6 +211,9 @@ const AssessmentReview = ({ assessment, questions }) => {
             }
         );
     };
+    // const handleStartAssessment = (assessmentId) => {
+    //     router.put(`/assessment/update/to/wait/${assessmentId}`);
+    // };
 
     const handleDeleteAssessment = () => {
         setDialogConfig((prev) => ({ ...prev, isLoading: true }));
