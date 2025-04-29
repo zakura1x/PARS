@@ -23,19 +23,13 @@ class AutoSubmitPracticeAssessment implements ShouldQueue
             ->get();
 
         foreach ($assessments as $assessment) {
-            $timeLimitInSeconds = $this->timeToSeconds($assessment->time_limit);
+            $timeLimitInSeconds = $assessment->time_limit;
             $elapsedSeconds = now()->diffInSeconds($assessment->started_at);
             
             if ($elapsedSeconds >= $timeLimitInSeconds) {
                 $this->submitAssessment($assessment->id);
             }
         }
-    }
-
-    protected function timeToSeconds($time)
-    {
-        $parts = explode(':', $time);
-        return ($parts[0] * 3600) + ($parts[1] * 60) + $parts[2];
     }
 
     protected function submitAssessment($assessmentId)

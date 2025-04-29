@@ -48,15 +48,12 @@ const TakeAssessment = ({ assessment }) => {
     useEffect(() => {
         if (assessment.started_at && assessment.time_limit) {
             const startedAt = new Date(assessment.started_at);
-            const timeLimitParts = assessment.time_limit.split(":").map(Number);
-            const totalSeconds =
-                timeLimitParts[0] * 3600 +
-                timeLimitParts[1] * 60 +
-                timeLimitParts[2];
-
             const now = new Date();
             const elapsedSeconds = Math.floor((now - startedAt) / 1000);
-            const remainingSeconds = Math.max(0, totalSeconds - elapsedSeconds);
+            const remainingSeconds = Math.max(
+                0,
+                assessment.time_limit - elapsedSeconds
+            );
 
             setTimeLeft(remainingSeconds);
         }

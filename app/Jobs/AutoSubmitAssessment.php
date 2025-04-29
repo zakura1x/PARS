@@ -26,7 +26,8 @@ class AutoSubmitAssessment implements ShouldQueue
             ->get();
 
         foreach ($assessments as $assessment) {
-            $timeLimitInSeconds = $this->timeToSeconds($assessment->time_limit);
+            // Directly use time_limit as seconds (no conversion needed)
+            $timeLimitInSeconds = $assessment->time_limit;
             $elapsedSeconds = now()->diffInSeconds($assessment->started_at);
             
             if ($elapsedSeconds >= $timeLimitInSeconds) {
@@ -40,12 +41,6 @@ class AutoSubmitAssessment implements ShouldQueue
                 }
             }
         }
-    }
-
-    protected function timeToSeconds($time)
-    {
-        $parts = explode(':', $time);
-        return ($parts[0] * 3600) + ($parts[1] * 60) + $parts[2];
     }
 
     protected function submitAssessment($assessmentId, $studentId)

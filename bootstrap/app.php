@@ -19,9 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
         ]);
     })
-    ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule) {
-        $schedule->job(\App\Jobs\AutoSubmitPracticeAssessment::class)->everyMinute();
-    })
+    // ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule) {
+    //     $schedule->job(\App\Jobs\AutoSubmitPracticeAssessment::class)->everyMinute();
+    //     $schedule->job(\App\Jobs\AutoSubmitAssessment::class)->everyMinute();
+    // })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->respond(function (Response $response, Throwable $exception, Request $request) {
             if (! app()->environment(['local', 'testing']) && in_array($response->getStatusCode(), [500, 503, 404, 403])) {

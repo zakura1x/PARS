@@ -64,6 +64,12 @@ class AssessmentCreateController extends Controller
             return back()->with(['message'=> 'No questions available for the selected subject.']);
         }
 
+        // Convert minutes to seconds before storing
+        $timeLimitInSeconds = isset($validatedData['time_limit']) 
+        ? $validatedData['time_limit'] * 60 
+        : null;
+
+
         //Create the assessment Record
         $assessment = Assessment::create([
             'created_by' => auth()->user()->id,
@@ -71,7 +77,7 @@ class AssessmentCreateController extends Controller
             'title' => $validatedData['title'],
             'description' => $validatedData['description'] ?? null,
             'status' => 'draft',
-            'time_limit' => $validatedData['time_limit'] ?? null
+            'time_limit' => $timeLimitInSeconds
         ]);
 
         //Attach the questions to the assessment

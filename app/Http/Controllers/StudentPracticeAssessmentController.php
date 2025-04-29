@@ -45,7 +45,6 @@ class StudentPracticeAssessmentController extends Controller
      */
     public function create(Request $request)
     {
-
         // Get all the Subjects for the dropdown
         $subjects = Subject::all();
 
@@ -72,31 +71,6 @@ class StudentPracticeAssessmentController extends Controller
             'subjectId' => $subjectId,
         ]);
     }
-
-
-    /**
-     * Summary of searchTopics
-     * @param \Illuminate\Http\Request $request
-     * @return mixed
-     * 
-     */
-    // public function searchTopics(Request $request, $selectedSubject){
-    //     // Get the search query and subject ID from the request
-    //     $search = $request->input('search');
-        
-    //     // Fetch the topics based on the subject and search query
-    //     $topics = Topics::when($selectedSubject, function ($query, $selectedSubject) {
-    //         return $query->where('subject_id', $selectedSubject);
-    //     })
-    //     ->when($search, function ($query, $search) {
-    //         return $query->where('name', 'like', "%{$search}%");
-    //     })
-    //     ->get();
-
-    //     // Return the topics as json
-    //     return response()->json(['topics' => $topics]);
-    // }
-
 
     /**
      * Summary of store
