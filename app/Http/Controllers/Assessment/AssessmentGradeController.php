@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Assessment;
 
 use App\Http\Controllers\Controller;
 use App\Models\Assessment;
+use App\Models\Student;
 use App\Models\StudentAssessment;
 use App\Models\StudentTopicProficiency;
 use App\Models\StudentTopicScore;
@@ -12,19 +13,21 @@ use Illuminate\Support\Facades\DB;
 
 class AssessmentGradeController extends Controller
 {
-    public function submitAssessment($assessmentId, $studentId)
+    public function submitAssessment($assessmentId, $userId)
     {
         //dd('reached');
         $assessment = StudentAssessment::where('assessment_id', $assessmentId)
-            ->where('user_id', $studentId) // Ensure it's scoped to the current student
+            ->where('user_id', $userId) // Ensure it's scoped to the current student
             ->with('questions.question')
             ->firstOrFail();
-
+ 
         //dd($assessment->assessment_id);
 
         $assessmentMain = Assessment::findOrFail($assessmentId);
 
         DB::transaction(function () use ($assessment, $assessmentMain) {
+
+            $studentId = auth()->user()->student->id;
 
             $assessment->refresh();
 
@@ -45,7 +48,7 @@ class AssessmentGradeController extends Controller
             ]);
 
             // Grade the assessment
-            $this->gradeAssessment($assessment->assessment_id, $assessment->user_id );
+            $this->gradeAssessment($assessment->assessment_id, $studentId );
         });
 
         return to_route('assessment.student-result', [
