@@ -185,7 +185,7 @@ const AssessmentReview = ({ assessment, questions }) => {
     const handleStartAssessment = () => {
         setDialogConfig((prev) => ({ ...prev, isLoading: true }));
         router.put(
-            `/api/assessments/${assessment.id}/start`,
+            `/assessment/start/${assessment.id}`,
             {},
             {
                 onSuccess: () => {
