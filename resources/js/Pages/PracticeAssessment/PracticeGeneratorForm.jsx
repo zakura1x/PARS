@@ -13,21 +13,30 @@ const PracticeGeneratorForm = () => {
         topics: initialTopics,
         search: initialSearch,
         subjectId: initialSubjectId,
-        flash: { message }, // Add flash message
+        flash: { message },
+        config: assessmentConfig, // Added config from controller
     } = usePage().props;
+
     const [selectedSubject, setSelectedSubject] = useState(
         initialSubjectId || ""
     );
     const [search, setSearch] = useState(initialSearch || "");
+    const [recommendedTopics, setRecommendedTopics] = useState([]);
+    const [isLoadingRecommendations, setIsLoadingRecommendations] =
+        useState(false);
+
     const { data, setData, post, processing, reset, errors } = useForm({
-        type: "",
         subject_id: selectedSubject,
-        total_items: "",
+        total_items: assessmentConfig?.min_items || 10,
         topics: [],
-        time_limit: "",
+        time_limit: assessmentConfig?.min_time || 15,
     });
+
     const [selectedTopics, setSelectedTopics] = useState(data.topics || []);
-    const [topics, setTopics] = useState(initialTopics?.data || []);
+    const [topics, setTopics] = useState(
+        initialTopics?.data || initialTopics || []
+    );
+
     const [showConfirmation, setShowConfirmation] = useState(false);
 
     useEffect(() => {
@@ -37,6 +46,27 @@ const PracticeGeneratorForm = () => {
             setTopics(initialTopics);
         }
     }, [initialTopics]);
+
+    // Load recommended topics when subject changes
+    useEffect(() => {
+        if (selectedSubject) {
+            fetchRecommendedTopics(selectedSubject);
+        }
+    }, [selectedSubject]);
+
+    const fetchRecommendedTopics = async (subjectId) => {
+        setIsLoadingRecommendations(true);
+        try {
+            const response = await axios.get(
+                `/api/recommended-topics?subject_id=${subjectId}`
+            );
+            setRecommendedTopics(response.data.recommendedTopics);
+        } catch (error) {
+            console.error("Error fetching recommended topics:", error);
+        } finally {
+            setIsLoadingRecommendations(false);
+        }
+    };
 
     const handleSubjectChange = (e) => {
         const subjectId = e.target.value;
@@ -48,6 +78,10 @@ const PracticeGeneratorForm = () => {
                 { subject_id: subjectId, search },
                 { preserveState: true, preserveScroll: true }
             );
+        } else {
+            setTopics([]);
+            setSelectedTopics([]);
+            setData("topics", []);
         }
     };
 
@@ -68,6 +102,9 @@ const PracticeGeneratorForm = () => {
             const newSelectedTopics = [...selectedTopics, topic.id];
             setSelectedTopics(newSelectedTopics);
             setData("topics", newSelectedTopics);
+
+            // Calculate recommended items and time based on selected topics
+            updateRecommendedSettings(newSelectedTopics);
         }
     };
 
@@ -75,19 +112,95 @@ const PracticeGeneratorForm = () => {
         const updatedTopics = selectedTopics.filter((id) => id !== topicId);
         setSelectedTopics(updatedTopics);
         setData("topics", updatedTopics);
+
+        // Recalculate recommendations when topics change
+        updateRecommendedSettings(updatedTopics);
+    };
+
+    const updateRecommendedSettings = (topicIds) => {
+        if (topicIds.length === 0) {
+            setData({
+                ...data,
+                total_items: assessmentConfig.min_items,
+                time_limit: assessmentConfig.min_time,
+            });
+            return;
+        }
+
+        // Get proficiency levels for selected topics
+        const selectedTopicsData = topicIds.map((id) => {
+            const topic = topics.find((t) => t.id === id);
+            return {
+                id,
+                proficiency_level:
+                    topic?.proficiency?.proficiency_level || "beginner",
+            };
+        });
+
+        // Calculate recommended values
+        const recommendedItems = calculateRecommendedItems(selectedTopicsData);
+        const recommendedTime = calculateRecommendedTime(selectedTopicsData);
+
+        setData({
+            ...data,
+            total_items: recommendedItems,
+            time_limit: recommendedTime,
+        });
+    };
+
+    const calculateRecommendedItems = (topics) => {
+        const baseItems = assessmentConfig.base_items_per_topic;
+        const total = topics.reduce((sum, topic) => {
+            const multiplier =
+                assessmentConfig.proficiency_multipliers[
+                    topic.proficiency_level
+                ]?.items || 1.0;
+            return sum + baseItems * multiplier;
+        }, 0);
+
+        return Math.min(
+            Math.max(Math.round(total), assessmentConfig.min_items),
+            assessmentConfig.max_items
+        );
+    };
+
+    const calculateRecommendedTime = (topics) => {
+        const baseTime = assessmentConfig.base_minutes_per_item;
+        const total = topics.reduce((sum, topic) => {
+            const multiplier =
+                assessmentConfig.proficiency_multipliers[
+                    topic.proficiency_level
+                ]?.time || 1.0;
+            return sum + baseTime * multiplier;
+        }, 0);
+
+        const totalTime = total * calculateRecommendedItems(topics);
+        return Math.min(
+            Math.max(Math.round(totalTime), assessmentConfig.min_time),
+            assessmentConfig.max_time
+        );
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        // Validate at least one topic is selected
+        if (selectedTopics.length === 0) {
+            setData("topics", []); // Trigger error
+            return;
+        }
+
         setShowConfirmation(true);
     };
 
     const handleConfirmSubmit = () => {
         setShowConfirmation(false);
         post("/student-practice-assessments/generate/assessment", {
-            onSuccess: () => {},
-            onError: (e) => {
-                console.error("Error generating assessment:", e);
+            onSuccess: () => {
+                // Handle success if needed
+            },
+            onError: (errors) => {
+                console.error("Error generating assessment:", errors);
             },
         });
     };
@@ -96,10 +209,19 @@ const PracticeGeneratorForm = () => {
         setShowConfirmation(false);
     };
 
+    const addRecommendedTopic = (topicId) => {
+        if (!selectedTopics.includes(topicId)) {
+            const newSelectedTopics = [...selectedTopics, topicId];
+            setSelectedTopics(newSelectedTopics);
+            setData("topics", newSelectedTopics);
+            updateRecommendedSettings(newSelectedTopics);
+        }
+    };
+
     return (
         <div className="container mx-auto p-6 bg-white rounded-lg shadow-lg mt-4">
             <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
-                Practice Generator Form
+                Practice Assessment Generator
             </h1>
             <hr className="border-t-2 border-gray-200 mb-6" />
 
@@ -119,32 +241,7 @@ const PracticeGeneratorForm = () => {
             {processing && <LoadingSpinner />}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text">Assessment Type</span>
-                        </label>
-                        <select
-                            id="type"
-                            value={data.type}
-                            onChange={(e) => setData("type", e.target.value)}
-                            className="select select-bordered w-full"
-                        >
-                            <option value="">Select Assessment Type</option>
-                            <option value="proficiency">
-                                Based on your Proficiency
-                            </option>
-                            <option value="exam">
-                                Based on Examination (Simulate board exam)
-                            </option>
-                        </select>
-                        {errors.type && (
-                            <span className="text-error text-sm">
-                                {errors.type}
-                            </span>
-                        )}
-                    </div>
-
+                <div className="grid grid-cols-1 gap-6">
                     <SubjectSelect
                         subjects={subjects}
                         selectedSubject={data.subject_id}
@@ -153,60 +250,46 @@ const PracticeGeneratorForm = () => {
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text">
-                                Total Number of Items
-                            </span>
-                        </label>
-                        <input
-                            type="number"
-                            id="total_items"
-                            value={data.total_items}
-                            onChange={(e) =>
-                                setData("total_items", e.target.value)
-                            }
-                            placeholder="Minimum of 1"
-                            className="input input-bordered w-full"
-                        />
-                        {errors.total_items && (
-                            <span className="text-error text-sm">
-                                {errors.total_items}
-                            </span>
-                        )}
+                {/* Recommended Topics Section */}
+                {isLoadingRecommendations ? (
+                    <div className="flex justify-center">
+                        <span className="loading loading-spinner loading-lg"></span>
                     </div>
-
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text">Set time limit</span>
-                        </label>
-                        <input
-                            type="text"
-                            id="time_limit"
-                            value={data.time_limit}
-                            onChange={(e) =>
-                                setData("time_limit", e.target.value)
-                            }
-                            list="timeLimitOptions"
-                            placeholder="Select or enter time in minutes"
-                            className="input input-bordered w-full"
-                        />
-                        <datalist id="timeLimitOptions">
-                            <option value="15">15 minutes</option>
-                            <option value="30">30 minutes</option>
-                            <option value="45">45 minutes</option>
-                            <option value="60">60 minutes</option>
-                            <option value="90">90 minutes</option>
-                            <option value="120">120 minutes</option>
-                        </datalist>
-                        {errors.time_limit && (
-                            <span className="text-error text-sm">
-                                {errors.time_limit}
-                            </span>
-                        )}
-                    </div>
-                </div>
+                ) : (
+                    recommendedTopics.length > 0 && (
+                        <div className="card bg-base-100 shadow-xl">
+                            <div className="card-body">
+                                <h2 className="card-title">
+                                    Recommended Topics
+                                </h2>
+                                <p className="text-sm text-gray-500 mb-4">
+                                    Based on your proficiency levels
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                    {recommendedTopics.map((topic) => (
+                                        <button
+                                            key={topic.id}
+                                            type="button"
+                                            onClick={() =>
+                                                addRecommendedTopic(topic.id)
+                                            }
+                                            className={`badge badge-lg cursor-pointer ${
+                                                selectedTopics.includes(
+                                                    topic.id
+                                                )
+                                                    ? "badge-primary"
+                                                    : "badge-outline"
+                                            }`}
+                                        >
+                                            {topic.name} (
+                                            {topic.proficiency_level})
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )
+                )}
 
                 <TopicSearch search={search} onChange={handleSearchChange} />
 
@@ -223,12 +306,70 @@ const PracticeGeneratorForm = () => {
                     />
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="form-control">
+                        <label className="label">
+                            <span className="label-text">
+                                Total Number of Items
+                            </span>
+                            <span className="label-text-alt">
+                                {assessmentConfig.min_items}-
+                                {assessmentConfig.max_items}
+                            </span>
+                        </label>
+                        <input
+                            type="number"
+                            id="total_items"
+                            value={data.total_items}
+                            onChange={(e) =>
+                                setData("total_items", e.target.value)
+                            }
+                            min={assessmentConfig.min_items}
+                            max={assessmentConfig.max_items}
+                            className="input input-bordered w-full"
+                        />
+                        {errors.total_items && (
+                            <span className="text-error text-sm">
+                                {errors.total_items}
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="form-control">
+                        <label className="label">
+                            <span className="label-text">
+                                Time Limit (minutes)
+                            </span>
+                            <span className="label-text-alt">
+                                {assessmentConfig.min_time}-
+                                {assessmentConfig.max_time}
+                            </span>
+                        </label>
+                        <input
+                            type="number"
+                            id="time_limit"
+                            value={data.time_limit}
+                            onChange={(e) =>
+                                setData("time_limit", e.target.value)
+                            }
+                            min={assessmentConfig.min_time}
+                            max={assessmentConfig.max_time}
+                            className="input input-bordered w-full"
+                        />
+                        {errors.time_limit && (
+                            <span className="text-error text-sm">
+                                {errors.time_limit}
+                            </span>
+                        )}
+                    </div>
+                </div>
+
                 <button
                     type="submit"
                     className="btn btn-primary w-full"
-                    disabled={processing}
+                    disabled={processing || selectedTopics.length === 0}
                 >
-                    Generate the Assessment
+                    {processing ? "Generating..." : "Generate Assessment"}
                 </button>
             </form>
         </div>

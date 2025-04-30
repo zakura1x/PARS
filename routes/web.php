@@ -8,6 +8,7 @@ use App\Http\Controllers\Assessment\AssessmentSubmissionController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GeneratePracticeAssessmentController;
 use App\Http\Controllers\ProfileManagementController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\StudentDashboardController;
@@ -150,8 +151,9 @@ Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function 
     Route::get('/dashboard/student', [StudentDashboardController::class, 'index'])->name('students.dashboard');
     //Practice Assessment
     Route::get('/student-practice-assessments/index', [StudentPracticeAssessmentController::class, 'index'])->name('practice-assessment-generator.index');
-    Route::get('/student-practice-assessments/generator/form', [StudentPracticeAssessmentController::class, 'create'])->name('practice-assessment-generator.form');
-    Route::post('/student-practice-assessments/generate/assessment', [StudentPracticeAssessmentController::class, 'store'])->name('practice-assessment-generator.store');
+    Route::get('/student-practice-assessments/generator/form', [GeneratePracticeAssessmentController::class, 'create'])->name('practice-assessment-generator.form');
+    Route::get('/api/recommend-topics', [GeneratePracticeAssessmentController::class, 'getRecommendedTopics'])->name('practice-assessment-generator.recommended-topics');
+    Route::post('/student-practice-assessments/generate/assessment', [GeneratePracticeAssessmentController::class, 'store'])->name('practice-assessment-generator.store');
     Route::get('/student-practice-assessments/generate/assessment/{id}', [StudentPracticeAssessmentController::class,'show'])->name('practice-assessment-generator.show');
     Route::get('/student-practice-assessments/start/{id}', [StudentPracticeAssessmentController::class, 'startIndex'])->name('practice-assessment.start');
     Route::post('/student-practice-assessments/answer/{id}', [StudentPracticeAssessmentController::class, 'startAssessment'])->name('practice-assessment.start-post');
