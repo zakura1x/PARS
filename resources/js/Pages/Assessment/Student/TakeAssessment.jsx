@@ -205,6 +205,7 @@ const TakeAssessment = ({ assessment }) => {
         setError(null);
 
         try {
+            await saveAnswer(currentQuestionIndex);
             await router.put(
                 `/assessment/${assessment.id}/submit/${auth.user.id}`,
                 {},
@@ -229,14 +230,38 @@ const TakeAssessment = ({ assessment }) => {
         await handleSubmit();
     };
 
-    const handleConfirmSubmit = () => {
-        saveAnswer();
-        document.getElementById("confirm_modal").showModal();
+    useEffect(() => {
+        const autoSaveInterval = setInterval(async () => {
+            if (timeLeft > 0) {
+                // Only autosave if time remains
+                await saveAnswer(currentQuestionIndex);
+            }
+        }, 30000); // Auto-save every 30 seconds
+
+        return () => clearInterval(autoSaveInterval);
+    }, [currentQuestionIndex, timeLeft]);
+
+    const handleConfirmSubmit = async () => {
+        try {
+            // 1. Save current question first
+            await saveAnswer(currentQuestionIndex);
+
+            // 2. Show confirmation modal
+            document.getElementById("confirm_modal").showModal();
+        } catch (error) {
+            toast.error("Failed to save current answer");
+        }
     };
 
-    const handleModalSubmit = () => {
+    const handleModalSubmit = async () => {
         document.getElementById("confirm_modal").close();
-        handleSubmit();
+        try {
+            // Final save before submission (redundant but safe)
+            await saveAnswer(currentQuestionIndex);
+            await handleSubmit();
+        } catch (error) {
+            toast.error("Submission failed");
+        }
     };
 
     // Prevent accidental navigation

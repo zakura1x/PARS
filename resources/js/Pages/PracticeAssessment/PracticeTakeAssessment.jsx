@@ -10,6 +10,7 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
     const [fiveMinuteWarningShown, setFiveMinuteWarningShown] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showReview, setShowReview] = useState(false);
+    const [lastSaveTime, setLastSaveTime] = useState(0);
 
     // Initialize answers from localStorage or props
     const [answers, setAnswers] = useState(() => {
@@ -236,14 +237,33 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
         await handleSubmit();
     };
 
-    const handleConfirmSubmit = () => {
-        saveAnswer();
-        document.getElementById("confirm_modal").showModal();
+    const debouncedSave = async () => {
+        if (Date.now() - lastSaveTime < 2000) return; // Don't save more than once every 2 seconds
+        await saveAnswer(currentQuestionIndex);
+        setLastSaveTime(Date.now());
     };
 
-    const handleModalSubmit = () => {
+    const handleConfirmSubmit = async () => {
+        try {
+            // 1. Save current question first
+            await saveAnswer(currentQuestionIndex);
+
+            // 2. Show confirmation modal
+            document.getElementById("confirm_modal").showModal();
+        } catch (error) {
+            toast.error("Failed to save current answer");
+        }
+    };
+
+    const handleModalSubmit = async () => {
         document.getElementById("confirm_modal").close();
-        handleSubmit();
+        try {
+            // Final save before submission (redundant but safe)
+            await saveAnswer(currentQuestionIndex);
+            await handleSubmit();
+        } catch (error) {
+            toast.error("Submission failed");
+        }
     };
 
     // Prevent accidental navigation
