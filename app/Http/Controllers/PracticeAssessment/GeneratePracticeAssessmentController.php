@@ -39,7 +39,7 @@ class GeneratePracticeAssessmentController extends Controller
             'topics' => $topics,
             'search' => $search,
             'subjectId' => $subjectId,
-            'config' => config('assessment.assessment'), // Pass the entire config
+            'config' => config('practiceAssessment.assessment'), // Pass the entire config
         ]);
     }
 
@@ -85,8 +85,8 @@ class GeneratePracticeAssessmentController extends Controller
             'subject_id' => 'required|exists:subjects,id',
             'topics' => 'required|array',
             'topics.*' => 'exists:topics,id',
-            'total_items' => 'required|integer|min:'.config('assessment.assessment.min_items').'|max:'.config('assessment.assessment.max_items'),
-            'time_limit' => 'required|integer|min:'.config('assessment.assessment.min_time').'|max:'.config('assessment.assessment.max_time'),
+            'total_items' => 'required|integer|min:'.config('practiceAssessment.assessment.min_items').'|max:'.config('practiceAssessment.assessment.max_items'),
+            'time_limit' => 'required|integer|min:'.config('practiceAssessment.assessment.min_time').'|max:'.config('practiceAssessment.assessment.max_time'),
         ]);
 
         $studentId = Auth::id();
@@ -165,24 +165,24 @@ class GeneratePracticeAssessmentController extends Controller
     // Helper methods
     private function calculateRecommendedItems($topics)
     {
-        $baseItems = config('assessment.assessment.base_items_per_topic');
+        $baseItems = config('practiceAssessment.assessment.base_items_per_topic');
         $total = $topics->sum(function($topic) use ($baseItems) {
-            $multiplier = config("assessment.assessment.proficiency_multipliers.{$topic['proficiency_level']}.items", 1.0);
+            $multiplier = config("practiceAssessment.assessment.proficiency_multipliers.{$topic['proficiency_level']}.items", 1.0);
             return $baseItems * $multiplier;
         });
         
-        return min(max(round($total), config('assessment.assessment.min_items')), config('assessment.assessment.max_items'));
+        return min(max(round($total), config('practiceAssessment.assessment.min_items')), config('practiceAssessment.assessment.max_items'));
     }
     private function calculateRecommendedTime($topics)
     {
-        $baseTime = config('assessment.assessment.base_minutes_per_item');
+        $baseTime = config('practiceAssessment.assessment.base_minutes_per_item');
         $total = $topics->sum(function($topic) use ($baseTime) {
-            $multiplier = config("assessment.assessment.proficiency_multipliers.{$topic['proficiency_level']}.time", 1.0);
+            $multiplier = config("practiceAssessment.assessment.proficiency_multipliers.{$topic['proficiency_level']}.time", 1.0);
             return $baseTime * $multiplier;
         });
         
         $totalTime = $total * $this->calculateRecommendedItems($topics);
-        return min(max(round($totalTime), config('assessment.assessment.min_time')), config('assessment.assessment.max_time'));
+        return min(max(round($totalTime), config('practiceAssessment.assessment.min_time')), config('practiceAssessment.assessment.max_time'));
     }
 
     private function getDifficultyWeights($proficiencyLevel)
