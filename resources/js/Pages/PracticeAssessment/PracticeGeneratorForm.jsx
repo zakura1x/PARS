@@ -60,7 +60,8 @@ const PracticeGeneratorForm = () => {
                 params: { topic_ids: topicIds.join(",") },
             });
             setTopicProficiencies(response.data.proficiencies);
-        } catch (error) {w
+        } catch (error) {
+            w;
             console.error("Error fetching topic proficiencies:", error);
         }
     };
@@ -74,7 +75,25 @@ const PracticeGeneratorForm = () => {
             const response = await axios.get(
                 `/api/recommended-topics?subject_id=${selectedSubject}`
             );
-            setRecommendedTopics(response.data.recommendedTopics);
+            const newRecommendedTopics = response.data.recommendedTopics;
+            setRecommendedTopics(newRecommendedTopics);
+
+            // Auto-select recommended topics
+            const recommendedIds = newRecommendedTopics.map(
+                (topic) => topic.id
+            );
+            const uniqueNewTopics = recommendedIds.filter(
+                (id) => !selectedTopics.includes(id)
+            );
+
+            if (uniqueNewTopics.length > 0) {
+                const newSelectedTopics = [
+                    ...selectedTopics,
+                    ...uniqueNewTopics,
+                ];
+                setSelectedTopics(newSelectedTopics);
+                updateRecommendedSettings(newSelectedTopics);
+            }
         } catch (error) {
             console.error("Error fetching recommended topics:", error);
         } finally {
