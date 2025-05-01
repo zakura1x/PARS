@@ -15,19 +15,19 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
     // Initialize answers from localStorage or props
     const [answers, setAnswers] = useState(() => {
         const savedAnswers = localStorage.getItem(
-            `assessment_${assessment.id}_answers`
+            `assessment_${practiceAssessment.id}_answers`
         );
         return savedAnswers
             ? JSON.parse(savedAnswers)
-            : Array.isArray(assessment.questions)
-            ? assessment.questions.reduce(
+            : Array.isArray(practiceAssessment.questions)
+            ? practiceAssessment.questions.reduce(
                   (acc, q, idx) => ({
                       ...acc,
                       [idx]: q.student_answer || [],
                   }),
                   {}
               )
-            : Object.values(assessment.questions).reduce(
+            : Object.values(practiceAssessment.questions).reduce(
                   (acc, q, idx) => ({
                       ...acc,
                       [idx]: q.student_answer || [],
@@ -39,10 +39,10 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
     // Save answers to localStorage whenever they change
     useEffect(() => {
         localStorage.setItem(
-            `assessment_${assessment.id}_answers`,
+            `assessment_${practiceAssessment.id}_answers`,
             JSON.stringify(answers)
         );
-    }, [answers, assessment.id]);
+    }, [answers, practiceAssessment.id]);
 
     // Calculate initial time left
     useEffect(() => {
@@ -146,7 +146,7 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
         };
         setAnswers(newAnswers);
         localStorage.setItem(
-            `assessment_${assessment.id}_answers`,
+            `assessment_${practiceAssessment.id}_answers`,
             JSON.stringify(newAnswers)
         );
 
@@ -219,7 +219,9 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
                 }
             );
             // Clear saved answers on successful submission
-            localStorage.removeItem(`assessment_${assessment.id}_answers`);
+            localStorage.removeItem(
+                `assessment_${practiceAssessment.id}_answers`
+            );
         } catch (error) {
             console.error("Error submitting assessment:", error);
             setError("Failed to submit assessment. Please try again.");
