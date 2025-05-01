@@ -48,31 +48,53 @@ class GeneratePracticeAssessmentController extends Controller
         $request->validate([
             'subject_id' => 'required|exists:subjects,id'
         ]);
-
+    
         $studentId = Auth::id();
         $subjectId = $request->subject_id;
-
-        $topics = Topics::where('subject_id', $subjectId)
-            ->with(['proficiency' => function($query) use ($studentId) {
-                $query->where('student_id', $studentId);
+    
+        // First try to get topics with proficiency
+        $topicsWithProficiency = Topics::where('subject_id', $subjectId)
+            ->whereHas('proficiency', function($q) use ($studentId) {
+                $q->where('student_id', $studentId);
+            })
+            ->with(['proficiency' => function($q) use ($studentId) {
+                $q->where('student_id', $studentId);
             }])
             ->get();
-
-        $scoredTopics = $topics->map(function($topic) {
-            $proficiency = $topic->proficiency;
-            $score = $proficiency ? (100 - $proficiency->grade) : 80;
-            
+    
+        // If no topics with proficiency, get all topics for the subject
+        if ($topicsWithProficiency->isEmpty()) {
+            $allTopics = Topics::where('subject_id', $subjectId)
+                ->inRandomOrder()
+                ->limit(5)
+                ->get();
+    
+            return response()->json([
+                'recommendedTopics' => $allTopics->map(function($topic) {
+                    return [
+                        'id' => $topic->id,
+                        'name' => $topic->name,
+                        'score' => 80, // Default score
+                        'grade' => null,
+                        'proficiency_level' => 'beginner'
+                    ];
+                })
+            ]);
+        }
+    
+        // Process topics with proficiency
+        $scoredTopics = $topicsWithProficiency->map(function($topic) {
             return [
                 'id' => $topic->id,
                 'name' => $topic->name,
-                'score' => $score,
-                'grade' => $proficiency->grade ?? null,
-                'proficiency_level' => $proficiency->proficiency_level ?? 'beginner'
+                'score' => 100 - $topic->proficiency->grade,
+                'grade' => $topic->proficiency->grade,
+                'proficiency_level' => $topic->proficiency->proficiency_level
             ];
         });
-
+    
         $recommendedTopics = $scoredTopics->sortByDesc('score')->take(5)->values();
-
+    
         return response()->json([
             'recommendedTopics' => $recommendedTopics
         ]);
