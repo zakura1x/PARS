@@ -65,20 +65,72 @@ const PracticeReport = () => {
 
             {activeSection === "assessmentResult" && (
                 <div>
-                    <div className="flex flex-col items-center mt-4 min-w-[90%] bg-slate-100 text-black rounded-lg p-4  space-y-4">
-                        <p className="text-lg font-medium">
-                            Assessment Score Percentage
-                        </p>
-                        <div
-                            className="radial-progress"
-                            style={{
-                                "--value": scorePercentage,
-                                "--size": "12rem",
-                                "--thickness": "10px",
-                            }}
-                            role="progressbar"
-                        >
-                            {scorePercentage}%
+                    <div className="flex flex-col items-center mt-4 min-w-[90%] bg-slate-100 text-black rounded-lg p-6 space-y-4">
+                        <p className="text-lg font-medium">Assessment Score Percentage</p>
+                        <div className="relative w-64 h-64">
+                            {/* Background circle (always complete) */}
+                            <svg className="w-full h-full" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="45" fill="none" stroke="#C0C0C0" strokeWidth="8" />
+
+                                {/* Progress circle with gradient */}
+                                <circle
+                                cx="50"
+                                cy="50"
+                                r="45"
+                                fill="none"
+                                stroke={`url(#gradient-${scorePercentage >= 70 ? "success" : scorePercentage >= 50 ? "warning" : "danger"})`}
+                                strokeWidth="8"
+                                strokeLinecap="round"
+                                strokeDasharray={`${2 * Math.PI * 45}`}
+                                strokeDashoffset={`${2 * Math.PI * 45 * (1 - scorePercentage / 100)}`}
+                                transform="rotate(-90 50 50)"
+                                />
+
+                                {/* Gradient definitions */}
+                                <defs>
+                                <linearGradient id="gradient-success" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stopColor="#4ade80" />
+                                    <stop offset="100%" stopColor="#16a34a" />
+                                </linearGradient>
+                                <linearGradient id="gradient-warning" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stopColor="#fbbf24" />
+                                    <stop offset="100%" stopColor="#d97706" />
+                                </linearGradient>
+                                <linearGradient id="gradient-danger" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stopColor="#f87171" />
+                                    <stop offset="100%" stopColor="#dc2626" />
+                                </linearGradient>
+                                </defs>
+                            </svg>
+
+                            {/* Center content */}
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <span className="text-4xl font-bold">{Math.round(scorePercentage)}%</span>
+                                <span
+                                className="text-sm mt-2 font-medium"
+                                style={{
+                                    color: scorePercentage >= 70 ? "#16a34a" : scorePercentage >= 50 ? "#d97706" : "#dc2626",
+                                }}
+                                >
+                                {scorePercentage >= 70 ? "Excellent" : scorePercentage >= 50 ? "Good" : "Needs Improvement"}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Performance indicators */}
+                        <div className="flex justify-center space-x-6 mt-2">
+                            <div className="flex items-center">
+                                <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                                <span className="text-xs">0-49%</span>
+                            </div>
+                            <div className="flex items-center">
+                                <div className="w-3 h-3 rounded-full bg-amber-500 mr-2"></div>
+                                <span className="text-xs">50-69%</span>
+                            </div>
+                            <div className="flex items-center">
+                                <div className="w-3 h-3 rounded-full bg-green-600 mr-2"></div>
+                                <span className="text-xs">70-100%</span>
+                            </div>
                         </div>
                     </div>
                     <div className="flex flex-col mt-4 min-w-[90%] bg-slate-100 rounded-lg p-4 text-black ">
@@ -100,51 +152,133 @@ const PracticeReport = () => {
 
             {activeSection === "topicProficiencies" && (
                 <div className="mt-4 flex flex-col">
-                    {topicProficiencies.map((proficiency, index) => (
-                        <div
-                            key={index}
-                            className="flex flex-col mt-2 min-w-[90%] bg-slate-100 text-black rounded-lg p-4 space-y-4"
-                        >
-                            <p className="text-lg font-semibold">
-                                Topic: {proficiency.topic_name}
-                            </p>
-                            <div className="flex flex-col space-y-2">
-                                <div className="flex flex-row justify-between items-center">
-                                    <p>Previous Grade</p>
-                                    <div className="w-full bg-gray-200 rounded-full h-6">
-                                        <div
-                                            className="bg-green-800 h-6 rounded-full"
-                                            style={{
-                                                width: `${proficiency.previous_grade}%`,
-                                            }}
-                                        ></div>
+                    {/* Proficiency Legends */}
+                    <div className="mt-6 bg-slate-100 text-black rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-3">Proficiency Level Guide</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <h4 className="text-md font-medium mb-2">Grade Ranges</h4>
+                                <div className="space-y-2">
+                                    <div className="flex items-center">
+                                    <div className="w-4 h-4 rounded-full bg-red-500 mr-2"></div>
+                                    <span className="text-sm">0-49%: Beginner</span>
                                     </div>
-                                    <span className="ml-2">
-                                        {proficiency.previous_grade}%
-                                    </span>
-                                </div>
-                                <div className="flex flex-row justify-between items-center">
-                                    <p>Current Grade</p>
-                                    <div className="w-full bg-gray-200 rounded-full h-6">
-                                        <div
-                                            className="bg-black h-6 rounded-full"
-                                            style={{
-                                                width: `${proficiency.grade}%`,
-                                            }}
-                                        ></div>
+                                    <div className="flex items-center">
+                                    <div className="w-4 h-4 rounded-full bg-yellow-500 mr-2"></div>
+                                    <span className="text-sm">50-69%: Intermediate</span>
                                     </div>
-                                    <span className="ml-2">
-                                        {proficiency.grade}%
-                                    </span>
+                                    <div className="flex items-center">
+                                    <div className="w-4 h-4 rounded-full bg-green-800 mr-2"></div>
+                                    <span className="text-sm">70-100%: Advanced</span>
+                                    </div>
                                 </div>
                             </div>
-                            <p className="text-sm text-gray-600">
-                                Proficiency Level: {proficiency.previous_level}{" "}
-                                to {proficiency.current_level}
-                            </p>
+
+                            <div>
+                                <h4 className="text-md font-medium mb-2">Proficiency Levels</h4>
+                                <div className="space-y-2">
+                                    <div className="flex items-start">
+                                    <div className="w-4 h-4 rounded-sm bg-red-100 border border-red-500 mt-1 mr-2"></div>
+                                    <div>
+                                        <span className="text-sm font-medium">Beginner</span>
+                                        <p className="text-xs text-gray-600">
+                                        Basic understanding of concepts. Requires guidance to complete tasks.
+                                        </p>
+                                    </div>
+                                    </div>
+                                    <div className="flex items-start">
+                                    <div className="w-4 h-4 rounded-sm bg-yellow-100 border border-yellow-500 mt-1 mr-2"></div>
+                                    <div>
+                                        <span className="text-sm font-medium">Intermediate</span>
+                                        <p className="text-xs text-gray-600">Good understanding with occasional assistance needed.</p>
+                                    </div>
+                                    </div>
+                                    <div className="flex items-start">
+                                    <div className="w-4 h-4 rounded-sm bg-green-100 border border-green-800 mt-1 mr-2"></div>
+                                    <div>
+                                        <span className="text-sm font-medium">Advanced</span>
+                                        <p className="text-xs text-gray-600">
+                                        Strong understanding and ability to apply concepts independently.
+                                        </p>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 className="text-md font-medium mb-2">How to Interpret Your Results</h4>
+                                <ul className="list-disc pl-5 text-sm space-y-1 text-gray-700">
+                                <li>
+                                    The <span className="font-medium">Previous Grade</span> shows your performance before this assessment.
+                                </li>
+                                <li>
+                                    The <span className="font-medium">Current Grade</span> shows your updated performance after this
+                                    assessment.
+                                </li>
+                                <li>
+                                    Your <span className="font-medium">Proficiency Level</span> is determined by your current grade
+                                    percentage.
+                                </li>
+                                <li>Progress from one level to the next indicates significant improvement in your understanding.</li>
+                                </ul>
+                            </div>
                         </div>
-                    ))}
-                </div>
+                    </div>
+
+                {topicProficiencies.map((proficiency, index) => (
+                  <div
+                    key={index}
+                    className="flex flex-col mt-2 min-w-[90%] bg-slate-100 text-black rounded-lg p-4 space-y-4"
+                  >
+                    <p className="text-lg font-semibold">Topic: {proficiency.topic_name}</p>
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex flex-row justify-between items-center">
+                        <p>Previous Grade</p>
+                        <div className="w-full bg-gray-200 rounded-full h-6">
+                          <div
+                            className={`h-6 rounded-full ${
+                              proficiency.previous_grade < 50
+                                ? "bg-red-500"
+                                : proficiency.previous_grade < 70
+                                  ? "bg-yellow-500"
+                                  : proficiency.previous_grade <= 100
+                                    ? "bg-green-800"
+                                    : "bg-green-800"
+                            }`}
+                            style={{
+                              width: `${proficiency.previous_grade}%`,
+                            }}
+                          ></div>
+                        </div>
+                        <span className="ml-2">{proficiency.previous_grade}%</span>
+                      </div>
+                      <div className="flex flex-row justify-between items-center">
+                        <p>Current Grade</p>
+                        <div className="w-full bg-gray-200 rounded-full h-6">
+                          <div
+                            className={`h-6 rounded-full ${
+                              proficiency.grade < 50
+                                ? "bg-red-500"
+                                : proficiency.grade < 70
+                                  ? "bg-yellow-500"
+                                  : proficiency.grade < 100
+                                    ? "bg-green-800"
+                                    : "bg-green-800"
+                            }`}
+                            style={{
+                              width: `${proficiency.grade}%`,
+                            }}
+                          ></div>
+                        </div>
+                        <span className="ml-2">{proficiency.grade}%</span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      Proficiency Level: {proficiency.previous_level} to {proficiency.current_level}
+                    </p>
+                  </div>
+                ))}
+              </div>
             )}
 
             {activeSection === "questions" && (

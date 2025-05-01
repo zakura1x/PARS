@@ -1,90 +1,44 @@
 import React from "react";
-import { GiNotebook } from "react-icons/gi";
-import { Link } from "@inertiajs/react";
+import { FaFolder } from "react-icons/fa";
+import { Link, usePage } from "@inertiajs/react";
 
 const StudentShowTopics = ({
     parentTopics = [],
     subTopics = [],
     isLoading,
 }) => {
-    console.log("parentTopics:", parentTopics);
-    console.log("subTopics:", subTopics);
+    const { subjectName, subjectCode } = usePage().props;
 
     const sortedParentTopics = Array.isArray(parentTopics)
         ? parentTopics.sort((a, b) => (a.order ?? a.id) - (b.order ?? b.id))
-        : Object.values(parentTopics).sort(
-              (a, b) => (a.order ?? a.id) - (b.order ?? b.id)
-          );
-
-    const subTopicsArray = Array.isArray(subTopics)
-        ? subTopics
-        : Object.values(subTopics);
-
-    if (sortedParentTopics.length === 0) {
-        return <p className="text-gray-500 italic">Loading topics...</p>;
-    }
+        : Object.values(parentTopics).sort((a, b) => (a.order ?? a.id) - (b.order ?? b.id));
 
     return (
-        <div className="p-6">
-            <div className="space-y-4">
+        <div className="p-6 max-w-7xl mx-auto">
+            {/* Topics List */}
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
                 {sortedParentTopics.length > 0 ? (
-                    sortedParentTopics.map((topic) => (
+                    sortedParentTopics.map((topic, index) => (
                         <div
                             key={topic.id}
-                            className={`p-4 rounded shadow ${
-                                isLoading ? "opacity-50 cursor-not-allowed" : ""
-                            }`}
+                            className="flex justify-between items-center border-b px-6 py-4 hover:bg-gray-50 transition"
                         >
-                            <div className="flex justify-between items-center">
-                                <h2 className="text-lg font-bold">
-                                    {topic.name || "Untitled Topic"}
-                                </h2>
-                                <button className="btn border-none bg-[#303030] text-white hover:bg-[#42604C] mt-2">
-                                    <Link
-                                        href={`/study-materials/subtopic/${topic.id}`}
-                                        className="text-white"
-                                    >
-                                        View Study Materials
-                                    </Link>
-                                </button>
-                            </div>
-                            <hr className="my-4 border-t-2 border-gray-400" />
-                            <div className="mt-2 pl-6 text-slate-800">
-                                {subTopicsArray.length > 0 &&
-                                subTopicsArray.some(
-                                    (st) => st.parent_id === topic.id
-                                ) ? (
-                                    subTopicsArray
-                                        .filter(
-                                            (st) => st.parent_id === topic.id
-                                        )
-                                        .map((subtopic) => (
-                                            <div
-                                                key={subtopic.id}
-                                                className="flex items-center space-x-2"
-                                            >
-                                                <GiNotebook
-                                                    className="text-xl"
-                                                    color="#42604C"
-                                                />
-                                                <p>
-                                                    {subtopic.name ||
-                                                        "Untitled Subtopic"}
-                                                </p>
-                                            </div>
-                                        ))
-                                ) : (
-                                    <div className="text-gray-500 italic">
-                                        No subtopics found.
-                                    </div>
-                                )}
-                            </div>
+                            <p className="text-lg font-medium text-gray-800">
+                                {topic.name || `Topic ${index + 1}`}
+                            </p>
+                            <Link
+                                href={`/study-materials/subtopic/${topic.id}`}
+                                className="flex items-center space-x-2 px-4 py-2 bg-[#42604C] text-white rounded-full hover:bg-[#365040] transition"
+                            >
+                                <FaFolder className="text-sm" />
+                                <span className="text-sm font-semibold">View Study Materials</span>
+                            </Link>
                         </div>
                     ))
                 ) : (
-                    <p className="text-gray-500 italic">
+                    <div className="text-center py-8 text-gray-500 italic">
                         No topics available. Please add your topics.
-                    </p>
+                    </div>
                 )}
             </div>
         </div>
