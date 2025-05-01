@@ -8,7 +8,7 @@ use App\Http\Controllers\Assessment\AssessmentSubmissionController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\GeneratePracticeAssessmentController;
+use App\Http\Controllers\PracticeAssessment\GeneratePracticeAssessmentController;
 use App\Http\Controllers\ProfileManagementController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\StudentDashboardController;

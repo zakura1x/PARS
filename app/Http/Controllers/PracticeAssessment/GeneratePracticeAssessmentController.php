@@ -1,20 +1,19 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\PracticeAssessment;
 
-use App\Models\Subject;
+use App\Http\Controllers\Controller;
 use App\Models\Question;
-use App\Models\StudentTopicProficiency;
 use App\Models\StudentPracticeAssessment;
 use App\Models\StudentPracticeAssessmentQuestion;
+use App\Models\StudentTopicProficiency;
+use App\Models\Subject;
 use App\Models\Topics;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
 
 class GeneratePracticeAssessmentController extends Controller
 {
-    // Show the form
     public function create(Request $request)
     {
         // Get all the Subjects for the dropdown

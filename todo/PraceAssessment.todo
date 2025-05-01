@@ -1,10 +1,10 @@
 Generator:
-    ☐ Add an automatic selector of the topics
-        ☐ Create a rules for selecting the topics
-    ☐ Manual Selector of the topics
-    ☐ Auto time limit depending on the number of items
-    ☐ Automatic number of items
-        ☐ Create a rules for auto number of items 
+    ✔ Add an automatic selector of the topics @done (5/1/2025, 7:16:49 AM)
+        ✔ Create a rules for selecting the topics @done (5/1/2025, 7:16:51 AM)
+    ✔ Manual Selector of the topics @done (5/1/2025, 7:16:52 AM)
+    ✔ Auto time limit depending on the number of items @done (5/1/2025, 7:16:54 AM)
+    ✔ Automatic number of items @done (5/1/2025, 7:16:56 AM)
+        ✔ Create a rules for auto number of items @done (5/1/2025, 7:16:58 AM)
 Assessment Process:
     ✔ Auto submission after the time limit @done (4/29/2025, 9:39:29 PM)
     ✔ Review of the answers @done (4/29/2025, 9:39:30 PM)
