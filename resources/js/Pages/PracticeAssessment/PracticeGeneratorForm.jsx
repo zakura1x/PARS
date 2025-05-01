@@ -14,7 +14,7 @@ const PracticeGeneratorForm = () => {
         search: initialSearch,
         subjectId: initialSubjectId,
         flash: { message },
-        config: assessmentConfig, // Added config from controller
+        config: assessmentConfig,
     } = usePage().props;
 
     const [selectedSubject, setSelectedSubject] = useState(
@@ -24,6 +24,7 @@ const PracticeGeneratorForm = () => {
     const [recommendedTopics, setRecommendedTopics] = useState([]);
     const [isLoadingRecommendations, setIsLoadingRecommendations] =
         useState(false);
+    const [showRecommendations, setShowRecommendations] = useState(false);
 
     const { data, setData, post, processing, reset, errors } = useForm({
         subject_id: selectedSubject,
@@ -47,18 +48,14 @@ const PracticeGeneratorForm = () => {
         }
     }, [initialTopics]);
 
-    // Load recommended topics when subject changes
-    useEffect(() => {
-        if (selectedSubject) {
-            fetchRecommendedTopics(selectedSubject);
-        }
-    }, [selectedSubject]);
+    const fetchRecommendedTopics = async () => {
+        if (!selectedSubject) return;
 
-    const fetchRecommendedTopics = async (subjectId) => {
         setIsLoadingRecommendations(true);
+        setShowRecommendations(true);
         try {
             const response = await axios.get(
-                `/api/recommended-topics?subject_id=${subjectId}`
+                `/api/recommended-topics?subject_id=${selectedSubject}`
             );
             setRecommendedTopics(response.data.recommendedTopics);
         } catch (error) {
@@ -72,6 +69,7 @@ const PracticeGeneratorForm = () => {
         const subjectId = e.target.value;
         setSelectedSubject(subjectId);
         setData("subject_id", subjectId);
+        setShowRecommendations(false); // Hide recommendations when subject changes
         if (subjectId) {
             router.get(
                 `/student-practice-assessments/generator/form`,
@@ -102,8 +100,6 @@ const PracticeGeneratorForm = () => {
             const newSelectedTopics = [...selectedTopics, topic.id];
             setSelectedTopics(newSelectedTopics);
             setData("topics", newSelectedTopics);
-
-            // Calculate recommended items and time based on selected topics
             updateRecommendedSettings(newSelectedTopics);
         }
     };
@@ -112,8 +108,6 @@ const PracticeGeneratorForm = () => {
         const updatedTopics = selectedTopics.filter((id) => id !== topicId);
         setSelectedTopics(updatedTopics);
         setData("topics", updatedTopics);
-
-        // Recalculate recommendations when topics change
         updateRecommendedSettings(updatedTopics);
     };
 
@@ -127,7 +121,6 @@ const PracticeGeneratorForm = () => {
             return;
         }
 
-        // Get proficiency levels for selected topics
         const selectedTopicsData = topicIds.map((id) => {
             const topic = topics.find((t) => t.id === id);
             return {
@@ -137,7 +130,6 @@ const PracticeGeneratorForm = () => {
             };
         });
 
-        // Calculate recommended values
         const recommendedItems = calculateRecommendedItems(selectedTopicsData);
         const recommendedTime = calculateRecommendedTime(selectedTopicsData);
 
@@ -183,22 +175,17 @@ const PracticeGeneratorForm = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-
-        // Validate at least one topic is selected
         if (selectedTopics.length === 0) {
-            setData("topics", []); // Trigger error
+            setData("topics", []);
             return;
         }
-
         setShowConfirmation(true);
     };
 
     const handleConfirmSubmit = () => {
         setShowConfirmation(false);
         post("/student-practice-assessments/generate/assessment", {
-            onSuccess: () => {
-                // Handle success if needed
-            },
+            onSuccess: () => {},
             onError: (errors) => {
                 console.error("Error generating assessment:", errors);
             },
@@ -250,45 +237,83 @@ const PracticeGeneratorForm = () => {
                     />
                 </div>
 
-                {/* Recommended Topics Section */}
-                {isLoadingRecommendations ? (
+                {/* Add button to fetch recommended topics */}
+                {selectedSubject && (
                     <div className="flex justify-center">
-                        <span className="loading loading-spinner loading-lg"></span>
+                        <button
+                            type="button"
+                            onClick={fetchRecommendedTopics}
+                            className="btn btn-secondary"
+                            disabled={isLoadingRecommendations}
+                        >
+                            {isLoadingRecommendations ? (
+                                <span className="loading loading-spinner"></span>
+                            ) : (
+                                "Get Recommended Topics"
+                            )}
+                        </button>
                     </div>
-                ) : (
-                    recommendedTopics.length > 0 && (
-                        <div className="card bg-base-100 shadow-xl">
-                            <div className="card-body">
+                )}
+
+                {/* Recommended Topics Section - only shown when showRecommendations is true */}
+                {showRecommendations && (
+                    <div className="card bg-base-100 shadow-xl">
+                        <div className="card-body">
+                            <div className="flex justify-between items-center">
                                 <h2 className="card-title">
                                     Recommended Topics
                                 </h2>
-                                <p className="text-sm text-gray-500 mb-4">
-                                    Based on your proficiency levels
-                                </p>
-                                <div className="flex flex-wrap gap-2">
-                                    {recommendedTopics.map((topic) => (
-                                        <button
-                                            key={topic.id}
-                                            type="button"
-                                            onClick={() =>
-                                                addRecommendedTopic(topic.id)
-                                            }
-                                            className={`badge badge-lg cursor-pointer ${
-                                                selectedTopics.includes(
-                                                    topic.id
-                                                )
-                                                    ? "badge-primary"
-                                                    : "badge-outline"
-                                            }`}
-                                        >
-                                            {topic.name} (
-                                            {topic.proficiency_level})
-                                        </button>
-                                    ))}
-                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setShowRecommendations(false)
+                                    }
+                                    className="btn btn-sm btn-ghost"
+                                >
+                                    Close
+                                </button>
                             </div>
+                            {isLoadingRecommendations ? (
+                                <div className="flex justify-center">
+                                    <span className="loading loading-spinner loading-lg"></span>
+                                </div>
+                            ) : recommendedTopics.length > 0 ? (
+                                <>
+                                    <p className="text-sm text-gray-500 mb-4">
+                                        Based on your proficiency levels
+                                    </p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {recommendedTopics.map((topic) => (
+                                            <button
+                                                key={topic.id}
+                                                type="button"
+                                                onClick={() =>
+                                                    addRecommendedTopic(
+                                                        topic.id
+                                                    )
+                                                }
+                                                className={`badge badge-lg cursor-pointer ${
+                                                    selectedTopics.includes(
+                                                        topic.id
+                                                    )
+                                                        ? "badge-primary"
+                                                        : "badge-outline"
+                                                }`}
+                                            >
+                                                {topic.name} (
+                                                {topic.proficiency_level})
+                                            </button>
+                                        ))}
+                                    </div>
+                                </>
+                            ) : (
+                                <p>
+                                    No recommended topics found for this
+                                    subject.
+                                </p>
+                            )}
                         </div>
-                    )
+                    </div>
                 )}
 
                 <TopicSearch search={search} onChange={handleSearchChange} />
