@@ -177,6 +177,10 @@ class AssessmentGradeController extends Controller
                 'attempts' => 0, // Fallback attempts
             ]
         );
+ 
+        // Capture previous values BEFORE updating
+        $previousGrade = $proficiency->grade;
+        $previousLevel = $proficiency->proficiency_level;
 
         // Update the current proficiency record
         $proficiency->attempts += 1;

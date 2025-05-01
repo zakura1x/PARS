@@ -866,7 +866,7 @@ class StudentPracticeAssessmentController extends Controller
             'topic_id' => $topicId,
             'score' => $topicMastery
         ]);
-    
+
         // Fetch student's proficiency record for the topic
         $proficiency = StudentTopicProficiency::firstOrNew(
             [
@@ -881,6 +881,10 @@ class StudentPracticeAssessmentController extends Controller
             ]
         );
 
+        // Capture previous values BEFORE updating
+        $previousGrade = $proficiency->grade;
+        $previousLevel = $proficiency->proficiency_level;
+
         $proficiency->attempts += 1;
 
         // Update running average
@@ -889,15 +893,15 @@ class StudentPracticeAssessmentController extends Controller
 
         // Get recent 3 attempts for the topic
         $recentScores = StudentTopicScore::where('user_id', $studentId)
-        ->where('topic_id', $topicId)
-        ->orderByDesc('created_at')
-        ->take(3)
-        ->pluck('score');
+            ->where('topic_id', $topicId)
+            ->orderByDesc('created_at')
+            ->take(3)
+            ->pluck('score');
 
         if ($recentScores->count() >= 3) {
             $min = $recentScores->min();
             $max = $recentScores->max();
-    
+
             if ($min >= 80 && ($max - $min) <= 5) {
                 $proficiency->proficiency_level = 'advanced';
             } elseif ($min >= 60 && ($max - $min) <= 10) {
@@ -917,17 +921,16 @@ class StudentPracticeAssessmentController extends Controller
         };
 
         $proficiency->save();
-    
+
         StudentAssessmentTopicProficiencies::create([
             'assessment_id' => $assessmentId,
             'student_id' => $studentId,
             'topic_id' => $topicId,
-            'previous_grade' => $proficiency->grade, // old
-            'previous_level' => $proficiency->proficiency_level, // old
-            'grade' => $topicMastery, // new
-            'current_level' => $proficiency->proficiency_level, // new
+            'previous_grade' => $previousGrade, // old grade captured before update
+            'previous_level' => $previousLevel, // old level captured before update
+            'grade' => $topicMastery, // new grade
+            'current_level' => $proficiency->proficiency_level, // new level
         ]);
-    
     }
     
 

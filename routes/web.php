@@ -153,6 +153,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function 
     Route::get('/student-practice-assessments/index', [StudentPracticeAssessmentController::class, 'index'])->name('practice-assessment-generator.index');
     Route::get('/student-practice-assessments/generator/form', [GeneratePracticeAssessmentController::class, 'create'])->name('practice-assessment-generator.form');
     Route::get('/api/recommend-topics', [GeneratePracticeAssessmentController::class, 'getRecommendedTopics'])->name('practice-assessment-generator.recommended-topics');
+    Route::get('/api/topic-proficiencies', [GeneratePracticeAssessmentController::class, 'getTopicProficiencies'])->name('practice-assessment-generator.topic-proficiencies');
     Route::post('/student-practice-assessments/generate/assessment', [GeneratePracticeAssessmentController::class, 'store'])->name('practice-assessment-generator.store');
     Route::get('/student-practice-assessments/generate/assessment/{id}', [StudentPracticeAssessmentController::class,'show'])->name('practice-assessment-generator.show');
     Route::get('/student-practice-assessments/start/{id}', [StudentPracticeAssessmentController::class, 'startIndex'])->name('practice-assessment.start');

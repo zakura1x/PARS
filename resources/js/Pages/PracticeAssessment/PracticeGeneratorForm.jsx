@@ -16,6 +16,7 @@ const PracticeGeneratorForm = () => {
         flash: { message },
         config: assessmentConfig,
     } = usePage().props;
+    const [topicProficiencies, setTopicProficiencies] = useState({});
 
     const [selectedSubject, setSelectedSubject] = useState(
         initialSubjectId || ""
@@ -51,6 +52,18 @@ const PracticeGeneratorForm = () => {
     useEffect(() => {
         setData("topics", selectedTopics);
     }, [selectedTopics]);
+
+    // Add this function to fetch proficiencies when topics are selected
+    const fetchTopicProficiencies = async (topicIds) => {
+        try {
+            const response = await axios.get("/api/topic-proficiencies", {
+                params: { topic_ids: topicIds.join(",") },
+            });
+            setTopicProficiencies(response.data.proficiencies);
+        } catch (error) {w
+            console.error("Error fetching topic proficiencies:", error);
+        }
+    };
 
     const fetchRecommendedTopics = async () => {
         if (!selectedSubject) return;
@@ -99,10 +112,11 @@ const PracticeGeneratorForm = () => {
         }
     };
 
-    const handleTopicClick = (topic) => {
+    const handleTopicClick = async (topic) => {
         if (!selectedTopics.includes(topic.id)) {
             const newSelectedTopics = [...selectedTopics, topic.id];
             setSelectedTopics(newSelectedTopics);
+            await fetchTopicProficiencies(newSelectedTopics);
             updateRecommendedSettings(newSelectedTopics);
         }
     };
@@ -110,6 +124,12 @@ const PracticeGeneratorForm = () => {
     const handleRemoveTopic = (topicId) => {
         const updatedTopics = selectedTopics.filter((id) => id !== topicId);
         setSelectedTopics(updatedTopics);
+
+        // Remove proficiency data for removed topic
+        const updatedProficiencies = { ...topicProficiencies };
+        delete updatedProficiencies[topicId];
+        setTopicProficiencies(updatedProficiencies);
+
         updateRecommendedSettings(updatedTopics);
     };
 
@@ -123,12 +143,12 @@ const PracticeGeneratorForm = () => {
             return;
         }
 
+        // Get proficiency levels for selected topics
         const selectedTopicsData = topicIds.map((id) => {
-            const topic = topics.find((t) => t.id === id);
             return {
                 id,
                 proficiency_level:
-                    topic?.proficiency?.proficiency_level || "beginner",
+                    topicProficiencies[id]?.proficiency_level || "beginner",
             };
         });
 

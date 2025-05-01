@@ -78,6 +78,31 @@ class GeneratePracticeAssessmentController extends Controller
         ]);
     }
 
+    // Add this to your controller
+    public function getTopicProficiencies(Request $request)
+    {
+        $request->validate([
+            'topic_ids' => 'required|string'
+        ]);
+
+        $topicIds = explode(',', $request->topic_ids);
+        $studentId = Auth::id();
+
+        $proficiencies = StudentTopicProficiency::where('student_id', $studentId)
+            ->whereIn('topic_id', $topicIds)
+            ->get()
+            ->keyBy('topic_id')
+            ->map(function($proficiency) {
+                return [
+                    'proficiency_level' => $proficiency->proficiency_level
+                ];
+            });
+
+        return response()->json([
+            'proficiencies' => $proficiencies
+        ]);
+    }
+
     // Store the assessment
     public function store(Request $request)
     {
