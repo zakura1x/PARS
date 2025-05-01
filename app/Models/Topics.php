@@ -35,4 +35,10 @@ class Topics extends Model
     {
         return $this->hasMany(StudyMaterial::class);
     }
+
+    public function proficiency()
+    {
+        return $this->hasOne(StudentTopicProficiency::class, 'topic_id')
+            ->where('student_id', auth()->id());
+    }
 }
