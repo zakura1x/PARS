@@ -48,6 +48,10 @@ const PracticeGeneratorForm = () => {
         }
     }, [initialTopics]);
 
+    useEffect(() => {
+        setData("topics", selectedTopics);
+    }, [selectedTopics]);
+
     const fetchRecommendedTopics = async () => {
         if (!selectedSubject) return;
 
@@ -99,7 +103,6 @@ const PracticeGeneratorForm = () => {
         if (!selectedTopics.includes(topic.id)) {
             const newSelectedTopics = [...selectedTopics, topic.id];
             setSelectedTopics(newSelectedTopics);
-            setData("topics", newSelectedTopics);
             updateRecommendedSettings(newSelectedTopics);
         }
     };
@@ -107,7 +110,6 @@ const PracticeGeneratorForm = () => {
     const handleRemoveTopic = (topicId) => {
         const updatedTopics = selectedTopics.filter((id) => id !== topicId);
         setSelectedTopics(updatedTopics);
-        setData("topics", updatedTopics);
         updateRecommendedSettings(updatedTopics);
     };
 
@@ -175,10 +177,15 @@ const PracticeGeneratorForm = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        // Explicitly set the topics data before submission
+        setData("topics", selectedTopics);
+
         if (selectedTopics.length === 0) {
-            setData("topics", []);
+            // This will trigger the validation error
             return;
         }
+
         setShowConfirmation(true);
     };
 
