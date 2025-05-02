@@ -1,5 +1,7 @@
 import React from "react";
 import { Head, usePage } from "@inertiajs/react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 const AssessmentItemAnalysis = () => {
     const { assessment, questions } = usePage().props;
@@ -15,12 +17,71 @@ const AssessmentItemAnalysis = () => {
         </span>
     );
 
+    const handlePrint = () => {
+        const input = document.getElementById("printable-area");
+
+        // Create a clone of the element to print
+        const clone = input.cloneNode(true);
+
+        // Make all accordion items expanded in the clone
+        const collapses = clone.querySelectorAll(".collapse");
+        collapses.forEach((collapse) => {
+            collapse.querySelector('input[type="radio"]').checked = true;
+        });
+
+        // Add the clone to the body temporarily
+        clone.style.position = "absolute";
+        clone.style.left = "-9999px";
+        document.body.appendChild(clone);
+
+        html2canvas(clone, {
+            scale: 2, // Higher quality
+            scrollY: -window.scrollY,
+            useCORS: true,
+            allowTaint: true,
+        }).then((canvas) => {
+            const imgData = canvas.toDataURL("image/png");
+            const pdf = new jsPDF("p", "mm", "a4");
+            const imgWidth = 210; // A4 width in mm
+            const pageHeight = 295; // A4 height in mm
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+
+            // Add new pages if content is longer than one page
+            while (heightLeft >= 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+
+            // Remove the clone
+            document.body.removeChild(clone);
+
+            // Save the PDF
+            pdf.save(`Item Analysis - ${assessment.title}.pdf`);
+        });
+    };
+
     return (
-        <div className="container mx-auto p-6">
+        <div className="container mx-auto p-6" id="printable-area">
             <Head title={`Item Analysis - ${assessment.title}`} />
-            <h1 className="text-2xl font-bold mb-4">
-                Item Analysis: {assessment.title}
-            </h1>
+
+            <div className="flex justify-between items-center mb-4">
+                <h1 className="text-2xl font-bold">
+                    Item Analysis: {assessment.title}
+                </h1>
+                <button
+                    onClick={handlePrint}
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                >
+                    Print/Save PDF
+                </button>
+            </div>
 
             <div className="mt-4 flex flex-col">
                 {questions.map((question, index) => (
