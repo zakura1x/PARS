@@ -15,6 +15,15 @@ const StudentShowTopics = ({
 
     return (
         <div className="p-6 max-w-7xl mx-auto">
+            {/* Breadcrumb Navigation */}
+            <div className="mb-4 text-sm text-gray-600">
+                <Link href="/study-materials/index" className="text-[#42604C] font-semibold hover:underline">
+                    Subjects
+                </Link>
+                <span className="mx-2 text-gray-400">{'>'}</span>
+                <span className="text-gray-800 font-medium">{subjectCode} - {subjectName}</span>
+            </div>
+
             {/* Topics List */}
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
                 {sortedParentTopics.length > 0 ? (

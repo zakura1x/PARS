@@ -56,7 +56,7 @@ class StudyMaterialController extends Controller
      * Store a new Material
      * @param \Illuminate\Http\Client\Request $request
      * @param mixed $topicId
-     * 
+     *
      */
     public function store(Request $request, $topicId)
     {
@@ -82,7 +82,7 @@ class StudyMaterialController extends Controller
             foreach ($request->file('attachments') as $file) {
                 // Store the file in the public storage directory
                 $path = $file->store('study_materials', 'public');
-    
+
                 // Create a database record for the attachment
                 StudyMaterialAttachment::create([
                     'study_material_id' => $studyMaterial->id,
@@ -108,14 +108,14 @@ class StudyMaterialController extends Controller
     {
         // Fetch the study material along with its attachments
         $studyMaterial = StudyMaterial::with('attachments')->findOrFail($studyMaterialId);
-    
+
         return inertia('StudyMaterial/StudyMaterialEditForm', [
             'topicId' => $studyMaterial->topic_id,
             'studyMaterial' => $studyMaterial,
             'attachments' => $studyMaterial->attachments, // Include attachments explicitly
         ]);
     }
-    
+
 
     /**
      * Show the form for editing the specified resource.
@@ -165,10 +165,10 @@ class StudyMaterialController extends Controller
     {
         $studyMaterial = StudyMaterial::findOrFail($studyMaterialId);
         $topic = $studyMaterial->topic->id;
-        
+
         // Get all attachments for this study material
         $attachments = StudyMaterialAttachment::where('study_material_id', $studyMaterialId)->get();
-        
+
         // Delete files from storage
         foreach ($attachments as $attachment) {
             Storage::disk('public')->delete($attachment->file_path);
@@ -190,20 +190,20 @@ class StudyMaterialController extends Controller
 
         return inertia('StudyMaterial/Student/StudentStudyMaterial', [
             'subjects' => $subject
-        ]); 
+        ]);
     }
 
     public function studentShowTopics($subjectId){
 
         // Find the subject by ID or return null if not found
         $subject = Subject::find($subjectId);
-    
+
         // If no subject exists, set topics as an empty collection
         $topics = $subject ? $subject->topics()->with(['parent', 'subTopics'])->get() : collect();
-    
+
         // Get parent topics (or empty if no topics)
         $parentTopics = $topics->whereNull('parent_id');
-    
+
         // Get subtopics (or empty if no topics)
         $subTopics = $topics->whereNotNull('parent_id');
 
@@ -213,7 +213,9 @@ class StudyMaterialController extends Controller
             'topic' => $topics,
             'subTopics' => $subTopics,
             'parentTopics' => $parentTopics,
-            'subject' => $subject
+            'subject' => $subject,
+            'subjectName' => $subject?->name,
+            'subjectCode' => $subject?->subject_id,
         ]);
     }
 
@@ -237,7 +239,10 @@ class StudyMaterialController extends Controller
             'subTopics' => $subTopics,
             'topic' => $topic,
             'subject' => $topic->subject,
-            'studyMaterials' => $studyMaterials
+            'studyMaterials' => $studyMaterials,
+            'subjectName' => $topic->subject->name,
+            'subjectCode' => $topic->subject->subject_id,
+            'subjectId'   => $topic->subject->id,
         ]);
     }
 
