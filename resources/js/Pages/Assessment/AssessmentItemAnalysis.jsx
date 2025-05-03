@@ -111,7 +111,7 @@ const AnalysisPDF = ({ assessment, questions }) => (
                                 <Text style={styles.questionText}>
                                     Q{index + 1}: {question.question_text}
                                 </Text>
-                                <View style={styles.statsContainer}>
+                                {/* <View style={styles.statsContainer}>
                                     <Text
                                         style={
                                             isCorrectMajority
@@ -134,7 +134,7 @@ const AnalysisPDF = ({ assessment, questions }) => (
                                             {totalAnswers}
                                         </Text>
                                     </View>
-                                </View>
+                                </View> */}
                             </View>
 
                             <Text style={styles.difficultyText}>

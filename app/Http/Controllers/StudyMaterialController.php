@@ -218,43 +218,51 @@ class StudyMaterialController extends Controller
             'subjectCode' => $subject?->subject_id,
         ]);
     }
-
-    public function studentShowSubTopics($topicId){
-        $topic = Topics::with('subject')->findOrFail($topicId);
-
-        $studyMaterials = StudyMaterial::with('attachments')
-            ->where('topic_id', $topicId)
-            ->get()
-            ->map(function ($material){
-                $material->attachments = $material->attachments->map(function ($attachment){
+    public function studentShowSubTopics($topicId)
+    {
+        // Load topic with its subject, study materials (with links and attachments), and subtopics
+        $topic = Topics::with([
+            'subject',
+            'studyMaterials' => function($query) {
+                $query->with(['attachments']);
+            },
+            'subTopics.studyMaterials' => function($query) {
+                $query->with(['attachments']);
+            }
+        ])->findOrFail($topicId);
+    
+        // Process all study materials to:
+        // 1. Add public URLs to attachments
+        // 2. Ensure links is always an array (even if null)
+        $processMaterials = function ($materials) {
+            return $materials->map(function ($material) {
+                // Ensure links is always an array
+                $material->links = $material->links ?: [];
+                
+                // Process attachments
+                $material->attachments->transform(function ($attachment) {
                     $attachment->public_url = Storage::url($attachment->file_path);
                     return $attachment;
                 });
+                
                 return $material;
             });
-
-        $subTopics = Topics::with(['studyMaterials.attachments'])
-            ->where('parent_id', $topicId)
-            ->get()
-            ->map(function ($subtopic) {
-                $subtopic->study_materials = $subtopic->study_materials->map(function ($material) {
-                    $material->attachments = $material->attachments->map(function ($attachment) {
-                        $attachment->public_url = Storage::url($attachment->file_path);
-                        return $attachment;
-                    });
-                    return $material;
-                });
-                return $subtopic;
-            });
-
+        };
+    
+        // Process topic materials
+        $topic->studyMaterials = $processMaterials($topic->studyMaterials);
+        
+        // Process subtopic materials
+        $topic->subTopics->each(function ($subtopic) use ($processMaterials) {
+            $subtopic->studyMaterials = $processMaterials($subtopic->studyMaterials);
+        });
+    
         return inertia('StudyMaterial/Student/StudentShowSubTopics', [
-            'subTopics' => $subTopics,
-            'topic' => $topic,
+            'currentTopic' => $topic,
             'subject' => $topic->subject,
-            'studyMaterials' => $studyMaterials,
             'subjectName' => $topic->subject->name,
             'subjectCode' => $topic->subject->subject_id,
-            'subjectId'   => $topic->subject->id,
+            'subjectId' => $topic->subject->id,
         ]);
     }
 
