@@ -23,13 +23,28 @@ const AssessmentItemAnalysis = () => {
             const printElement = document.createElement("div");
             printElement.style.position = "absolute";
             printElement.style.left = "-9999px";
-            printElement.style.width = "210mm"; // A4 width
-            printElement.style.padding = "20px";
+            printElement.style.width = "210mm";
             printElement.style.background = "white";
 
             // Clone the original content
             const originalContent = document.getElementById("printable-area");
             const contentClone = originalContent.cloneNode(true);
+
+            // Force all colors to RGB format
+            const elements = contentClone.querySelectorAll("*");
+            elements.forEach((el) => {
+                const styles = window.getComputedStyle(el);
+
+                // Convert background colors
+                if (styles.backgroundColor) {
+                    el.style.backgroundColor = styles.backgroundColor;
+                }
+
+                // Convert text colors
+                if (styles.color) {
+                    el.style.color = styles.color;
+                }
+            });
 
             // Force open all accordion items
             const collapses = contentClone.querySelectorAll(".collapse");
@@ -37,38 +52,34 @@ const AssessmentItemAnalysis = () => {
                 collapse.querySelector('input[type="radio"]').checked = true;
             });
 
-            // Remove any problematic elements
-            const elementsToRemove =
-                contentClone.querySelectorAll('[class*="bg-"]');
-            elementsToRemove.forEach((el) => {
-                el.style.backgroundColor = "";
-            });
-
             printElement.appendChild(contentClone);
             document.body.appendChild(printElement);
 
-            // Generate PDF
             const canvas = await html2canvas(printElement, {
-                scale: 2,
-                logging: false,
+                scale: 1,
+                logging: true,
                 useCORS: true,
-                removeContainer: true,
                 backgroundColor: "#ffffff",
+                ignoreElements: (element) => {
+                    // Ignore elements that might cause issues
+                    return element.classList?.contains("no-print");
+                },
             });
 
             const imgData = canvas.toDataURL("image/png");
             const pdf = new jsPDF("p", "mm", "a4");
-            const imgWidth = 210; // A4 width in mm
+            const imgWidth = 210;
             const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
             pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
             pdf.save(`Item Analysis - ${assessment.title}.pdf`);
 
-            // Clean up
             document.body.removeChild(printElement);
         } catch (error) {
-            console.error("Error generating PDF:", error);
-            alert("Error generating PDF. Please try again.");
+            console.error("PDF generation error:", error);
+            alert(
+                "Error generating PDF. Please try again or use the browser's print function (Ctrl+P)."
+            );
         }
     };
 
