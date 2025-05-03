@@ -233,7 +233,19 @@ class StudyMaterialController extends Controller
                 return $material;
             });
 
-        $subTopics = Topics::where('parent_id', $topicId)->get();
+        $subTopics = Topics::with(['study_materials.attachments'])
+            ->where('parent_id', $topicId)
+            ->get()
+            ->map(function ($subtopic) {
+                $subtopic->study_materials = $subtopic->study_materials->map(function ($material) {
+                    $material->attachments = $material->attachments->map(function ($attachment) {
+                        $attachment->public_url = Storage::url($attachment->file_path);
+                        return $attachment;
+                    });
+                    return $material;
+                });
+                return $subtopic;
+            });
 
         return inertia('StudyMaterial/Student/StudentShowSubTopics', [
             'subTopics' => $subTopics,
