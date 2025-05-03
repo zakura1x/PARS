@@ -118,9 +118,9 @@ class StudentDashboardController extends Controller
             ->get()
             ->pluck('count', 'proficiency_level');
             
-        // Get assessment completion rate
+        // Get assessment completion rate - UPDATED TO USE user_id INSTEAD OF student_id
         $totalAssessments = $student->assessments()->count();
-        $completedAssessments = $student->studentAssessments()
+        $completedAssessments = StudentAssessment::where('user_id', $student->id)
             ->whereNotNull('completed_at')
             ->count();
             
