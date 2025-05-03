@@ -11,15 +11,18 @@ import {
 } from "lucide-react";
 
 const StudentShowSubTopics = ({ currentTopic }) => {
+    // Transform the data to use camelCase if needed
+    const topic = {
+        ...currentTopic,
+        studyMaterials: currentTopic.study_materials || [],
+        subTopics: (currentTopic.sub_topics || []).map((subtopic) => ({
+            ...subtopic,
+            studyMaterials: subtopic.study_materials || [],
+        })),
+    };
+
     const { subjectName, subjectCode, subjectId } = usePage().props;
     const [expandedSubtopics, setExpandedSubtopics] = useState({});
-
-    const toggleSubtopic = (id) => {
-        setExpandedSubtopics((prev) => ({
-            ...prev,
-            [id]: !prev[id],
-        }));
-    };
 
     const getFileIcon = (filename) => {
         if (!filename) return <File className="w-5 h-5" />;
@@ -126,23 +129,21 @@ const StudentShowSubTopics = ({ currentTopic }) => {
                     {subjectCode} - {subjectName}
                 </Link>
                 <span className="mx-2 text-gray-400">{">"}</span>
-                <span className="text-gray-700">
-                    {currentTopic?.name || "Topic"}
-                </span>
+                <span className="text-gray-700">{topic?.name || "Topic"}</span>
             </div>
 
             {/* Current Topic Header */}
             <div className="bg-white p-6 rounded-md shadow-md">
                 <h1 className="text-2xl font-bold text-gray-800">
-                    {currentTopic?.name}
+                    {topic?.name}
                 </h1>
                 <h4 className="text-gray-800">Study Materials</h4>
             </div>
 
             {/* Current Topic Study Materials */}
-            {currentTopic?.studyMaterials?.length > 0 ? (
+            {topic?.studyMaterials?.length > 0 ? (
                 <div className="bg-white p-6 rounded-md shadow-md">
-                    {currentTopic.studyMaterials.map(renderMaterial)}
+                    {topic.studyMaterials.map(renderMaterial)}
                 </div>
             ) : (
                 <div className="bg-white p-6 rounded-md shadow-md text-center text-gray-500 italic">
@@ -151,7 +152,7 @@ const StudentShowSubTopics = ({ currentTopic }) => {
             )}
 
             {/* Subtopics Header */}
-            {currentTopic?.subTopics?.length > 0 && (
+            {topic?.subTopics?.length > 0 && (
                 <div className="bg-white p-6 rounded-md shadow-md">
                     <h1 className="text-2xl font-bold text-gray-800">
                         Subtopics
@@ -162,8 +163,8 @@ const StudentShowSubTopics = ({ currentTopic }) => {
 
             {/* Subtopics List */}
             <div className="space-y-4 shadow-md">
-                {currentTopic?.subTopics?.length > 0 ? (
-                    currentTopic.subTopics.map((subtopic) => (
+                {topic?.subTopics?.length > 0 ? (
+                    topic.subTopics.map((subtopic) => (
                         <div
                             key={subtopic.id}
                             className="bg-white rounded-md shadow-sm overflow-hidden"
