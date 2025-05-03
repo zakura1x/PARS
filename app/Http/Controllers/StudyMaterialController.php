@@ -233,7 +233,7 @@ class StudyMaterialController extends Controller
                 return $material;
             });
 
-        $subTopics = Topics::with(['study_materials.attachments'])
+        $subTopics = Topics::with(['studyMaterials.attachments'])
             ->where('parent_id', $topicId)
             ->get()
             ->map(function ($subtopic) {
