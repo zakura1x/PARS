@@ -123,13 +123,6 @@ const TakeAssessment = ({ assessment }) => {
         setData("answers", updatedAnswers);
     };
 
-    const handleEssayChange = (e) => {
-        const essayAnswer = e.target.value;
-        const updatedAnswers = [...data.answers];
-        updatedAnswers[currentQuestionIndex] = [essayAnswer];
-        setData("answers", updatedAnswers);
-    };
-
     const saveAnswer = async () => {
         setLoading(true);
         setError(null);
@@ -146,7 +139,7 @@ const TakeAssessment = ({ assessment }) => {
         );
 
         if (!selectedOption || selectedOption.length === 0) {
-            setError("You must select or provide an answer");
+            setError("You must select an answer");
             setLoading(false);
             return Promise.reject("No answer selected");
         }
@@ -290,6 +283,15 @@ const TakeAssessment = ({ assessment }) => {
                         <h3 className="font-medium">
                             Question {index + 1}: {question.question_text}
                         </h3>
+                        {question.attachment_path && (
+                            <div className="my-2">
+                                <img
+                                    src={`/storage/${question.attachment_path}`}
+                                    alt="Question attachment"
+                                    className="max-w-full h-auto max-h-60"
+                                />
+                            </div>
+                        )}
                         <p className="mt-2">
                             <strong>Your answer:</strong>{" "}
                             {answers[index]?.join(", ") || "Not answered"}
@@ -349,73 +351,65 @@ const TakeAssessment = ({ assessment }) => {
                             {currentQuestion.question_text}
                         </h2>
 
-                        {currentQuestion.format_type === "multiple_choice" && (
-                            <ul className="space-y-2">
-                                {currentQuestion.options.map(
-                                    (option, index) => (
-                                        <li
-                                            key={index}
-                                            className="flex items-center"
+                        {/* Display image if attachment exists */}
+                        {currentQuestion.attachment_path && (
+                            <div className="mb-4">
+                                {currentQuestion.attachment_path.match(
+                                    /\.(jpe?g|png|gif)$/i
+                                ) ? (
+                                    <img
+                                        src={`/storage/${currentQuestion.attachment_path}`}
+                                        alt="Question visual aid"
+                                        className="max-w-full h-auto max-h-60"
+                                    />
+                                ) : currentQuestion.attachment_path.match(
+                                      /\.pdf$/i
+                                  ) ? (
+                                    <div className="border p-2 bg-gray-50 rounded">
+                                        <a
+                                            href={`/storage/${currentQuestion.attachment_path}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:underline"
                                         >
-                                            <input
-                                                type="checkbox"
-                                                name={`question-${currentQuestionIndex}`}
-                                                id={`option-${index}`}
-                                                value={option}
-                                                className="checkbox checkbox-success mr-2"
-                                                onChange={() =>
-                                                    handleOptionChange(option)
-                                                }
-                                                checked={data.answers[
-                                                    currentQuestionIndex
-                                                ].includes(option)}
-                                            />
-                                            <label htmlFor={`option-${index}`}>
-                                                {option}
-                                            </label>
-                                        </li>
-                                    )
-                                )}
-                            </ul>
-                        )}
-
-                        {currentQuestion.format_type === "true_false" && (
-                            <ul className="space-y-2">
-                                {["True", "False"].map((option, index) => (
-                                    <li
-                                        key={index}
-                                        className="flex items-center"
+                                            View PDF Attachment
+                                        </a>
+                                    </div>
+                                ) : (
+                                    <a
+                                        href={`/storage/${currentQuestion.attachment_path}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:underline"
                                     >
-                                        <input
-                                            type="radio"
-                                            name={`question-${currentQuestionIndex}`}
-                                            id={`option-${index}`}
-                                            value={option}
-                                            className="radio radio-primary mr-2"
-                                            onChange={() =>
-                                                handleOptionChange(option)
-                                            }
-                                            checked={data.answers[
-                                                currentQuestionIndex
-                                            ].includes(option)}
-                                        />
-                                        <label htmlFor={`option-${index}`}>
-                                            {option}
-                                        </label>
-                                    </li>
-                                ))}
-                            </ul>
+                                        Download Attachment
+                                    </a>
+                                )}
+                            </div>
                         )}
 
-                        {currentQuestion.format_type === "essay" && (
-                            <textarea
-                                className="textarea textarea-bordered w-full"
-                                value={
-                                    data.answers[currentQuestionIndex][0] || ""
-                                }
-                                onChange={handleEssayChange}
-                            ></textarea>
-                        )}
+                        <ul className="space-y-2">
+                            {currentQuestion.options.map((option, index) => (
+                                <li key={index} className="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        name={`question-${currentQuestionIndex}`}
+                                        id={`option-${index}`}
+                                        value={option}
+                                        className="checkbox checkbox-success mr-2"
+                                        onChange={() =>
+                                            handleOptionChange(option)
+                                        }
+                                        checked={data.answers[
+                                            currentQuestionIndex
+                                        ].includes(option)}
+                                    />
+                                    <label htmlFor={`option-${index}`}>
+                                        {option}
+                                    </label>
+                                </li>
+                            ))}
+                        </ul>
 
                         {error && <p className="text-red-500 mt-2">{error}</p>}
                     </div>

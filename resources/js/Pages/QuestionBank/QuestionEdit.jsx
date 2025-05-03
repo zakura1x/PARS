@@ -10,7 +10,6 @@ const QuestionEdit = () => {
         subject_id: question.subject_id,
         topic_id: question.topic_id,
         user_id: question.user_id,
-        format_type: question.format_type,
         purpose_type: question.purpose_type,
         difficulty: question.difficulty,
         question_text: question.question_text,
@@ -93,125 +92,6 @@ const QuestionEdit = () => {
         });
     };
 
-    const renderOptionsField = () => {
-        switch (data.format_type) {
-            case "multiple_choice":
-                return (
-                    <div className="space-y-4">
-                        <h3 className="text-lg font-semibold">Options</h3>
-                        {data.options.map((option, index) => (
-                            <div
-                                key={index}
-                                className="flex items-center space-x-2"
-                            >
-                                <input
-                                    type="checkbox"
-                                    checked={data.correct_answer.includes(
-                                        option
-                                    )}
-                                    onChange={() => toggleCorrectAnswer(option)}
-                                    className="checkbox checkbox-primary"
-                                />
-                                <input
-                                    type="text"
-                                    value={option}
-                                    onChange={(e) =>
-                                        handleOptionChange(
-                                            index,
-                                            e.target.value
-                                        )
-                                    }
-                                    className="input input-bordered flex-grow"
-                                    placeholder={`Option ${index + 1}`}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => handleRemoveOption(index)}
-                                    className="btn btn-error btn-square btn-sm"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-6 w-6"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M6 18L18 6M6 6l12 12"
-                                        />
-                                    </svg>
-                                </button>
-                            </div>
-                        ))}
-                        <button
-                            type="button"
-                            onClick={handleAddOption}
-                            className="btn btn-primary btn-sm"
-                        >
-                            Add Option
-                        </button>
-                    </div>
-                );
-            case "true_or_false":
-                return (
-                    <div className="space-y-4">
-                        <h3 className="text-lg font-semibold">
-                            Correct Answer
-                        </h3>
-                        <div className="flex space-x-4">
-                            <label className="label cursor-pointer space-x-2">
-                                <input
-                                    type="radio"
-                                    name="correct_answer"
-                                    value="True"
-                                    checked={data.correct_answer.includes(
-                                        "True"
-                                    )}
-                                    onChange={() =>
-                                        setData("correct_answer", ["True"])
-                                    }
-                                    className="radio radio-primary"
-                                />
-                                <span className="label-text">True</span>
-                            </label>
-                            <label className="label cursor-pointer space-x-2">
-                                <input
-                                    type="radio"
-                                    name="correct_answer"
-                                    value="False"
-                                    checked={data.correct_answer.includes(
-                                        "False"
-                                    )}
-                                    onChange={() =>
-                                        setData("correct_answer", ["False"])
-                                    }
-                                    className="radio radio-primary"
-                                />
-                                <span className="label-text">False</span>
-                            </label>
-                        </div>
-                    </div>
-                );
-            case "essay":
-                return (
-                    <div className="space-y-4">
-                        <h3 className="text-lg font-semibold">Essay Answer</h3>
-                        <textarea
-                            name="essay_answer"
-                            className="textarea textarea-bordered w-full h-24"
-                            disabled
-                            placeholder="Answer will be written by the student."
-                        ></textarea>
-                    </div>
-                );
-            default:
-                return null;
-        }
-    };
-
     return (
         <div className="min-h-screen bg-base-200 py-8 px-4">
             <style jsx>{`
@@ -273,7 +153,7 @@ const QuestionEdit = () => {
                                         setTimeout(
                                             () => setIsAnimating(false),
                                             500
-                                        ); // Duration of the animation
+                                        );
                                     }}
                                 />
                             </label>
@@ -473,33 +353,67 @@ const QuestionEdit = () => {
                             )}
                         </div>
 
-                        <div className="form-control">
-                            <label className="label">
-                                <span className="label-text">Format Type</span>
-                            </label>
-                            <select
-                                name="format_type"
-                                value={data.format_type}
-                                onChange={handleInputChange}
-                                className="select select-bordered w-full"
+                        <div className="form-control space-y-4">
+                            <h3 className="text-lg font-semibold">Options</h3>
+                            {data.options.map((option, index) => (
+                                <div
+                                    key={index}
+                                    className="flex items-center space-x-2"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={data.correct_answer.includes(
+                                            option
+                                        )}
+                                        onChange={() =>
+                                            toggleCorrectAnswer(option)
+                                        }
+                                        className="checkbox checkbox-primary"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={option}
+                                        onChange={(e) =>
+                                            handleOptionChange(
+                                                index,
+                                                e.target.value
+                                            )
+                                        }
+                                        className="input input-bordered flex-grow"
+                                        placeholder={`Option ${index + 1}`}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            handleRemoveOption(index)
+                                        }
+                                        className="btn btn-error btn-square btn-sm"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="h-6 w-6"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M6 18L18 6M6 6l12 12"
+                                            />
+                                        </svg>
+                                    </button>
+                                </div>
+                            ))}
+                            <button
+                                type="button"
+                                onClick={handleAddOption}
+                                className="btn btn-primary btn-sm"
                             >
-                                <option value="">Select a format</option>
-                                <option value="multiple_choice">
-                                    Multiple Choice
-                                </option>
-                                <option value="true_or_false">
-                                    True/False
-                                </option>
-                                <option value="essay">Essay</option>
-                            </select>
-                            {errors.format_type && (
-                                <span className="text-error text-sm mt-1">
-                                    {errors.format_type}
-                                </span>
-                            )}
+                                Add Option
+                            </button>
                         </div>
-
-                        {renderOptionsField()}
 
                         <div className="flex flex-col sm:flex-row gap-4 mt-6">
                             <button

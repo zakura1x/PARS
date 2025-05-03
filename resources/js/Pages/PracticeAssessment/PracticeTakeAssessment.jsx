@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useForm, router } from "@inertiajs/react";
 import { toast } from "react-hot-toast";
-import { useRef } from "react";
 
 const PracticeTakeAssessment = ({ practiceAssessment }) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -187,7 +186,6 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
         }
     };
 
-    // New function to toggle review mode
     const toggleReview = () => {
         setShowReview(!showReview);
     };
@@ -292,8 +290,7 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
         };
     }, [timeLeft]);
 
-    // Render the review screen
-    // Modify the review screen rendering to use the persisted answers
+    // Render the review screen with attachment support
     const renderReviewScreen = () => (
         <div className="p-4 bg-white rounded-lg shadow-md">
             <h2 className="text-xl font-bold mb-4">Review Your Answers</h2>
@@ -301,8 +298,44 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
                 {questions.map((question, index) => (
                     <div key={index} className="border-b pb-4">
                         <h3 className="font-medium">
-                            Question {index + 1}: {question.question_text}
+                            Question {index + 1}:{" "}
+                            {question.question.question_text}
                         </h3>
+                        {question.question.attachment_path && (
+                            <div className="my-2">
+                                {question.question.attachment_path.match(
+                                    /\.(jpe?g|png|gif)$/i
+                                ) ? (
+                                    <img
+                                        src={`/storage/${question.question.attachment_path}`}
+                                        alt="Question visual aid"
+                                        className="max-w-full h-auto max-h-60"
+                                    />
+                                ) : question.question.attachment_path.match(
+                                      /\.pdf$/i
+                                  ) ? (
+                                    <div className="border p-2 bg-gray-50 rounded">
+                                        <a
+                                            href={`/storage/${question.question.attachment_path}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:underline"
+                                        >
+                                            View PDF Attachment
+                                        </a>
+                                    </div>
+                                ) : (
+                                    <a
+                                        href={`/storage/${question.question.attachment_path}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:underline"
+                                    >
+                                        Download Attachment
+                                    </a>
+                                )}
+                            </div>
+                        )}
                         <p className="mt-2">
                             <strong>Your answer:</strong>{" "}
                             {answers[index]?.join(", ") || "Not answered"}
@@ -361,6 +394,43 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
                         <h2 className="text-lg font-medium mb-4">
                             {currentQuestion.question.question_text}
                         </h2>
+
+                        {/* Display attachment if exists */}
+                        {currentQuestion.question.attachment_path && (
+                            <div className="mb-4">
+                                {currentQuestion.question.attachment_path.match(
+                                    /\.(jpe?g|png|gif)$/i
+                                ) ? (
+                                    <img
+                                        src={`/storage/${currentQuestion.question.attachment_path}`}
+                                        alt="Question visual aid"
+                                        className="max-w-full h-auto max-h-60"
+                                    />
+                                ) : currentQuestion.question.attachment_path.match(
+                                      /\.pdf$/i
+                                  ) ? (
+                                    <div className="border p-2 bg-gray-50 rounded">
+                                        <a
+                                            href={`/storage/${currentQuestion.question.attachment_path}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:underline"
+                                        >
+                                            View PDF Attachment
+                                        </a>
+                                    </div>
+                                ) : (
+                                    <a
+                                        href={`/storage/${currentQuestion.question.attachment_path}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:underline"
+                                    >
+                                        Download Attachment
+                                    </a>
+                                )}
+                            </div>
+                        )}
 
                         {currentQuestion.question.format_type ===
                             "multiple_choice" && (

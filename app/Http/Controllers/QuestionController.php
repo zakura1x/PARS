@@ -84,7 +84,6 @@ class QuestionController extends Controller
         $validate = $request->validate([
             'subject_id' => 'required|exists:subjects,id',
             'topic_id' => 'required|exists:topics,id',
-            'format_type' => 'required|in:multiple_choice,enumeration,true_or_false,fill_in_the_blank',
             'purpose_type' => 'required|in:practice,assessment,examination',
             'difficulty' => 'required|in:remembering,understanding,applying,`analyzing,evaluating,create',
             'question_text' =>'required|string|max:255',
@@ -96,8 +95,11 @@ class QuestionController extends Controller
             'attachment_path' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
         ]);
 
-        if($request->hasFile('attachment_path')){
-            $filePath = $request->file('attachment_path')->store('attachment', 'public');
+        if ($request->hasFile('attachment_path')) {
+            $file = $request->file('attachment_path');
+            $extension = $file->getClientOriginalExtension();
+            $fileName = 'question_' . time() . '.' . $extension;
+            $filePath = $file->storeAs('attachments', $fileName, 'public');
             $validate['attachment_path'] = $filePath;
         }
 
@@ -105,7 +107,7 @@ class QuestionController extends Controller
             'user_id' => Auth::id(),
             'subject_id' => $validate['subject_id'],
             'topic_id' => $validate['topic_id'],
-            'format_type' => $validate['format_type'],
+            'format_type' => ['multiple_choice'],
             'purpose_type' => $validate['purpose_type'],
             'difficulty' => $validate['difficulty'],
             'question_text' => $validate['question_text'],
@@ -180,7 +182,6 @@ class QuestionController extends Controller
         $validate = $request->validate([
             'subject_id' => 'required|exists:subjects,id',
             'topic_id' => 'required|exists:topics,id',
-            'format_type' => 'required|in:multiple_choice,enumeration,true_or_false,fill_in_the_blank',
             'purpose_type' => 'required|in:practice,assessment,examination',
             'difficulty' => 'required|in:remembering,understanding,analyzing,evaluating,create',
             'question_text' =>'required|string|max:255',
@@ -197,15 +198,18 @@ class QuestionController extends Controller
 
         //dd($validate);
 
-        if($request->hasFile('attachment_path')){
-            $filePath = $request->file('attachment_path')->store('attachment', 'public');
+        if ($request->hasFile('attachment_path')) {
+            $file = $request->file('attachment_path');
+            $extension = $file->getClientOriginalExtension();
+            $fileName = 'question_' . time() . '.' . $extension;
+            $filePath = $file->storeAs('attachments', $fileName, 'public');
             $validate['attachment_path'] = $filePath;
         }
 
         $question->update([
             'subject_id' => $validate['subject_id'],
             'topic_id' => $validate['topic_id'],
-            'format_type' => $validate['format_type'],
+            'format_type' => ['multiple_choice'],
             'purpose_type' => $validate['purpose_type'],
             'difficulty' => $validate['difficulty'],
             'question_text' => $validate['question_text'],
