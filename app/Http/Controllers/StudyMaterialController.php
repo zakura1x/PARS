@@ -230,6 +230,8 @@ class StudyMaterialController extends Controller
                 $query->with(['attachments']);
             }
         ])->findOrFail($topicId);
+
+        dd($topic->toArray());
     
         // Process all study materials to:
         // 1. Add public URLs to attachments
