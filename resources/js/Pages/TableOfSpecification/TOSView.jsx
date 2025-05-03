@@ -101,7 +101,7 @@ const TOSView = ({ topics, tosRecords, subjectId, subjectName }) => {
             <thead>
                 <tr className="bg-gray-300 text-slate-500">
                     <th className="w-1/4"></th>
-                    <th className="text-center" colspan="8">COGNITIVE LEVELS</th>
+                    <th className="text-center" colSpan="8">COGNITIVE LEVELS</th>
                 </tr>
                 <tr className="bg-gray-300 text-slate-500">
                     <th className="w-1/4">TOPIC NAME</th>
