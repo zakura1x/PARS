@@ -11,7 +11,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PracticeAssessment\GeneratePracticeAssessmentController;
 use App\Http\Controllers\ProfileManagementController;
 use App\Http\Controllers\QuestionController;
-use App\Http\Controllers\StudentDashboardController;
+use App\Http\Controllers\Dashboard\StudentDashboardController;
 use App\Http\Controllers\StudentPracticeAssessmentController;
 use App\Http\Controllers\StudyMaterialAttachmentController;
 use App\Http\Controllers\StudyMaterialController;
@@ -149,6 +149,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
 
 Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function () {
     Route::get('/dashboard/student', [StudentDashboardController::class, 'index'])->name('students.dashboard');
+    
     //Practice Assessment
     Route::get('/student-practice-assessments/index', [StudentPracticeAssessmentController::class, 'index'])->name('practice-assessment-generator.index');
     Route::get('/student-practice-assessments/generator/form', [GeneratePracticeAssessmentController::class, 'create'])->name('practice-assessment-generator.form');
