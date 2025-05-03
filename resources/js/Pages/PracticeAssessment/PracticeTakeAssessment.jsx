@@ -48,68 +48,63 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
     useEffect(() => {
         if (practiceAssessment.started_at && practiceAssessment.time_limit) {
             try {
-                // Parse the started_at timestamp (ensure it's in ISO format)
+                // 1. Parse the started_at (convert to ISO format if needed)
                 const startedAt = new Date(
                     practiceAssessment.started_at.replace(" ", "T") + "Z"
                 );
 
-                // Parse the time_limit (HH:MM:SS)
+                // 2. Parse time_limit (HH:MM:SS)
                 const [hours, minutes, seconds] = practiceAssessment.time_limit
                     .split(":")
                     .map(Number);
                 const totalSeconds = hours * 3600 + minutes * 60 + seconds;
 
-                // Calculate elapsed time in seconds
+                // 3. Calculate elapsed time
                 const now = new Date();
                 const elapsedSeconds = Math.floor((now - startedAt) / 1000);
 
-                // Calculate remaining time (ensure it's not negative)
-                const remainingSeconds = Math.max(
+                // 4. Set initial time left (ensure not negative)
+                const initialTimeLeft = Math.max(
                     0,
                     totalSeconds - elapsedSeconds
                 );
+                setTimeLeft(initialTimeLeft);
 
-                setTimeLeft(remainingSeconds);
-
-                console.log("Timer initialized:", {
+                console.log("Timer initialized with:", {
                     startedAt,
                     now,
-                    timeLimit: practiceAssessment.time_limit,
-                    totalSeconds,
-                    elapsedSeconds,
-                    remainingSeconds,
+                    totalLimit: totalSeconds,
+                    elapsed: elapsedSeconds,
+                    initialTimeLeft,
                 });
             } catch (error) {
-                console.error("Error initializing timer:", error);
+                console.error("Timer init error:", error);
                 setTimeLeft(0);
             }
         }
     }, [practiceAssessment.started_at, practiceAssessment.time_limit]);
 
-    // Timer countdown
-    const timeLeftRef = useRef(timeLeft);
-
     useEffect(() => {
-        timeLeftRef.current = timeLeft;
-    }, [timeLeft]);
-
-    useEffect(() => {
+        // Only start if we have positive time left
         if (timeLeft <= 0) return;
 
-        const interval = setInterval(() => {
-            timeLeftRef.current -= 1;
+        const timer = setInterval(() => {
+            setTimeLeft((prevTime) => {
+                const newTime = prevTime - 1;
 
-            if (timeLeftRef.current <= 0) {
-                clearInterval(interval);
-                setTimeLeft(0);
-                handleAutoSubmit();
-            } else {
-                setTimeLeft(timeLeftRef.current);
-            }
+                // Auto-submit when time reaches 0
+                if (newTime <= 0) {
+                    clearInterval(timer);
+                    handleAutoSubmit();
+                    return 0;
+                }
+
+                return newTime;
+            });
         }, 1000);
 
-        return () => clearInterval(interval);
-    }, []);
+        return () => clearInterval(timer);
+    }, [timeLeft]); // Re-run when timeLeft changes
 
     // Show 5-minute warning
     useEffect(() => {
