@@ -78,21 +78,20 @@ const PracticeGeneratorForm = () => {
             const newRecommendedTopics = response.data.recommendedTopics;
             setRecommendedTopics(newRecommendedTopics);
 
-            // Auto-select recommended topics
+            // Get all recommended topic IDs
             const recommendedIds = newRecommendedTopics.map(
                 (topic) => topic.id
             );
-            const uniqueNewTopics = recommendedIds.filter(
-                (id) => !selectedTopics.includes(id)
+
+            // Create a Set to ensure uniqueness and merge with existing selected topics
+            const updatedSelectedTopics = Array.from(
+                new Set([...selectedTopics, ...recommendedIds])
             );
 
-            if (uniqueNewTopics.length > 0) {
-                const newSelectedTopics = [
-                    ...selectedTopics,
-                    ...uniqueNewTopics,
-                ];
-                setSelectedTopics(newSelectedTopics);
-                updateRecommendedSettings(newSelectedTopics);
+            // Only update if there are new topics to add
+            if (updatedSelectedTopics.length > selectedTopics.length) {
+                setSelectedTopics(updatedSelectedTopics);
+                updateRecommendedSettings(updatedSelectedTopics);
             }
         } catch (error) {
             console.error("Error fetching recommended topics:", error);
