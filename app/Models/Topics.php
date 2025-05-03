@@ -33,7 +33,7 @@ class Topics extends Model
 
     public function studyMaterials()
     {
-        return $this->hasMany(StudyMaterial::class, 'topics_id');
+        return $this->hasMany(StudyMaterial::class, 'topic_id');
     }
 
     public function proficiency()
