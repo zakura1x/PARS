@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { Link, usePage } from "@inertiajs/react"
 import { ChevronDown, ChevronUp, FileText, ExternalLink, Book, File, LinkIcon } from "lucide-react"
