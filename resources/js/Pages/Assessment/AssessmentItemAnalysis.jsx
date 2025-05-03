@@ -29,6 +29,25 @@ const AssessmentItemAnalysis = () => {
             collapse.querySelector('input[type="radio"]').checked = true;
         });
 
+        // Simplified color handling
+        clone.querySelectorAll("*").forEach((el) => {
+            if (el.classList.contains('bg-slate-100')) {
+                el.style.backgroundColor = '#f1f5f9';
+            }
+            if (el.classList.contains('bg-green-500')) {
+                el.style.backgroundColor = '#22c55e';
+            }
+            if (el.classList.contains('bg-red-500')) {
+                el.style.backgroundColor = '#ef4444';
+            }
+            if (el.classList.contains('text-green-600')) {
+                el.style.color = '#16a34a';
+            }
+            if (el.classList.contains('text-red-600')) {
+                el.style.color = '#dc2626';
+            }
+        });
+
         // Add the clone to the body temporarily
         clone.style.position = "absolute";
         clone.style.left = "-9999px";
