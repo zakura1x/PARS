@@ -17,73 +17,59 @@ const AssessmentItemAnalysis = () => {
         </span>
     );
 
-    const handlePrint = () => {
-        const input = document.getElementById("printable-area");
+    const handlePrint = async () => {
+        try {
+            // Create a temporary div for printing
+            const printElement = document.createElement("div");
+            printElement.style.position = "absolute";
+            printElement.style.left = "-9999px";
+            printElement.style.width = "210mm"; // A4 width
+            printElement.style.padding = "20px";
+            printElement.style.background = "white";
 
-        // Create a clone of the element to print
-        const clone = input.cloneNode(true);
+            // Clone the original content
+            const originalContent = document.getElementById("printable-area");
+            const contentClone = originalContent.cloneNode(true);
 
-        // Make all accordion items expanded in the clone
-        const collapses = clone.querySelectorAll(".collapse");
-        collapses.forEach((collapse) => {
-            collapse.querySelector('input[type="radio"]').checked = true;
-        });
+            // Force open all accordion items
+            const collapses = contentClone.querySelectorAll(".collapse");
+            collapses.forEach((collapse) => {
+                collapse.querySelector('input[type="radio"]').checked = true;
+            });
 
-        // Simplified color handling
-        clone.querySelectorAll("*").forEach((el) => {
-            if (el.classList.contains('bg-slate-100')) {
-                el.style.backgroundColor = '#f1f5f9';
-            }
-            if (el.classList.contains('bg-green-500')) {
-                el.style.backgroundColor = '#22c55e';
-            }
-            if (el.classList.contains('bg-red-500')) {
-                el.style.backgroundColor = '#ef4444';
-            }
-            if (el.classList.contains('text-green-600')) {
-                el.style.color = '#16a34a';
-            }
-            if (el.classList.contains('text-red-600')) {
-                el.style.color = '#dc2626';
-            }
-        });
+            // Remove any problematic elements
+            const elementsToRemove =
+                contentClone.querySelectorAll('[class*="bg-"]');
+            elementsToRemove.forEach((el) => {
+                el.style.backgroundColor = "";
+            });
 
-        // Add the clone to the body temporarily
-        clone.style.position = "absolute";
-        clone.style.left = "-9999px";
-        document.body.appendChild(clone);
+            printElement.appendChild(contentClone);
+            document.body.appendChild(printElement);
 
-        html2canvas(clone, {
-            scale: 2, // Higher quality
-            scrollY: -window.scrollY,
-            useCORS: true,
-            allowTaint: true,
-        }).then((canvas) => {
+            // Generate PDF
+            const canvas = await html2canvas(printElement, {
+                scale: 2,
+                logging: false,
+                useCORS: true,
+                removeContainer: true,
+                backgroundColor: "#ffffff",
+            });
+
             const imgData = canvas.toDataURL("image/png");
             const pdf = new jsPDF("p", "mm", "a4");
             const imgWidth = 210; // A4 width in mm
-            const pageHeight = 295; // A4 height in mm
             const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            let heightLeft = imgHeight;
-            let position = 0;
 
-            pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
-
-            // Add new pages if content is longer than one page
-            while (heightLeft >= 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-            }
-
-            // Remove the clone
-            document.body.removeChild(clone);
-
-            // Save the PDF
+            pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
             pdf.save(`Item Analysis - ${assessment.title}.pdf`);
-        });
+
+            // Clean up
+            document.body.removeChild(printElement);
+        } catch (error) {
+            console.error("Error generating PDF:", error);
+            alert("Error generating PDF. Please try again.");
+        }
     };
 
     return (
