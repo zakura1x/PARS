@@ -220,41 +220,32 @@ class StudyMaterialController extends Controller
     }
     public function studentShowSubTopics($topicId)
     {
-        // Load topic with its subject, study materials (with links and attachments), and subtopics
         $topic = Topics::with([
             'subject',
-            'studyMaterials' => function($query) {
-                $query->with(['attachments']);
-            },
-            'subTopics.studyMaterials' => function($query) {
-                $query->with(['attachments']);
-            }
+            'studyMaterials.attachments',
+            'subTopics.studyMaterials.attachments'
         ])->findOrFail($topicId);
-
-        dd($topic->toArray());
     
-        // Process all study materials to:
-        // 1. Add public URLs to attachments
-        // 2. Ensure links is always an array (even if null)
+        // Process materials - ensure consistent data structure
         $processMaterials = function ($materials) {
             return $materials->map(function ($material) {
                 // Ensure links is always an array
                 $material->links = $material->links ?: [];
                 
-                // Process attachments
-                $material->attachments->transform(function ($attachment) {
-                    $attachment->public_url = Storage::url($attachment->file_path);
-                    return $attachment;
-                });
+                // Add public URLs to attachments
+                if ($material->attachments) {
+                    $material->attachments->transform(function ($attachment) {
+                        $attachment->public_url = Storage::url($attachment->file_path);
+                        return $attachment;
+                    });
+                }
                 
                 return $material;
             });
         };
     
-        // Process topic materials
+        // Process all materials
         $topic->studyMaterials = $processMaterials($topic->studyMaterials);
-        
-        // Process subtopic materials
         $topic->subTopics->each(function ($subtopic) use ($processMaterials) {
             $subtopic->studyMaterials = $processMaterials($subtopic->studyMaterials);
         });
@@ -267,7 +258,6 @@ class StudyMaterialController extends Controller
             'subjectId' => $topic->subject->id,
         ]);
     }
-
     public function studentShowStudyMaterial($topicId){
         $topic = Topics::with(relations: 'subject')->findOrFail($topicId);
 

@@ -41,56 +41,51 @@ const StudentShowSubTopics = ({ currentTopic }) => {
         }
     };
 
-    const renderLinks = (links) => {
-        if (!links || links.length === 0) return null;
-
-        return (
-            <div className="ml-7 space-y-2 bg-gray-50 p-3 rounded-md mt-2">
-                <h4 className="text-sm font-medium text-gray-700 mb-1">
-                    External Links
-                </h4>
-                {links.map((link, index) => (
-                    <div key={index} className="flex items-center text-sm">
-                        <LinkIcon className="w-4 h-4 text-blue-500 mr-2" />
-                        <a
-                            href={link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline flex-1 truncate"
-                        >
-                            {link}
-                        </a>
-                        <ExternalLink className="w-4 h-4 text-gray-400 ml-2" />
-                    </div>
-                ))}
-            </div>
-        );
-    };
-
     const renderMaterial = (material) => (
         <div
             key={material.id}
-            className="border-b border-gray-100 last:border-0 pb-4 last:pb-0"
+            className="mb-6 border-b border-gray-100 pb-4 last:border-0 last:pb-0"
         >
-            <div className="flex items-center mb-2">
-                <FileText className="text-[#42604C] w-5 h-5 mr-2" />
-                <h3 className="font-medium text-gray-700">{material.title}</h3>
+            <div className="flex items-start mb-2">
+                <FileText className="text-[#42604C] w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
+                <div>
+                    <h3 className="font-medium text-gray-800">
+                        {material.title}
+                    </h3>
+                    {material.content && (
+                        <p className="text-sm text-gray-600 mt-1">
+                            {material.content}
+                        </p>
+                    )}
+                </div>
             </div>
 
-            {material.description && (
-                <p className="text-sm text-gray-600 ml-7 mb-3">
-                    {material.description}
-                </p>
+            {/* Links Section */}
+            {material.links && material.links.length > 0 && (
+                <div className="ml-7 mt-3 space-y-2 bg-gray-50 p-3 rounded-md">
+                    <h4 className="text-sm font-medium text-gray-700 mb-1">
+                        External Links
+                    </h4>
+                    {material.links.map((link, index) => (
+                        <div key={index} className="flex items-center text-sm">
+                            <LinkIcon className="w-4 h-4 text-blue-500 mr-2" />
+                            <a
+                                href={link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline flex-1 truncate"
+                            >
+                                {link}
+                            </a>
+                            <ExternalLink className="w-4 h-4 text-gray-400 ml-2" />
+                        </div>
+                    ))}
+                </div>
             )}
 
-            {/* Render links if they exist */}
-            {material.links &&
-                material.links.length > 0 &&
-                renderLinks(material.links)}
-
-            {/* Render attachments if they exist */}
-            {material.attachments?.length > 0 && (
-                <div className="ml-7 space-y-2 bg-gray-50 p-3 rounded-md">
+            {/* Attachments Section */}
+            {material.attachments && material.attachments.length > 0 && (
+                <div className="ml-7 mt-3 space-y-2 bg-gray-50 p-3 rounded-md">
                     <h4 className="text-sm font-medium text-gray-700 mb-1">
                         Attachments
                     </h4>
@@ -147,9 +142,7 @@ const StudentShowSubTopics = ({ currentTopic }) => {
             {/* Current Topic Study Materials */}
             {currentTopic?.studyMaterials?.length > 0 ? (
                 <div className="bg-white p-6 rounded-md shadow-md">
-                    <div className="space-y-2">
-                        {currentTopic.studyMaterials.map(renderMaterial)}
-                    </div>
+                    {currentTopic.studyMaterials.map(renderMaterial)}
                 </div>
             ) : (
                 <div className="bg-white p-6 rounded-md shadow-md text-center text-gray-500 italic">
@@ -158,10 +151,14 @@ const StudentShowSubTopics = ({ currentTopic }) => {
             )}
 
             {/* Subtopics Header */}
-            <div className="bg-white p-6 rounded-md shadow-md">
-                <h1 className="text-2xl font-bold text-gray-800">Subtopics</h1>
-                <h4 className="text-gray-800">Study Materials</h4>
-            </div>
+            {currentTopic?.subTopics?.length > 0 && (
+                <div className="bg-white p-6 rounded-md shadow-md">
+                    <h1 className="text-2xl font-bold text-gray-800">
+                        Subtopics
+                    </h1>
+                    <h4 className="text-gray-800">Study Materials</h4>
+                </div>
+            )}
 
             {/* Subtopics List */}
             <div className="space-y-4 shadow-md">
@@ -190,17 +187,15 @@ const StudentShowSubTopics = ({ currentTopic }) => {
                                 </div>
                             </div>
 
-                            {/* Subtopic Content */}
+                            {/* Expanded Subtopic Content */}
                             {expandedSubtopics[subtopic.id] && (
-                                <div className="border-t border-gray-200">
+                                <div className="border-t border-gray-200 p-4">
                                     {subtopic.studyMaterials?.length > 0 ? (
-                                        <div className="p-4">
-                                            {subtopic.studyMaterials.map(
-                                                renderMaterial
-                                            )}
-                                        </div>
+                                        subtopic.studyMaterials.map(
+                                            renderMaterial
+                                        )
                                     ) : (
-                                        <div className="p-4 text-center text-gray-500 italic">
+                                        <div className="text-center py-4 text-gray-500 italic">
                                             No study materials available for
                                             this subtopic.
                                         </div>
