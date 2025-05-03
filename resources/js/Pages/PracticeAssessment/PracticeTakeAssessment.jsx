@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useForm, router } from "@inertiajs/react";
 import { toast } from "react-hot-toast";
+import { useRef } from "react";
 
 const PracticeTakeAssessment = ({ practiceAssessment }) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -65,22 +66,29 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
     }, [practiceAssessment.started_at, practiceAssessment.time_limit]);
 
     // Timer countdown
+    const timeLeftRef = useRef(timeLeft);
+
+    useEffect(() => {
+        timeLeftRef.current = timeLeft;
+    }, [timeLeft]);
+
     useEffect(() => {
         if (timeLeft <= 0) return;
 
-        const timer = setInterval(() => {
-            setTimeLeft((prevTime) => {
-                if (prevTime <= 1) {
-                    clearInterval(timer);
-                    handleAutoSubmit();
-                    return 0;
-                }
-                return prevTime - 1;
-            });
+        const interval = setInterval(() => {
+            timeLeftRef.current -= 1;
+
+            if (timeLeftRef.current <= 0) {
+                clearInterval(interval);
+                setTimeLeft(0);
+                handleAutoSubmit();
+            } else {
+                setTimeLeft(timeLeftRef.current);
+            }
         }, 1000);
 
-        return () => clearInterval(timer);
-    }, [timeLeft]);
+        return () => clearInterval(interval);
+    }, []);
 
     // Show 5-minute warning
     useEffect(() => {
