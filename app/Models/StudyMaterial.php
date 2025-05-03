@@ -25,7 +25,7 @@ class StudyMaterial extends Model
     ];
 
     public function topic(){
-        return $this->belongsTo(Topics::class);
+        return $this->belongsTo(Topics::class, 'topics_id');
     }
 
     public function createdBy(){
