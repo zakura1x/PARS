@@ -47,20 +47,42 @@ const PracticeTakeAssessment = ({ practiceAssessment }) => {
     // Calculate initial time left
     useEffect(() => {
         if (practiceAssessment.started_at && practiceAssessment.time_limit) {
-            const startedAt = new Date(practiceAssessment.started_at);
-            const timeLimitParts = practiceAssessment.time_limit
-                .split(":")
-                .map(Number);
-            const totalSeconds =
-                timeLimitParts[0] * 3600 +
-                timeLimitParts[1] * 60 +
-                timeLimitParts[2];
+            try {
+                // Parse the started_at timestamp (ensure it's in ISO format)
+                const startedAt = new Date(
+                    practiceAssessment.started_at.replace(" ", "T") + "Z"
+                );
 
-            const now = new Date();
-            const elapsedSeconds = Math.floor((now - startedAt) / 1000);
-            const remainingSeconds = Math.max(0, totalSeconds - elapsedSeconds);
+                // Parse the time_limit (HH:MM:SS)
+                const [hours, minutes, seconds] = practiceAssessment.time_limit
+                    .split(":")
+                    .map(Number);
+                const totalSeconds = hours * 3600 + minutes * 60 + seconds;
 
-            setTimeLeft(remainingSeconds);
+                // Calculate elapsed time in seconds
+                const now = new Date();
+                const elapsedSeconds = Math.floor((now - startedAt) / 1000);
+
+                // Calculate remaining time (ensure it's not negative)
+                const remainingSeconds = Math.max(
+                    0,
+                    totalSeconds - elapsedSeconds
+                );
+
+                setTimeLeft(remainingSeconds);
+
+                console.log("Timer initialized:", {
+                    startedAt,
+                    now,
+                    timeLimit: practiceAssessment.time_limit,
+                    totalSeconds,
+                    elapsedSeconds,
+                    remainingSeconds,
+                });
+            } catch (error) {
+                console.error("Error initializing timer:", error);
+                setTimeLeft(0);
+            }
         }
     }, [practiceAssessment.started_at, practiceAssessment.time_limit]);
 
