@@ -1,19 +1,18 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/misc/ui/select"
-
 export function SubjectSelector({ subjects, selectedSubject, onSelectSubject }) {
   return (
-    <Select value={selectedSubject || ""} onValueChange={(value) => onSelectSubject(value === "all" ? null : value)}>
-      <SelectTrigger className="w-[180px]">
-        <SelectValue placeholder="All Subjects" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="all">All Subjects</SelectItem>
+    <div className="form-control w-full max-w-xs">
+      <select
+        className="select select-bordered"
+        value={selectedSubject || ""}
+        onChange={(e) => onSelectSubject(e.target.value === "all" ? null : e.target.value)}
+      >
+        <option value="all">All Subjects</option>
         {subjects.map((subject) => (
-          <SelectItem key={subject.id} value={subject.name}>
+          <option key={subject.id} value={subject.id}>
             {subject.name}
-          </SelectItem>
+          </option>
         ))}
-      </SelectContent>
-    </Select>
+      </select>
+    </div>
   )
 }

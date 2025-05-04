@@ -1,89 +1,98 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/misc/ui/tabs"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/misc/ui/table"
-import { Badge } from "@/components/misc/ui/badge"
-import { format } from "date-fns"  // Import format from date-fns
+import { useState } from "react"
+import { format } from "date-fns"
 
 export function RecentAssessments({ examinations, practices, showAll = false }) {
+  const [activeTab, setActiveTab] = useState("examinations")
+
   return (
-    <Tabs defaultValue="examinations" className="w-full">
-      <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="examinations">Examinations</TabsTrigger>
-        <TabsTrigger value="practices">Practice</TabsTrigger>
-      </TabsList>
+    <div className="w-full">
+      <div className="tabs tabs-boxed mb-4">
+        <a
+          className={`tab ${activeTab === "examinations" ? "tab-active" : ""}`}
+          onClick={() => setActiveTab("examinations")}
+        >
+          Examinations
+        </a>
+        <a className={`tab ${activeTab === "practices" ? "tab-active" : ""}`} onClick={() => setActiveTab("practices")}>
+          Practice
+        </a>
+      </div>
 
-      <TabsContent value="examinations">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Assessment</TableHead>
-              <TableHead>created</TableHead>
-              <TableHead className="text-right">Score</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {examinations.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={3} className="text-center">
-                  No examination assessments found
-                </TableCell>
-              </TableRow>
-            ) : (
-              examinations.map((exam) => (
-                <TableRow key={exam.id}>
-                  <TableCell className="font-medium">{exam.assessment.title}</TableCell>
-                  <TableCell>
-                    {format(new Date(exam.created_at), "PPpp")} {/* Format to include date and time */}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Badge variant={getScoreBadgeVariant(exam.result.score)}>{exam.result.score}%</Badge>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TabsContent>
+      {activeTab === "examinations" && (
+        <div className="overflow-x-auto">
+          <table className="table table-zebra w-full">
+            <thead>
+              <tr>
+                <th>Assessment</th>
+                <th>Completed</th>
+                <th className="text-right">Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {examinations.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="text-center">
+                    No examination assessments found
+                  </td>
+                </tr>
+              ) : (
+                examinations.map((exam) => (
+                  <tr key={exam.id}>
+                    <td className="font-medium">{exam.assessment.title}</td>
+                    <td>{format(new Date(exam.completed_at), "PPpp")}</td>
+                    <td className="text-right">
+                      <span className={`badge ${getScoreBadgeColor(exam.result.score)}`}>{exam.result.score}%</span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-      <TabsContent value="practices">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Subject</TableHead>
-              <TableHead>Submitted</TableHead>
-              <TableHead className="text-right">Score</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {practices.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={3} className="text-center">
-                  No practice assessments found
-                </TableCell>
-              </TableRow>
-            ) : (
-              practices.map((practice) => (
-                <TableRow key={practice.id}>
-                  <TableCell className="font-medium">{practice.subject.name}</TableCell>
-                  <TableCell>
-                    {format(new Date(practice.submitted_at), "PPpp")} {/* Format to include date and time */}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Badge variant={getScoreBadgeVariant(practice.results.score_percentage)}>{practice.results.score_percentage}%</Badge>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TabsContent>
-    </Tabs>
+      {activeTab === "practices" && (
+        <div className="overflow-x-auto">
+          <table className="table table-zebra w-full">
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>Submitted</th>
+                <th className="text-right">Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {practices.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="text-center">
+                    No practice assessments found
+                  </td>
+                </tr>
+              ) : (
+                practices.map((practice) => (
+                  <tr key={practice.id}>
+                    <td className="font-medium">{practice.subject.name}</td>
+                    <td>{format(new Date(practice.submitted_at), "PPpp")}</td>
+                    <td className="text-right">
+                      <span className={`badge ${getScoreBadgeColor(practice.results.score_percentage)}`}>
+                        {practice.results.score_percentage}%
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   )
 }
 
-// Helper function to determine badge variant based on score
-function getScoreBadgeVariant(score) {
-  if (score >= 90) return "default"
-  if (score >= 70) return "secondary"
-  if (score >= 50) return "outline"
-  return "destructive"
+// Helper function to determine badge color based on score
+function getScoreBadgeColor(score) {
+  if (score >= 90) return "badge-primary"
+  if (score >= 70) return "badge-secondary"
+  if (score >= 50) return "badge-accent"
+  return "badge-error"
 }

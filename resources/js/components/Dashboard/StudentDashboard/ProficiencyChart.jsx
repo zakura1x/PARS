@@ -1,11 +1,8 @@
+"use client"
+
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts"
-import { Card, CardContent } from "@/components/misc/ui/card"
-import { Badge } from "@/components/misc/ui/badge"
 
 export function ProficiencyChart({ proficiencyData }) {
-  // Ensure proficiencyData is populated and handle errors
-  if (!proficiencyData || proficiencyData.length === 0) return <div>Loading...</div>
-
   // Transform data for the chart
   const chartData = proficiencyData.map((item) => ({
     name: item.topic.name,
@@ -13,40 +10,33 @@ export function ProficiencyChart({ proficiencyData }) {
     subject: item.topic.subject.name,
   }))
 
-  // Colors for different proficiency levels
+  // Colors for different proficiency levels - now only 3 colors
   const COLORS = ["#FF8042", "#FFBB28", "#00C49F"]
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-2">
-        {[1, 2, 3].map(
-          (
-            level, // Adjusted to 3 levels
-          ) => (
-            <Badge key={level} variant="outline" className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[level - 1] }} />
-              <span>{getProficiencyLabel(level)}</span>
-            </Badge>
-          ),
-        )}
+        {/* Changed to only show 3 levels */}
+        {[1, 2, 3].map((level) => (
+          <div key={level} className="badge badge-outline gap-1">
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[level - 1] }} />
+            <span>{getProficiencyLabel(level)}</span>
+          </div>
+        ))}
       </div>
 
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData} layout="vertical" margin={{ top: 20, right: 30, left: 100, bottom: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-            <XAxis
-              type="number"
-              domain={[0, 3]}
-              ticks={[0, 1, 2, 3]}
-              tickFormatter={(value) => (value === 0 ? "" : getProficiencyLabel(value))}
-            />
-            <YAxis dataKey="name" type="category" width={90} tickLine={false} />
+          <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" angle={-45} textAnchor="end" height={70} interval={0} />
+            {/* Updated domain and ticks for 3 levels */}
+            <YAxis domain={[0, 3]} ticks={[1, 2, 3]} tickFormatter={getProficiencyLabel} />
             <Tooltip
               formatter={(value, name, props) => [getProficiencyLabel(value), "Proficiency"]}
               labelFormatter={(label) => `Topic: ${label}`}
             />
-            <Bar dataKey="level" name="Proficiency Level" barSize={20}>
+            <Bar dataKey="level" name="Proficiency Level">
               {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[entry.level - 1]} />
               ))}
@@ -57,26 +47,26 @@ export function ProficiencyChart({ proficiencyData }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {proficiencyData.map((item) => (
-          <Card key={item.id} className="overflow-hidden">
-            <CardContent className="p-4">
+          <div key={item.id} className="card bg-base-100 shadow-sm">
+            <div className="card-body p-4">
               <div className="flex justify-between items-center">
                 <div>
                   <h3 className="font-medium">{item.topic.name}</h3>
-                  <p className="text-sm text-muted-foreground">{item.topic.subject.name}</p>
+                  <p className="text-sm opacity-70">{item.topic.subject.name}</p>
                 </div>
-                <Badge className="ml-auto" style={{ backgroundColor: COLORS[item.proficiency_level - 1] }}>
+                <span className="badge" style={{ backgroundColor: COLORS[item.proficiency_level - 1] }}>
                   {getProficiencyLabel(item.proficiency_level)}
-                </Badge>
+                </span>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
     </div>
   )
 }
 
-// Helper function to convert proficiency level to label
+// Helper function to convert proficiency level to label - removed Expert level
 function getProficiencyLabel(level) {
   switch (level) {
     case 1:
@@ -86,6 +76,6 @@ function getProficiencyLabel(level) {
     case 3:
       return "Advanced"
     default:
-      return `Level ${level}` // In case something unexpected happens
+      return `Level ${level}`
   }
 }
