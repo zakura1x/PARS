@@ -33,7 +33,7 @@ class StudentDashboardController extends Controller
         // Get performance metrics
         $performanceMetrics = $this->getPerformanceMetrics($student);
 
-        dd($performanceMetrics);
+        //dd($performanceMetrics);
         
         return inertia('Dashboard/StudentDashboard', [
             'student' => $student,
