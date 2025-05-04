@@ -1,32 +1,22 @@
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-} from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from "recharts"
 
 export function PerformanceMetrics({ metrics }) {
   // Transform proficiency distribution for the chart
   const proficiencyData = Object.entries(metrics.proficiency_distribution).map(([level, count]) => ({
-    name: getProficiencyLabel(Number.parseInt(level)),
+    name: getProficiencyLabel(level),
     value: count,
   }))
 
   // Create data for the score comparison chart
   const scoreData = [
     { name: "Your Average", score: metrics.average_score },
-    { name: "Class Average", score: 72.5 }, // This could be fetched from backend in the future
   ]
 
   // Colors for the pie chart
   const COLORS = ["#FF8042", "#FFBB28", "#00C49F", "#0088FE"]
+
+  // Calculate total topics
+  const totalTopics = proficiencyData.reduce((sum, item) => sum + item.value, 0)
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -45,26 +35,26 @@ export function PerformanceMetrics({ metrics }) {
 
       <div className="h-80">
         <h3 className="text-sm font-medium mb-2">Proficiency Distribution</h3>
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={proficiencyData}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              label={renderCustomizedLabel}
-              outerRadius={80}
-              fill="#8884d8"
-              dataKey="value"
-            >
-              {proficiencyData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
+        <div className="flex flex-col h-full">
+          <ResponsiveContainer width="100%" height="80%">
+            <BarChart data={proficiencyData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+              <XAxis type="number" hide />
+              <YAxis type="category" dataKey="name" width={100} tickLine={false} axisLine={false} />
+              <Tooltip
+                formatter={(value, name, props) => [`${value} topics`, props.payload.name]}
+                labelFormatter={() => ""}
+              />
+              <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                {proficiencyData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+                <LabelList dataKey="label" position="right" style={{ fill: "#666", fontSize: 12 }} />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+          <div className="border-t border-gray-200 mt-2 pt-2 text-sm text-center">Total Topics: {totalTopics}</div>
+        </div>
       </div>
     </div>
   )
@@ -86,16 +76,14 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
 
 // Helper function to convert proficiency level to label
 function getProficiencyLabel(level) {
-  switch (level) {
-    case 1:
-      return "Beginner"
-    case 2:
-      return "Intermediate"
-    case 3:
-      return "Advanced"
-    case 4:
-      return "Expert"
-    default:
-      return `Level ${level}`
-  }
+    const map = {
+        "1": "Beginner",
+        "2": "Intermediate",
+        "3": "Advanced",
+        beginner: "Beginner",
+        intermediate: "Intermediate",
+        advanced: "Advanced",
+    }
+
+    return map[level.toLowerCase()] || level
 }

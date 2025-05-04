@@ -19,12 +19,12 @@ class DashboardController extends Controller
         sleep(2);
 
         $roleDashboardMap = [
-            'program_head' => 'ProgramHead/Dashboard',
+            'program_head' => 'ProgramHead/ProgramHeadDashboard',
             // 'student' =>'Student/Dashboard',
-            'professor' => 'ProgramHead/Dashboard',
+            'professor' => 'ProgramHead/ProfessorDashboard',
         ];
 
         return inertia($roleDashboardMap[$user->role] ?? 'default');
     }
-    
+
 }

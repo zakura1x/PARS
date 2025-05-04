@@ -51,7 +51,7 @@ export default function StudentDashboard() {
 
         {activeTab === "overview" && (
           <div className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               <div className="card bg-base-200 shadow-xl">
                 <div className="card-body p-4">
                   <div className="flex justify-between items-center">
@@ -82,22 +82,6 @@ export default function StudentDashboard() {
                   </div>
                   <div className="text-2xl font-bold">{performanceMetrics.total_assessments_taken}</div>
                   <p className="text-xs opacity-70">Total completed assessments</p>
-                </div>
-              </div>
-
-              <div className="card bg-base-200 shadow-xl">
-                <div className="card-body p-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="card-title text-sm">Proficiency Level</h3>
-                    <GraduationCap className="h-4 w-4 text-base-content opacity-70" />
-                  </div>
-                  <div className="text-2xl font-bold">
-                    {Object.entries(performanceMetrics.proficiency_distribution).reduce(
-                      (max, [level, count]) => (Number.parseInt(level) > max ? Number.parseInt(level) : max),
-                      0,
-                    )}
-                  </div>
-                  <p className="text-xs opacity-70">Most common proficiency level</p>
                 </div>
               </div>
             </div>
