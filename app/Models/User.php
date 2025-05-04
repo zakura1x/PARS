@@ -91,20 +91,14 @@ class User extends Authenticatable
 
     public function studentAssessments()
     {
-        return $this->hasMany(StudentAssessment::class, 'student_id');
+        return $this->hasMany(StudentAssessment::class, 'user_id');
     }
 
     public function results()
     {
-        return $this->hasMany(StudentResult::class, 'student_id');
+        return $this->hasMany(StudentResult::class, 'user_id');
     }
 
-    public function assessments()
-    {
-        return $this->belongsToMany(Assessment::class, 'assessment_student')
-            ->withPivot('status') // Include the `status` column from the pivot table
-            ->withTimestamps();  // Include timestamps if present in the pivot table
-    }
     public function professor()
     {
         return $this->hasOne(Professor::class);
@@ -113,6 +107,12 @@ class User extends Authenticatable
     public function student()
     {
         return $this->hasOne(Student::class, 'user_id');
+    }
+
+    // Add to User model
+    public function practiceAssessments()
+    {
+        return $this->hasMany(StudentPracticeAssessment::class, 'student_id');
     }
 
 

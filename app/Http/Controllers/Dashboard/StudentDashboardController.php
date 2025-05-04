@@ -32,6 +32,8 @@ class StudentDashboardController extends Controller
         
         // Get performance metrics
         $performanceMetrics = $this->getPerformanceMetrics($student);
+
+        dd($performanceMetrics);
         
         return inertia('Dashboard/StudentDashboard', [
             'student' => $student,
@@ -94,22 +96,46 @@ class StudentDashboardController extends Controller
      */
     protected function getPerformanceMetrics(User $student)
     {
-        // Get average score across all assessments
-        $examScores = StudentAssessment::where('user_id', $student->id)
-            ->whereNotNull('score')
-            ->pluck('score')
-            ->toArray();
-            
-        $practiceScores = StudentPracticeAssessment::whereHas('results')
+        // 1. Calculate weighted scores for REGULAR assessments
+        $regularAssessments = StudentAssessment::with('result')
+        ->where('user_id', $student->id)
+        ->whereNotNull('completed_at')
+        ->get();
+
+        $regularTotalScore = 0;
+        $regularTotalQuestions = 0;
+
+        foreach ($regularAssessments as $assessment) {
+            if ($assessment->result) {
+                $regularTotalScore += $assessment->result->correct_answers;
+                $regularTotalQuestions += $assessment->result->total_questions;
+            }
+        }
+
+        // 2. Calculate weighted scores for PRACTICE assessments
+        $practiceAssessments = StudentPracticeAssessment::with('results')
             ->where('student_id', $student->id)
-            ->with('results')
-            ->get()
-            ->pluck('results.score')
-            ->toArray();
-            
-        $allScores = array_merge($examScores, $practiceScores);
-        
-        $averageScore = count($allScores) > 0 ? array_sum($allScores) / count($allScores) : 0;
+            ->whereNotNull('submitted_at')
+            ->get();
+
+        $practiceTotalScore = 0;
+        $practiceTotalQuestions = 0;
+
+        foreach ($practiceAssessments as $assessment) {
+            if ($assessment->results) {
+                $practiceTotalScore += $assessment->results->correct_answers;
+                $practiceTotalQuestions += ($assessment->results->correct_answers + $assessment->results->incorrect_answers);
+            }
+        }
+
+        // 3. Combine totals
+        $combinedTotalScore = $regularTotalScore + $practiceTotalScore;
+        $combinedTotalQuestions = $regularTotalQuestions + $practiceTotalQuestions;
+
+        // 4. Calculate true average percentage
+        $averageScore = $combinedTotalQuestions > 0 
+        ? ($combinedTotalScore / $combinedTotalQuestions) * 100 
+        : 0;
         
         // Get proficiency distribution
         $proficiencyDistribution = StudentTopicProficiency::where('student_id', $student->id)

@@ -37,7 +37,6 @@ class StudentResult extends Model
     }
 
 
-
     public function studentAssessment(){
         return $this->belongsTo(StudentAssessment::class);
     }
