@@ -1,4 +1,5 @@
 import {
+    LayoutDashboard,
     FileQuestion,
     ClipboardList,
     Users,
@@ -8,6 +9,18 @@ import {
 } from "lucide-react";
 
 const programHeadMenu = [
+    {
+        section: "Dashboard",
+        details: [
+            {
+                title: "Dashboard",
+                icon: <LayoutDashboard size={26} />,
+                items: [
+                    { label: "Dashboard", href: "/dashboard", key: 13 },
+                ],
+            },
+        ],
+    },
     {
         section: "Question",
         details: [
