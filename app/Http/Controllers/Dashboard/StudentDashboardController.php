@@ -145,11 +145,20 @@ class StudentDashboardController extends Controller
             ->pluck('count', 'proficiency_level');
             
         // Get assessment completion rate - UPDATED TO USE user_id INSTEAD OF student_id
-        $totalAssessments = $student->assessments()->count();
-        $completedAssessments = StudentAssessment::where('user_id', $student->id)
+        //FIXED: Get assessment completion rate
+        $totalRegularAssessments = $student->studentAssessments()->count();
+        $completedRegularAssessments = $student->studentAssessments()
             ->whereNotNull('completed_at')
             ->count();
             
+        $totalPracticeAssessments = StudentPracticeAssessment::where('student_id', $student->id)->count();
+        $completedPracticeAssessments = StudentPracticeAssessment::where('student_id', $student->id)
+            ->whereNotNull('submitted_at')
+            ->count();
+            
+        $totalAssessments = $totalRegularAssessments + $totalPracticeAssessments;
+        $completedAssessments = $completedRegularAssessments + $completedPracticeAssessments;
+        
         $completionRate = $totalAssessments > 0 
             ? ($completedAssessments / $totalAssessments) * 100 
             : 0;
@@ -159,6 +168,12 @@ class StudentDashboardController extends Controller
             'proficiency_distribution' => $proficiencyDistribution,
             'assessment_completion_rate' => round($completionRate, 2),
             'total_assessments_taken' => $completedAssessments,
+            'breakdown' => [
+                'regular_completed' => $completedRegularAssessments,
+                'practice_completed' => $completedPracticeAssessments,
+                'regular_total' => $totalRegularAssessments,
+                'practice_total' => $totalPracticeAssessments,
+            ]
         ];
     }
 }
