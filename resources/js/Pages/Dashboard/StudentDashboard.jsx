@@ -1,143 +1,164 @@
-import React from "react";
-import { usePage } from "@inertiajs/react";
+import { useState } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/misc/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/misc/ui/tabs"
+import { PerformanceMetrics } from "../../components/Dashboard/StudentDashboard/PerformanceMetrics"
+import { RecentAssessments } from "../../components/Dashboard/StudentDashboard/RecentAssessment"
+import { ProficiencyChart } from "../../components/Dashboard/StudentDashboard/ProficiencyChart"
+import { SubjectSelector } from "../../components/Dashboard/StudentDashboard/SubjectSelector"
+import { BookOpen, GraduationCap, BarChart, Clock } from "lucide-react"
+import { usePage } from "@inertiajs/react"
 
-const StudentDashboard = (
+export default function StudentDashboard() {
+  // Accessing data passed from the backend via Inertia
+  const {
     student,
     recentAssessments,
     proficiencyData,
     performanceMetrics,
     subjects,
-    selectedSubject
-) => {
-    return (
-        <div className="p-6 bg-gray-100 min-h-screen">
-            <div className="bg-white rounded-lg shadow p-4 flex justify-between items-center mb-6">
-                <div>
-                    <h1 className="text-xl font-bold">
-                        PARS – Student’s Learning Space
-                    </h1>
-                    <p className="text-gray-600">{student.name}</p>
-                    <p className="text-sm text-gray-500">{student.email}</p>
-                </div>
-                <div>
-                    <span className="font-medium">
-                        ID: {student.student_id}
-                    </span>
-                </div>
-            </div>
+    selectedSubject,
+    auth,
+  } = usePage().props
 
-            <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="bg-white rounded-lg shadow p-4 text-center">
-                    <p className="text-gray-500">Average Score</p>
-                    <p className="text-2xl font-bold">
-                        {performanceMetrics.average_score}%
-                    </p>
-                </div>
-                <div className="bg-white rounded-lg shadow p-4 text-center">
-                    <p className="text-gray-500">Total Assessments Taken</p>
-                    <p className="text-2xl font-bold">
-                        {performanceMetrics.total_assessments_taken}
-                    </p>
-                </div>
-                <div className="bg-white rounded-lg shadow p-4 text-center">
-                    <p className="text-gray-500">Hours Logged In</p>
-                    <p className="text-2xl font-bold">56hrs</p>{" "}
-                    {/* Make this dynamic later */}
-                </div>
-            </div>
+  const user = auth.user
 
-            <div className="grid grid-cols-2 gap-6 mb-6">
-                {/* Exam Assessments */}
-                <div className="bg-white rounded-lg shadow p-4">
-                    <h2 className="font-semibold mb-2">
-                        Exam Assessment Tracker
-                    </h2>
-                    <table className="w-full text-left text-sm">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Score</th>
-                                <th>Subject</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {recentAssessments.examinations.map(
-                                (exam, index) => (
-                                    <tr key={index}>
-                                        <td>{exam.assessment?.title}</td>
-                                        <td>{exam.result?.score}</td>
-                                        <td>
-                                            {exam.assessment?.subject?.name}
-                                        </td>
-                                        <td>{exam.completed_at}</td>
-                                    </tr>
-                                )
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+  const [selectedSubjectState, setSelectedSubject] = useState(selectedSubject)
 
-                {/* Practice Assessments */}
-                <div className="bg-white rounded-lg shadow p-4">
-                    <h2 className="font-semibold mb-2">
-                        Practice Assessment Tracker
-                    </h2>
-                    <table className="w-full text-left text-sm">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Score</th>
-                                <th>Subject</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {recentAssessments.practices.map(
-                                (practice, index) => (
-                                    <tr key={index}>
-                                        <td>{practice.name}</td>
-                                        <td>{practice.results?.score}</td>
-                                        <td>{practice.subject?.name}</td>
-                                        <td>{practice.submitted_at}</td>
-                                    </tr>
-                                )
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div className="bg-white rounded-lg shadow p-4">
-                <h2 className="font-semibold mb-2">Proficiency Levels</h2>
-                <div className="mb-4">
-                    <label>Select Subject:</label>
-                    <select className="ml-2 border p-1 rounded">
-                        {subjects.map((subject) => (
-                            <option key={subject.id} value={subject.id}>
-                                {subject.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                {proficiencyData.map((topic, index) => (
-                    <div key={index} className="mb-2">
-                        <p className="text-sm font-medium">
-                            {topic.topic?.name}
-                        </p>
-                        <div className="w-full bg-gray-200 rounded-full h-3">
-                            <div
-                                className="bg-green-500 h-3 rounded-full"
-                                style={{ width: `${topic.proficiency_level}%` }}
-                            />
-                        </div>
-                        <p className="text-xs text-gray-500">
-                            Level: Intermediate
-                        </p>
-                    </div>
-                ))}
-            </div>
+  // Filter proficiency data by selected subject
+  const filteredProficiencyData = selectedSubjectState
+    ? proficiencyData.filter((item) => item.topic.subject.name === selectedSubjectState)
+    : proficiencyData
+
+  return (
+    <div className="flex min-h-screen flex-col">
+      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+        <div className="flex items-center justify-between space-y-2">
+          <h2 className="text-3xl font-medium tracking-tight">{user.full_name} - Dashboard</h2>
+          <div className="flex items-center space-x-2">
+            <SubjectSelector
+              subjects={subjects}
+              selectedSubject={selectedSubjectState}
+              onSelectSubject={(subject) => setSelectedSubject(subject)}
+            />
+          </div>
         </div>
-    );
-};
 
-export default StudentDashboard;
+        <Tabs defaultValue="overview" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="assessments">Assessments</TabsTrigger>
+            <TabsTrigger value="proficiency">Proficiency</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Average Score</CardTitle>
+                  <BarChart className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{performanceMetrics.average_score}%</div>
+                  <p className="text-xs text-muted-foreground">Across all assessments</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{performanceMetrics.assessment_completion_rate}%</div>
+                  <p className="text-xs text-muted-foreground">Of assigned assessments</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Assessments Taken</CardTitle>
+                  <BookOpen className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{performanceMetrics.total_assessments_taken}</div>
+                  <p className="text-xs text-muted-foreground">Total completed assessments</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Proficiency Level</CardTitle>
+                  <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {Object.entries(performanceMetrics.proficiency_distribution).reduce(
+                      (max, [level, count]) => (Number.parseInt(level) > max ? Number.parseInt(level) : max),
+                      0,
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">Most common proficiency level</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+              <Card className="col-span-4">
+                <CardHeader>
+                  <CardTitle>Performance Metrics</CardTitle>
+                </CardHeader>
+                <CardContent className="pl-2">
+                  <PerformanceMetrics metrics={performanceMetrics} />
+                </CardContent>
+              </Card>
+
+              <Card className="col-span-3">
+                <CardHeader>
+                  <CardTitle>Recent Assessments</CardTitle>
+                  <CardDescription>Your most recent examination and practice assessments</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <RecentAssessments
+                    examinations={recentAssessments.examinations.slice(0, 3)}
+                    practices={recentAssessments.practices.slice(0, 3)}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="assessments" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>All Assessments</CardTitle>
+                <CardDescription>View all your completed and pending assessments</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <RecentAssessments
+                  examinations={recentAssessments.examinations}
+                  practices={recentAssessments.practices}
+                  showAll={true}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="proficiency" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Topic Proficiency</CardTitle>
+                <CardDescription>
+                  Your proficiency levels across different topics
+                  {selectedSubjectState && ` in ${selectedSubjectState}`}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pl-2">
+                <ProficiencyChart proficiencyData={filteredProficiencyData} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  )
+}
