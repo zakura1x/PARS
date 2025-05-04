@@ -17,6 +17,7 @@ class StudentTopicProficiency extends Model
         'average_score',
         'attempts',
         'proficiency_level',
+        'proficiency_category',
         'grade',
     ];
 

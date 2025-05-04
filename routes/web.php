@@ -7,6 +7,7 @@ use App\Http\Controllers\Assessment\AssessmentGradeController;
 use App\Http\Controllers\Assessment\AssessmentSubmissionController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Dashboard\ProgramHeadDashboardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PracticeAssessment\GeneratePracticeAssessmentController;
 use App\Http\Controllers\ProfileManagementController;
@@ -18,8 +19,6 @@ use App\Http\Controllers\StudyMaterialController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TableOfSpecificationController;
 use App\Http\Controllers\TopicGradingCriteriaController;
-use App\Http\Controllers\UserManagementController;
-use App\Http\Controllers\TopicMasterController;
 use App\Http\Controllers\TopicsController;
 use App\Http\Middleware\RoleMiddleware;
 use App\Models\Student;
@@ -46,7 +45,7 @@ Route::middleware(['auth'])->group(function(){
 
 Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(function () {
 
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [ProgramHeadDashboardController::class, 'index'])->name('dashboard');
 
     //SUBJECT MANAGEMENT
     Route::get('/subjectList', [SubjectController::class, 'index'])->name('subjectList');
