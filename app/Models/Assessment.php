@@ -22,7 +22,7 @@ class Assessment extends Model
         'access_code',
         'approved',
         'approved_by',
-        'rejection_reason',
+        'comment',
         'time_limit',
         'started_at',
         'ended_at',

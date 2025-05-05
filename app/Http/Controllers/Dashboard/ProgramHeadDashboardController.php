@@ -23,7 +23,7 @@ class ProgramHeadDashboardController extends Controller
         
         // 2. Assessments needing approval
         $assessmentsNeedingApproval = Assessment::where('approved', false)
-            ->whereNull('rejection_reason')
+            ->whereNull('comment')
             ->count();
 
         // 3. High proficiency students (advanced in all assessed topics)
