@@ -127,6 +127,18 @@ class User extends Authenticatable
         );
     }
 
+    public function assessments()
+    {
+        return $this->belongsToMany(Assessment::class, 'student_assessments')
+                    ->withPivot('status')
+                    ->withTimestamps();
+    }
+
+    public function assessmentResults()
+    {
+        return $this->hasMany(StudentAssessment::class, 'user_id');
+    }
+
 
 
 }

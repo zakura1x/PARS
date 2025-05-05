@@ -26,6 +26,11 @@ class StudentAssessment extends Model
         'shuffled_options' => 'array',
     ];
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function questions()
     {
         return $this->hasMany(StudentAssessmentQuestion::class, 'student_assessment_id');

@@ -90,19 +90,21 @@ class ProgramHeadDashboardController extends Controller
             });
 
         // 9. Students with their average scores (limited for dashboard)
-        $studentsWithAverages = User::with(['student', 'topicProficiencies'])
+        $studentsWithAverages = User::whereNull('deleted_at')
+            ->with(['student', 'topicProficiencies', 'assessmentResults.result'])
             ->whereHas('student')
-            ->withCount(['assessments as completed_assessments' => function($q) {
-                $q->whereHas('result');
+            ->withCount(['assessmentResults as completed_assessments' => function($q) {
+                $q->whereNotNull('completed_at')
+                ->whereHas('result');
             }])
             ->orderByDesc('completed_assessments')
-            ->take(10) // Limit to top 10 most active students for dashboard
+            ->take(10)
             ->get()
             ->map(function($user) {
                 $totalScore = 0;
                 $totalQuestions = 0;
                 
-                foreach ($user->assessments as $assessment) {
+                foreach ($user->assessmentResults as $assessment) {
                     if ($assessment->result) {
                         $totalScore += $assessment->result->correct_answers;
                         $totalQuestions += $assessment->result->total_questions;
@@ -186,14 +188,15 @@ class ProgramHeadDashboardController extends Controller
     // Separate endpoint if you need full student averages (not just top 10)
     public function studentAverages()
     {
-        $studentsWithAverages = User::with(['student', 'assessments.result'])
+        $studentsWithAverages = User::whereNull('deleted_at')
+            ->with(['student', 'assessmentResults.result'])
             ->whereHas('student')
             ->get()
             ->map(function($user) {
                 $totalScore = 0;
                 $totalQuestions = 0;
                 
-                foreach ($user->assessments as $assessment) {
+                foreach ($user->assessmentResults as $assessment) {
                     if ($assessment->result) {
                         $totalScore += $assessment->result->correct_answers;
                         $totalQuestions += $assessment->result->total_questions;
