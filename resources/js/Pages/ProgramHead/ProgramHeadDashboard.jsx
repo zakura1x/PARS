@@ -1,15 +1,15 @@
 import React from "react";
 
-const ProgramHeadDashboard = (
+const ProgramHeadDashboard = ({
     metrics,
     recentAssessments,
     studentPerformance,
-    proficiencyDistribution
-) => {
-    console.log(metrics);
-    console.log(recentAssessments);
-    console.log(studentPerformance);
-    console.log(proficiencyDistribution);
+    proficiencyDistribution,
+}) => {
+    console.log("Metrics:", metrics);
+    console.log("Recent Assessments:", recentAssessments);
+    console.log("Student Performance:", studentPerformance);
+    console.log("Proficiency Distribution:", proficiencyDistribution);
 
     return <div>ProgramHeadDashboard</div>;
 };
