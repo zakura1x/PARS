@@ -35,6 +35,11 @@ class Topics extends Model
     {
         return $this->hasMany(StudyMaterial::class, 'topic_id');
     }
+    
+    public function studentProficiencies()
+    {
+        return $this->hasMany(StudentTopicProficiency::class, 'topic_id');
+    }
 
     public function proficiency()
     {

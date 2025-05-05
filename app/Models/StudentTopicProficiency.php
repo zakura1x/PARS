@@ -21,8 +21,9 @@ class StudentTopicProficiency extends Model
         'grade',
     ];
 
-    public function student() {
-        return $this->belongsTo(User::class);
+    public function student()
+    {
+        return $this->belongsTo(Student::class, 'student_id', 'user_id');
     }
 
     public function topic(){

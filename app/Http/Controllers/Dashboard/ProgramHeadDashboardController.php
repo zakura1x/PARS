@@ -129,15 +129,33 @@ class ProgramHeadDashboardController extends Controller
             $subjectsWithProficiency = Subject::with(['topics' => function($query) {
                 $query->withCount([
                     'studentProficiencies as beginner_count' => function($q) {
-                        $q->where('proficiency_level', 'beginner');
+                        $q->whereHas('student', function($q) {
+                            $q->whereHas('user', function($q) {
+                                $q->whereNull('deleted_at');
+                            });
+                        })->where('proficiency_level', 'beginner');
                     },
                     'studentProficiencies as intermediate_count' => function($q) {
-                        $q->where('proficiency_level', 'intermediate');
+                        $q->whereHas('student', function($q) {
+                            $q->whereHas('user', function($q) {
+                                $q->whereNull('deleted_at');
+                            });
+                        })->where('proficiency_level', 'intermediate');
                     },
                     'studentProficiencies as advanced_count' => function($q) {
-                        $q->where('proficiency_level', 'advanced');
+                        $q->whereHas('student', function($q) {
+                            $q->whereHas('user', function($q) {
+                                $q->whereNull('deleted_at');
+                            });
+                        })->where('proficiency_level', 'advanced');
                     },
-                    'studentProficiencies as total_count' // total assessments for this topic
+                    'studentProficiencies as total_count' => function($q) {
+                        $q->whereHas('student', function($q) {
+                            $q->whereHas('user', function($q) {
+                                $q->whereNull('deleted_at');
+                            });
+                        });
+                    }
                 ]);
             }])
             ->get()
@@ -157,7 +175,12 @@ class ProgramHeadDashboardController extends Controller
                                 'beginner_percentage' => $topic->total_count > 0 
                                     ? round(($topic->beginner_count / $topic->total_count) * 100, 2)
                                     : 0,
-                                // similarly for other percentages if needed
+                                'intermediate_percentage' => $topic->total_count > 0 
+                                    ? round(($topic->intermediate_count / $topic->total_count) * 100, 2)
+                                    : 0,
+                                'advanced_percentage' => $topic->total_count > 0 
+                                    ? round(($topic->advanced_count / $topic->total_count) * 100, 2)
+                                    : 0,
                             ]
                         ];
                     })
