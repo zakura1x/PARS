@@ -37,8 +37,11 @@ export default function ProgramHeadDashboard({
                     const response = await fetch(
                         `/dashboard/proficiency/student/${selectedSubject}`
                     );
+                    if (!response.ok) {
+                        throw new Error("Failed to fetch proficiency data");
+                    }
                     const data = await response.json();
-                    setSubjectProficiency(data.topics || []);
+                    setSubjectProficiency(data);
                 } catch (error) {
                     console.error("Error fetching subject proficiency:", error);
                     setSubjectProficiency([]);
@@ -55,9 +58,9 @@ export default function ProgramHeadDashboard({
                     const dist = topic.proficiency_distribution;
                     initialProficiencyData.push({
                         topic: topic.topic_name,
-                        beginner: dist.beginner,
-                        intermediate: dist.intermediate,
-                        advanced: dist.advanced,
+                        beginner: dist.beginner_percentage,
+                        intermediate: dist.intermediate_percentage,
+                        advanced: dist.advanced_percentage,
                     });
                 });
             });
