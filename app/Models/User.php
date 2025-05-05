@@ -115,6 +115,18 @@ class User extends Authenticatable
         return $this->hasMany(StudentPracticeAssessment::class, 'student_id');
     }
 
+    public function topicProficiencies()
+    {
+        return $this->hasManyThrough(
+            StudentTopicProficiency::class,
+            Student::class,
+            'user_id', // Foreign key on students table
+            'student_id', // Foreign key on proficiencies table
+            'id', // Local key on users table
+            'id' // Local key on students table
+        );
+    }
+
 
 
 }

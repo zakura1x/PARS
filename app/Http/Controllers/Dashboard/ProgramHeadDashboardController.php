@@ -27,15 +27,13 @@ class ProgramHeadDashboardController extends Controller
             ->count();
 
         // 3. High proficiency students (advanced in all assessed topics)
-        $highProficiencyStudents = User::whereHas('student', function($query) {
-                $query->whereHas('topicProficiencies', function($q) {
-                    $q->where('proficiency_level', 'advanced');
-                });
-            })
+        $highProficiencyStudents = User::whereHas('topicProficiencies', function($q) {
+            $q->where('proficiency_level', 'advanced');
+        })
             ->withCount(['topicProficiencies as advanced_topics' => function($query) {
                 $query->where('proficiency_level', 'advanced');
             }])
-            ->withCount(['topicProficiencies as total_assessed_topics'])
+            ->withCount('topicProficiencies as total_assessed_topics')
             ->having('advanced_topics', '=', \DB::raw('total_assessed_topics'))
             ->count();
 
@@ -43,18 +41,18 @@ class ProgramHeadDashboardController extends Controller
         $totalStudents = Student::count();
 
         // 5. Students needing intervention (comprehensive approach)
-        $studentsNeedingIntervention = User::whereHas('student', function($query) use ($totalTopicsCount) {
-                $interventionThreshold = max(3, $totalTopicsCount * 0.3); // At least 3 or 30% of topics
-                
-                $query->whereHas('topicProficiencies', function($q) {
-                        $q->where('proficiency_level', 'beginner');
-                    })
-                    ->orWhereHas('topicProficiencies', function($q) use ($interventionThreshold) {
-                        $q->groupBy('student_id')
-                         ->havingRaw('COUNT(*) < ?', [$interventionThreshold]);
-                    });
-            })
-            ->count();
+        $studentsNeedingIntervention = User::where(function($query) use ($totalTopicsCount) {
+            $interventionThreshold = max(3, $totalTopicsCount * 0.3);
+            
+            $query->whereHas('topicProficiencies', function($q) {
+                    $q->where('proficiency_level', 'beginner');
+                })
+                ->orWhereHas('topicProficiencies', function($q) use ($interventionThreshold) {
+                    $q->groupBy('student_id')
+                     ->havingRaw('COUNT(*) < ?', [$interventionThreshold]);
+                });
+        })
+        ->count();
 
         // 6. Active staff counts
         $activeProfessors = Professor::whereHas('user', fn($q) => $q->where('is_active', true))->count();

@@ -30,4 +30,9 @@ class Student extends Model
     public function assessments() {
         return $this->belongsToMany(Assessment::class, 'student_assessments');
     }
+
+    public function topicProficiencies()
+    {
+        return $this->hasMany(StudentTopicProficiency::class, 'student_id', 'user_id');
+    }
 }
