@@ -1,4 +1,4 @@
-function StudentListTable({ students, onViewStudent }) {
+export default function StudentListTable({ students, onViewStudent }) {
     return (
         <div className="card bg-base-200 shadow-xl">
             <div className="card-body">
