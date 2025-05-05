@@ -49,6 +49,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::get('/dashboard', [ProgramHeadDashboardController::class, 'index'])->name('dashboard');
     Route::get('/pending-assessments', [ProgramHeadDashboardController::class, 'getPendingAssessments']);
     Route::get('/dashboard/proficiency/student/{subjectId}', [ProgramHeadDashboardController::class, 'getProficiencyBySubject'])->name('get-proficiency-subject');
+    Route::get('/dashboard/student/{studentId}', [StudentDashboardController::class, 'index']);
 
     //SUBJECT MANAGEMENT
     Route::get('/subjectList', [SubjectController::class, 'index'])->name('subjectList');

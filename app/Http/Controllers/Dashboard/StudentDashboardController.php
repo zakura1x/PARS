@@ -16,9 +16,10 @@ class StudentDashboardController extends Controller
     /**
      * Display the student dashboard
      */
-    public function index(Request $request)
+    public function index(Request $request, $studentId = null)
     {
-        $student = Auth::user();
+        // If studentId is provided, use that, otherwise use authenticated user
+        $student = $studentId ? User::findOrFail($studentId) : Auth::user();
         
         // Get all subjects for the dropdown
         $subjects = Subject::all();
@@ -33,8 +34,6 @@ class StudentDashboardController extends Controller
         // Get performance metrics
         $performanceMetrics = $this->getPerformanceMetrics($student);
 
-        //dd($performanceMetrics);
-        
         return inertia('Dashboard/StudentDashboard', [
             'student' => $student,
             'recentAssessments' => $recentAssessments,
@@ -42,6 +41,7 @@ class StudentDashboardController extends Controller
             'performanceMetrics' => $performanceMetrics,
             'subjects' => $subjects,
             'selectedSubject' => $selectedSubject,
+            'isViewingAsAdmin' => $studentId !== null, // Add flag to indicate admin view
         ]);
     }
     

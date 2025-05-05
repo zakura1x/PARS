@@ -5,6 +5,7 @@ import StudentPerformanceTable from "../../components/Dashboard/ProgramHead&Dean
 import ExamAssessmentTracker from "../../components/Dashboard/ProgramHead&DeanDashboard/ExamAssessmentTracker";
 import StudentListTable from "../../components/Dashboard/ProgramHead&DeanDashboard/StudentListTable";
 import AssessmentApprovalsTable from "../../components/Dashboard/ProgramHead&DeanDashboard/AssessmentApprovalsTable";
+import StudentDashboard from "../Dashboard/StudentDashboard";
 
 export default function ProgramHeadDashboard({
     metrics,
@@ -17,6 +18,8 @@ export default function ProgramHeadDashboard({
     const [selectedSubject, setSelectedSubject] = useState(null);
     const [subjectProficiency, setSubjectProficiency] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [viewingStudentId, setViewingStudentId] = useState(null);
+    const [studentDashboardData, setStudentDashboardData] = useState(null);
 
     const stats = {
         pendingApprovals: metrics.assessmentsNeedingApproval,
@@ -26,6 +29,29 @@ export default function ProgramHeadDashboard({
         activeProfessors: metrics.activeProfessors,
         programHeads: metrics.activeProgramHeads,
         deans: metrics.activeDeans,
+    };
+
+    const handleViewStudent = async (studentId) => {
+        try {
+            setLoading(true);
+            const response = await fetch(`/dashboard/student/${studentId}`);
+            if (!response.ok) {
+                throw new Error("Failed to fetch student dashboard data");
+            }
+            const data = await response.json();
+            setStudentDashboardData(data);
+            setViewingStudentId(studentId);
+        } catch (error) {
+            console.error("Error fetching student dashboard:", error);
+            // Handle error (show toast, etc.)
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleBackToDashboard = () => {
+        setViewingStudentId(null);
+        setStudentDashboardData(null);
     };
 
     // Fetch proficiency data when subject changes
@@ -88,6 +114,28 @@ export default function ProgramHeadDashboard({
         submissions: null,
     }));
 
+    if (viewingStudentId && studentDashboardData) {
+        return (
+            <div className="container mx-auto p-4">
+                <button
+                    onClick={handleBackToDashboard}
+                    className="btn btn-primary mb-4"
+                >
+                    ← Back to Program Dashboard
+                </button>
+                <StudentDashboard
+                    student={studentDashboardData.student}
+                    recentAssessments={studentDashboardData.recentAssessments}
+                    proficiencyData={studentDashboardData.proficiencyData}
+                    performanceMetrics={studentDashboardData.performanceMetrics}
+                    subjects={studentDashboardData.subjects}
+                    selectedSubject={studentDashboardData.selectedSubject}
+                    isViewingAsAdmin={true}
+                />
+            </div>
+        );
+    }
+
     return (
         <div className="container mx-auto p-4">
             <StatsCards stats={stats} />
@@ -131,7 +179,10 @@ export default function ProgramHeadDashboard({
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
-                <StudentListTable students={students} />
+                <StudentListTable
+                    students={students}
+                    onViewStudent={handleViewStudent}
+                />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
                 <AssessmentApprovalsTable
