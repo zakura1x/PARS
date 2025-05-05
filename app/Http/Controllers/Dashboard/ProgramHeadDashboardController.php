@@ -38,7 +38,9 @@ class ProgramHeadDashboardController extends Controller
             ->count();
 
         // 4. Total enrolled students
-        $totalStudents = Student::count();
+        $totalStudents = Student::whereHas('user', function($q) {
+            $q->whereNull('deleted_at');
+        })->count();
 
         // 5. Students needing intervention (comprehensive approach)
         $studentsNeedingIntervention = User::where(function($query) use ($totalTopicsCount) {
@@ -54,10 +56,18 @@ class ProgramHeadDashboardController extends Controller
         })
         ->count();
 
-        // 6. Active staff counts
-        $activeProfessors = Professor::whereHas('user', fn($q) => $q->where('is_active', true))->count();
-        $activeProgramHeads = ProgramHead::whereHas('user', fn($q) => $q->where('is_active', true))->count();
-        $activeDeans = Dean::whereHas('user', fn($q) => $q->where('is_active', true))->count();
+        // 6. Active staff counts - only non-deleted
+        $activeProfessors = Professor::whereHas('user', function($q) {
+            $q->whereNull('deleted_at')->where('is_active', true);
+        })->count();
+        
+        $activeProgramHeads = ProgramHead::whereHas('user', function($q) {
+                $q->whereNull('deleted_at')->where('is_active', true);
+            })->count();
+            
+        $activeDeans = Dean::whereHas('user', function($q) {
+                $q->whereNull('deleted_at')->where('is_active', true);
+            })->count();
 
         // 7. Assessment status counts
         $completedAssessmentsCount = Assessment::where('status', 'completed')->count();
