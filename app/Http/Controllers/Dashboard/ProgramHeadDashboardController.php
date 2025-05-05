@@ -20,9 +20,10 @@ class ProgramHeadDashboardController extends Controller
     {
         // 1. Get counts of all topics in the system
         $totalTopicsCount = Topics::count();
-        
+
         // 2. Assessments needing approval
         $assessmentsNeedingApproval = Assessment::where('approved', false)
+            ->where('status', 'pending')
             ->whereNull('comment')
             ->count();
 
@@ -45,7 +46,7 @@ class ProgramHeadDashboardController extends Controller
         // 5. Students needing intervention (comprehensive approach)
         $studentsNeedingIntervention = User::where(function($query) use ($totalTopicsCount) {
             $interventionThreshold = max(3, $totalTopicsCount * 0.3);
-            
+
             $query->whereHas('topicProficiencies', function($q) {
                     $q->where('proficiency_level', 'beginner');
                 })
@@ -58,13 +59,13 @@ class ProgramHeadDashboardController extends Controller
 
         // 6. Active staff counts - only non-deleted
         $activeProfessors = Professor::whereHas('user', function($q) {
-            $q->whereNull('deleted_at');
+            $q->whereNull('deleted_at')->where('role', 'professor');
         })->count();
-        
+
         $activeProgramHeads = ProgramHead::whereHas('user', function($q) {
                 $q->whereNull('deleted_at');
             })->count();
-            
+
         $activeDeans = Dean::whereHas('user', function($q) {
                 $q->whereNull('deleted_at');
             })->count();
@@ -103,18 +104,18 @@ class ProgramHeadDashboardController extends Controller
             ->map(function($user) {
                 $totalScore = 0;
                 $totalQuestions = 0;
-                
+
                 foreach ($user->assessmentResults as $assessment) {
                     if ($assessment->result) {
                         $totalScore += $assessment->result->correct_answers;
                         $totalQuestions += $assessment->result->total_questions;
                     }
                 }
-                
-                $averageScore = $totalQuestions > 0 
+
+                $averageScore = $totalQuestions > 0
                     ? round(($totalScore / $totalQuestions) * 100, 2)
                     : 0;
-                
+
                 return [
                     'id' => $user->id,
                     'name' => $user->full_name,
@@ -172,13 +173,13 @@ class ProgramHeadDashboardController extends Controller
                                 'intermediate' => $topic->intermediate_count,
                                 'advanced' => $topic->advanced_count,
                                 'total' => $topic->total_count,
-                                'beginner_percentage' => $topic->total_count > 0 
+                                'beginner_percentage' => $topic->total_count > 0
                                     ? round(($topic->beginner_count / $topic->total_count) * 100, 2)
                                     : 0,
-                                'intermediate_percentage' => $topic->total_count > 0 
+                                'intermediate_percentage' => $topic->total_count > 0
                                     ? round(($topic->intermediate_count / $topic->total_count) * 100, 2)
                                     : 0,
-                                'advanced_percentage' => $topic->total_count > 0 
+                                'advanced_percentage' => $topic->total_count > 0
                                     ? round(($topic->advanced_count / $topic->total_count) * 100, 2)
                                     : 0,
                             ]
@@ -199,12 +200,17 @@ class ProgramHeadDashboardController extends Controller
                 'activeProgramHeads' => $activeProgramHeads,
                 'activeDeans' => $activeDeans,
                 'completedAssessments' => $completedAssessmentsCount,
-                'pendingAssessments' => $pendingAssessmentsCount,
                 'totalTopics' => $totalTopicsCount,
+                'pendingAssessments' => $pendingAssessmentsCount,
             ],
             'recentAssessments' => $recentCompletedAssessments,
             'studentPerformance' => $studentsWithAverages,
             'proficiencyDistribution' => $subjectsWithProficiency,
+            'pendingAssessmentsList' => Assessment::where('status', 'pending')
+                ->where('approved', false)
+                ->whereNull('comment')
+                ->with(['subject', 'creator'])
+                ->get(),
         ]);
     }
 
@@ -218,18 +224,18 @@ class ProgramHeadDashboardController extends Controller
             ->map(function($user) {
                 $totalScore = 0;
                 $totalQuestions = 0;
-                
+
                 foreach ($user->assessmentResults as $assessment) {
                     if ($assessment->result) {
                         $totalScore += $assessment->result->correct_answers;
                         $totalQuestions += $assessment->result->total_questions;
                     }
                 }
-                
-                $averageScore = $totalQuestions > 0 
+
+                $averageScore = $totalQuestions > 0
                     ? round(($totalScore / $totalQuestions) * 100, 2)
                     : 0;
-                
+
                 return [
                     'id' => $user->id,
                     'name' => $user->full_name,

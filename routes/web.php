@@ -46,6 +46,7 @@ Route::middleware(['auth'])->group(function(){
 Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(function () {
 
     Route::get('/dashboard', [ProgramHeadDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/pending-assessments', [ProgramHeadDashboardController::class, 'getPendingAssessments']);
 
     //SUBJECT MANAGEMENT
     Route::get('/subjectList', [SubjectController::class, 'index'])->name('subjectList');
@@ -58,7 +59,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::post('/topics/{subjectId}/store', [TopicsController::class, 'store'])->name('topics.store');
     Route::post('/topics/reorder/{subjectId}', [TopicsController::class, 'reorderTopics'])->name('topics.reorder');
     Route::get('/topics/edit/{subjectId}', [TopicsController::class, 'editView'])->name('topics.edit');
-    
+
 
     //Question Management
     Route::get('/questionBank', [QuestionController::class, 'index'])->name('questionIndex');
@@ -100,7 +101,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::get('/table-of-specification/forms/{subjectId}', [TableOfSpecificationController::class, 'createOrEditForm'])->name('tos.form');
     Route::post('/table-of-specification/save/form', [TableOfSpecificationController::class, 'store'])->name('tos.store');
     Route::get('/table-of-specification/view/{subjectId}', [TableOfSpecificationController::class, 'show'])->name('tos.show');
-    
+
     //Assessment Generator Form
     Route::get('/assessment/generator/form/exam', [AssessmentCreateController::class, 'create'])->name('assessment-generator.form');
     //Assessment Store
@@ -112,7 +113,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
 
     //Assessment
     Route::get('/assessment/index/program-head', [AssessmentController::class, 'indexForProf'])->name('assessment-PH.index');
-    
+
     //Approval Form
     Route::get('/assessment/approval/form/{assessmentId}', [AssessmentController::class, 'assessmentApprovalForm'])->name('assessment-approval.form');
     //Update the title of the assessment
@@ -122,7 +123,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::put('/assessment/update/approval/{assessmentId}', [AssessmentSubmissionController::class,'submitForApproval'])->name('assessment-update.approval');
     //Replace the question by the program head
     Route::post('/assessment/replace/question/program-head/{questionId}/{assessmentId}', [AssessmentApprovalController::class, 'replaceQuestionByProgramHead'])->name('question.replace.program-head');
-    
+
     //Approve the assessment
     Route::post('/assessment/update/approve/{assessmentId}', [AssessmentApprovalController
     ::class,'approveAssessment'])->name('assessment.approve');
@@ -148,7 +149,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
 
 Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function () {
     Route::get('/dashboard/student', [StudentDashboardController::class, 'index'])->name('students.dashboard');
-    
+
     //Practice Assessment
     Route::get('/student-practice-assessments/index', [StudentPracticeAssessmentController::class, 'index'])->name('practice-assessment-generator.index');
     Route::get('/student-practice-assessments/generator/form', [GeneratePracticeAssessmentController::class, 'create'])->name('practice-assessment-generator.form');
