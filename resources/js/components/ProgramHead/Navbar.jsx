@@ -1,4 +1,4 @@
-import React from "react";
+
 import { Link, usePage } from "@inertiajs/react";
 
 const Navbar = ({ toggleSidebar }) => {
@@ -15,7 +15,7 @@ const Navbar = ({ toggleSidebar }) => {
     const mappedRole = roles[userRole];
 
     return (
-        <div className="navbar py-4 bg-gray-100 transition-all duration-300 ease-in-out w-[100%] shadow-lg justify-between lg:sticky">
+        <div className="navbar py-4 bg-gray-100 transition-all duration-300 ease-in-out w-[100%] shadow-lg justify-between lg:sticky z-20">
             {/* Hamburger Button */}
             <button
                 className="block rounded-sm border border-stroke bg-white p-1.5 shadow-sm lg:hidden"
@@ -46,7 +46,7 @@ const Navbar = ({ toggleSidebar }) => {
                     </h2>
                     <p className="text-xs text-slate-600">{auth.user.email}</p>
                 </div>
-                <div className="dropdown dropdown-end">
+                <div className="dropdown dropdown-end relative">
                     <button className="btn btn-ghost btn-circle">
                         <svg
                             viewBox="0 0 24 24"
@@ -64,7 +64,7 @@ const Navbar = ({ toggleSidebar }) => {
                     </button>
                     <ul
                         tabIndex={0}
-                        className="mt-2 z-[1] p-2 shadow menu menu-sm dropdown-content bg-[#436850] rounded-box w-52 text-white"
+                        className="mt-2 z-50 p-2 shadow menu menu-sm dropdown-content bg-[#436850] rounded-box w-52 text-white absolute right-0"
                     >
                         <li>
                             <Link href="/profile">Profile</Link>
