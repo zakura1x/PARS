@@ -58,15 +58,15 @@ class ProgramHeadDashboardController extends Controller
 
         // 6. Active staff counts - only non-deleted
         $activeProfessors = Professor::whereHas('user', function($q) {
-            $q->whereNull('deleted_at')->where('is_active', true);
+            $q->whereNull('deleted_at');
         })->count();
         
         $activeProgramHeads = ProgramHead::whereHas('user', function($q) {
-                $q->whereNull('deleted_at')->where('is_active', true);
+                $q->whereNull('deleted_at');
             })->count();
             
         $activeDeans = Dean::whereHas('user', function($q) {
-                $q->whereNull('deleted_at')->where('is_active', true);
+                $q->whereNull('deleted_at');
             })->count();
 
         // 7. Assessment status counts
