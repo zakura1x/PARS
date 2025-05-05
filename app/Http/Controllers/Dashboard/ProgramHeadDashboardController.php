@@ -16,7 +16,7 @@ use Inertia\Inertia;
 
 class ProgramHeadDashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // 1. Get counts of all topics in the system
         $totalTopicsCount = Topics::count();
@@ -127,7 +127,10 @@ class ProgramHeadDashboardController extends Controller
 
             //10. Get all the students proficiency distribution
             // Get proficiency distribution per topic filtered by subject
-            $subjectsWithProficiency = Subject::with(['topics' => function($query) {
+            $subjectsWithProficiency = Subject::when($request->subject_id, function($query, $subjectId) {
+                $query->where('id', $subjectId);
+            })
+            ->with(['topics' => function($query) {
                 $query->withCount([
                     'studentProficiencies as beginner_count' => function($q) {
                         $q->whereHas('student', function($q) {
@@ -206,12 +209,80 @@ class ProgramHeadDashboardController extends Controller
             'recentAssessments' => $recentCompletedAssessments,
             'studentPerformance' => $studentsWithAverages,
             'proficiencyDistribution' => $subjectsWithProficiency,
+            'allSubjects' => Subject::all()->map(fn($s) => ['id' => $s->id, 'name' => $s->name]),
             'pendingAssessmentsList' => Assessment::where('status', 'pending')
                 ->where('approved', false)
                 ->whereNull('comment')
                 ->with(['subject', 'creator'])
                 ->get(),
         ]);
+    }
+
+    public function getProficiencyBySubject($subjectId)
+    {
+        $subjectWithProficiency = Subject::where('id', $subjectId)
+            ->with(['topics' => function($query) {
+                $query->withCount([
+                    'studentProficiencies as beginner_count' => function($q) {
+                        $q->whereHas('student', function($q) {
+                            $q->whereHas('user', function($q) {
+                                $q->whereNull('deleted_at');
+                            });
+                        })->where('proficiency_level', 'beginner');
+                    },
+                    'studentProficiencies as intermediate_count' => function($q) {
+                        $q->whereHas('student', function($q) {
+                            $q->whereHas('user', function($q) {
+                                $q->whereNull('deleted_at');
+                            });
+                        })->where('proficiency_level', 'intermediate');
+                    },
+                    'studentProficiencies as advanced_count' => function($q) {
+                        $q->whereHas('student', function($q) {
+                            $q->whereHas('user', function($q) {
+                                $q->whereNull('deleted_at');
+                            });
+                        })->where('proficiency_level', 'advanced');
+                    },
+                    'studentProficiencies as total_count' => function($q) {
+                        $q->whereHas('student', function($q) {
+                            $q->whereHas('user', function($q) {
+                                $q->whereNull('deleted_at');
+                            });
+                        });
+                    }
+                ]);
+            }])
+            ->get()
+            ->map(function($subject) {
+                return [
+                    'subject_id' => $subject->id,
+                    'subject_name' => $subject->name,
+                    'topics' => $subject->topics->map(function($topic) {
+                        return [
+                            'topic_id' => $topic->id,
+                            'topic_name' => $topic->name,
+                            'proficiency_distribution' => [
+                                'beginner' => $topic->beginner_count,
+                                'intermediate' => $topic->intermediate_count,
+                                'advanced' => $topic->advanced_count,
+                                'total' => $topic->total_count,
+                                'beginner_percentage' => $topic->total_count > 0
+                                    ? round(($topic->beginner_count / $topic->total_count) * 100, 2)
+                                    : 0,
+                                'intermediate_percentage' => $topic->total_count > 0
+                                    ? round(($topic->intermediate_count / $topic->total_count) * 100, 2)
+                                    : 0,
+                                'advanced_percentage' => $topic->total_count > 0
+                                    ? round(($topic->advanced_count / $topic->total_count) * 100, 2)
+                                    : 0,
+                            ]
+                        ];
+                    })
+                ];
+            });
+
+        return response()->json($subjectWithProficiency);
     }
 
     // Separate endpoint if you need full student averages (not just top 10)
@@ -248,51 +319,4 @@ class ProgramHeadDashboardController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
 }
