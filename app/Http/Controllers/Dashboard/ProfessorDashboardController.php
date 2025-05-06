@@ -212,10 +212,10 @@ class ProfessorDashboardController extends Controller
             });
 
             //dd($recentCompletedAssessments);
-            $count = Assessment::where('status', 'completed')
-                ->where('created_by', $userId)
-                ->count();
-            dd($count);
+            // $count = Assessment::where('status', 'completed')
+            //     ->where('created_by', $userId)
+            //     ->count();
+            // dd($count);
 
             
         
