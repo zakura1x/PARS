@@ -1,9 +1,10 @@
 import programHeadMenu from './programHeadMenu';
 import studentMenu from './studentMenu';
+import professorMenu from './professorMenu';
 
 const menuConfig = {
     program_head: programHeadMenu,
-    professor: [], // Add professor menu when available
+    professor: professorMenu, // Add professor menu when available
     dean: [], // Add dean menu when available
     student: studentMenu,
 };

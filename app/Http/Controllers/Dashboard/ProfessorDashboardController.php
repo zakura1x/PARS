@@ -9,7 +9,6 @@ use App\Models\Subject;
 use App\Models\Topics;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 
 class ProfessorDashboardController extends Controller
 {
@@ -213,7 +212,7 @@ class ProfessorDashboardController extends Controller
             });
 
             
-
+        
         return inertia('Dashboard/ProfessorDashboard', [
             'metrics' => [
                 'assessmentsNeedingApproval' => $assessmentsNeedingApproval,

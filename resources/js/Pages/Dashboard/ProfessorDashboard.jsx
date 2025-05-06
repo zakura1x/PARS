@@ -20,6 +20,9 @@ export default function ProfessorDashboard({
     const [loading, setLoading] = useState(false);
     const [viewingStudentId, setViewingStudentId] = useState(null);
     const [studentDashboardData, setStudentDashboardData] = useState(null);
+    const ProfessorDashboard = () => {
+        return <div>ProfessorDashboard</div>;
+    };
 
     // Modified stats object - removed faculty-related metrics
     const stats = {

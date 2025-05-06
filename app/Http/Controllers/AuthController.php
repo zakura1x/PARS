@@ -15,6 +15,8 @@ class AuthController extends Controller
     {
         if (Auth::check()) {
             $user = Auth::user();
+
+            //dd($user);
             if ($user->role === 'program_head') {
                 return redirect()->route('dashboard');
             } elseif ($user->role === 'student') {

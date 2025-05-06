@@ -16,6 +16,7 @@ const Layout = ({ children }) => {
         student: ProgramHeadLayout,
         faculty: ProgramHeadLayout,
         dean: ProgramHeadLayout,
+        professor: ProgramHeadLayout,
     };
 
     const UserLayout = roleBasedLayouts[auth.user.role] || DefaultLayout;
