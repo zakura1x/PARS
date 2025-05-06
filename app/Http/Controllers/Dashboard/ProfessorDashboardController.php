@@ -27,7 +27,7 @@ class ProfessorDashboardController extends Controller
         $assessmentsNeedingApproval = Assessment::where('approved', false)
             ->where('status', 'pending')
             ->whereNull('comment')
-            ->where('created_by', auth()->id())
+            ->where('created_by', $userId)  // Add this condition
             ->count();
 
         // 3. High proficiency students in professor's subjects (advanced in all assessed topics)
@@ -52,19 +52,12 @@ class ProfessorDashboardController extends Controller
             ->count();
 
         // 4. Total enrolled students in professor's subjects
-        $totalStudents = Student::whereHas('subjects', function($q) use ($professor) {
-            $q->where('professor_id', $professor->id);
-        })
-        ->whereHas('user', function($q) {
+        $totalStudents = Student::whereHas('user', function($q) {
             $q->whereNull('deleted_at');
-        })
-        ->count();
+        })->count();
 
         // 5. Students needing intervention in professor's subjects
-        $studentsNeedingIntervention = User::whereHas('student.subjects', function($q) use ($professor) {
-            $q->where('professor_id', $professor->id);
-        })
-        ->where(function($query) use ($totalTopicsCount) {
+        $studentsNeedingIntervention = User::where(function($query) use ($totalTopicsCount) {
             $interventionThreshold = max(3, $totalTopicsCount * 0.3);
 
             $query->whereHas('topicProficiencies', function($q) {
@@ -105,19 +98,11 @@ class ProfessorDashboardController extends Controller
 
         // 8. Students with their average scores in professor's subjects
         $studentsWithAverages = User::whereNull('deleted_at')
-            ->whereHas('student.subjects', function($q) use ($professor) {
-                $q->where('professor_id', $professor->id);
-            })
             ->with(['student', 'topicProficiencies', 'assessmentResults.result'])
             ->whereHas('student')
-            ->withCount(['assessmentResults as completed_assessments' => function($q) use ($professor) {
+            ->withCount(['assessmentResults as completed_assessments' => function($q) {
                 $q->whereNotNull('completed_at')
-                ->whereHas('result')
-                ->whereHas('assessment', function($q) use ($professor) {
-                    $q->whereHas('subject', function($q) use ($professor) {
-                        $q->where('professor_id', $professor->id);
-                    });
-                });
+                ->whereHas('result');
             }])
             ->orderByDesc('completed_assessments')
             ->take(10)
