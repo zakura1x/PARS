@@ -211,6 +211,8 @@ class ProfessorDashboardController extends Controller
                 ];
             });
 
+            dd($recentCompletedAssessments);
+
             
         
         return inertia('Dashboard/ProfessorDashboard', [
