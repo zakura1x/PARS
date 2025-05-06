@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use PDO;
 use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
 
 class AssessmentController extends Controller
 {
@@ -253,27 +254,27 @@ class AssessmentController extends Controller
     private function generateExamQuestions($subjectId)
     {
         DB::beginTransaction();
-    
+
         try {
             $questions = collect();
             $selectedQuestionIds = [];
-    
+
             $tableOfSpecification = TableOfSpecification::where('subject_id', $subjectId)->get();
-    
+
             if ($tableOfSpecification->isEmpty()) {
                 throw new \Exception("No Table of Specification found for the selected subject.");
             }
-    
+
             foreach ($tableOfSpecification as $tos) {
                 $topicId = $tos->topic_id;
                 $difficultyDistribution = $tos->difficulty;
                 $totalQuestionsForTopic = $tos->num_questions;
-    
+
                 foreach ($difficultyDistribution as $difficultyLevel => $count) {
                     if ($count <= 0) {
                         continue;
                     }
-    
+
                     $questionsForDifficulty = Question::where('topic_id', $topicId)
                         ->where('purpose_type', 'examination')
                         ->where('difficulty', $difficultyLevel)
@@ -282,20 +283,20 @@ class AssessmentController extends Controller
                         ->inRandomOrder()
                         ->take($count)
                         ->get();
-    
+
                     if ($questionsForDifficulty->count() < $count) {
                         throw new \Exception("Insufficient questions available for topic ID: {$topicId} and difficulty: {$difficultyLevel}.");
                     }
-    
+
                     foreach ($questionsForDifficulty as $question) {
                         $question->update(['is_used' => true, 'updated_at' => now()]);
                         $selectedQuestionIds[] = $question->id;
                     }
-    
+
                     $questions = $questions->merge($questionsForDifficulty);
                 }
             }
-    
+
             DB::commit();
             return $questions;
         } catch (\Exception $e) {
@@ -384,7 +385,7 @@ class AssessmentController extends Controller
 
 
 
-    
+
     public function updateForApproval($assessmentId)
     {
         $assessment = Assessment::findOrFail($assessmentId);
@@ -529,7 +530,7 @@ class AssessmentController extends Controller
      * Student View
      */
 
-     
+
     public function studentIndex()
     {
         //Get the Id of the authenticated
@@ -753,9 +754,9 @@ class AssessmentController extends Controller
         return back();
     }
 
-    
 
-    
+
+
 
     public function studentAssessmentResult($studentId)
     {
@@ -991,7 +992,7 @@ class AssessmentController extends Controller
     }
 
     public function assessmentItemAnalysis($assessmentId){
-        
+
         //Find the assessment
         $assessment = Assessment::select(['id', 'title'])->findOrFail($assessmentId);
 
@@ -1006,7 +1007,7 @@ class AssessmentController extends Controller
         }])
         ->select(['id', 'question_text', 'options'])
         ->get();
-    
+
         //dd($questions);
         //Process each questions per student
         $questionStats = $questions->map(function ($question){
@@ -1016,7 +1017,7 @@ class AssessmentController extends Controller
             //Count student response per option
             foreach($question->studentAnswers as $answer){
                 $studentAnswer = is_string($answer->student_answer) ? json_decode($answer->student_answer, true) : $answer->student_answer;
-    
+
                 if(is_array($studentAnswer)){
                     foreach($studentAnswer as $selectedOption){
                         if(isset($optionCounts[$selectedOption])){
@@ -1041,7 +1042,7 @@ class AssessmentController extends Controller
 
         return inertia('Assessment/AssessmentItemAnalysis',[
             'assessment' => $assessment,
-            'questions' => $questionStats   
+            'questions' => $questionStats
         ]);
     }
 
@@ -1084,4 +1085,12 @@ class AssessmentController extends Controller
 
     }
 
+    public function showItemAnalysis($id)
+    {
+        $assessment = Assessment::with('questions')->findOrFail($id);
+        return Inertia::render('Dashboard/AssessmentItemAnalysis', [
+            'assessment' => $assessment,
+            'questions' => $assessment->questions,
+        ]);
+    }
 }
