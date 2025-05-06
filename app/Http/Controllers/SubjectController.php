@@ -18,6 +18,8 @@ class SubjectController extends Controller
         $subjects = Subject::with('professor.user')->latest()->paginate(10);
         $professors = Professor::with('user')->get();
 
+        dd($professors);
+
         return inertia('ProgramHead/SubjectManagement/SubjectList', ['subjects' => $subjects, 'professors' => $professors]);
     }
 
