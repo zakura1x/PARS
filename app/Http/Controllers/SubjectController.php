@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Professor;
 use App\Models\Subject;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -16,7 +17,11 @@ class SubjectController extends Controller
     public function index()
     {
         $subjects = Subject::with('professor.user')->latest()->paginate(10);
-        $professors = Professor::withProfessorUser()->get();
+        $professors = Professor::with('user')
+            ->whereHas('user', function($query) {
+                $query->where('role', User::ROLE_PROFESSOR);
+            })
+            ->get();
 
         //dd($professors);
 
