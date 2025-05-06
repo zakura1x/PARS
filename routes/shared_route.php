@@ -1,7 +1,7 @@
 <?php
 
 use App\Exports\QuestionTemplateExport;
-use App\Http\Controllers\Assessment\AssessmentController;
+use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\Assessment\AssessmentCreateController;
 use App\Http\Controllers\Assessment\AssessmentSubmissionController;
 use App\Http\Controllers\Dashboard\ProfessorDashboardController;

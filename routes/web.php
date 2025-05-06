@@ -192,7 +192,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     // Route::post('/assessment/replace-question/{questionId}/{assessmentId}', [AssessmentCreateController::class, 'replaceQuestion'])->name('assessment-question.replace');
 
     //Assessment
-    // Route::get('/assessment/index/program-head', [AssessmentController::class, 'indexForProf'])->name('assessment-PH.index');
+    //Route::get('/assessment/index/program-head', [AssessmentController::class, 'indexForProf'])->name('assessment-PH.index');
 
     //Approval Form
     // Route::get('/assessment/approval/form/{assessmentId}', [AssessmentController::class, 'assessmentApprovalForm'])->name('assessment-approval.form');
