@@ -26,7 +26,7 @@ const studentMenu = [
                 title: "My Assessments",
                 icon: <ClipboardList size={26} />,
                 items: [
-                    {
+                    {   
                         label: "Coded Assessment",
                         href: "/assessment/input/code",
                         key: 1,
