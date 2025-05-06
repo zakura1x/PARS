@@ -107,7 +107,7 @@ class QuestionController extends Controller
             'user_id' => Auth::id(),
             'subject_id' => $validate['subject_id'],
             'topic_id' => $validate['topic_id'],
-            'format_type' => ['multiple_choice'],
+            'format_type' => 'multiple_choice',
             'purpose_type' => $validate['purpose_type'],
             'difficulty' => $validate['difficulty'],
             'question_text' => $validate['question_text'],
