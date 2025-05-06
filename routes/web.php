@@ -2,6 +2,7 @@
 
 use App\Exports\QuestionTemplateExport;
 use App\Http\Controllers\Assessment\AssessmentApprovalController;
+use App\Http\Controllers\Assessment\AssessmentController as AssessmentAssessmentController;
 use App\Http\Controllers\Assessment\AssessmentCreateController;
 use App\Http\Controllers\Assessment\AssessmentGradeController;
 use App\Http\Controllers\Assessment\AssessmentSubmissionController;
@@ -51,6 +52,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::get('/pending-assessments', [ProgramHeadDashboardController::class, 'getPendingAssessments']);
     Route::get('/dashboard/proficiency/student/{subjectId}', [ProgramHeadDashboardController::class, 'getProficiencyBySubject'])->name('get-proficiency-subject');
     Route::get('/dashboard/student/{studentId}', [StudentDashboardController::class, 'index']);
+    Route::get('/dashboard/item-analysis/{id}', [AssessmentController::class, 'showItemAnalysis']);
 
     //SUBJECT MANAGEMENT
     Route::get('/subjectList', [SubjectController::class, 'index'])->name('subjectList');

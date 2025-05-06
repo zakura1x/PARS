@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { router } from '@inertiajs/react';
 import StatsCards from "../../components/Dashboard/ProgramHead&DeanDashboard/StatsCards";
 import ProficiencyOverviewChart from "../../components/Dashboard/ProgramHead&DeanDashboard/ProficiencyOverviewChart";
 import StudentPerformanceTable from "../../components/Dashboard/ProgramHead&DeanDashboard/StudentPerformanceTable";
