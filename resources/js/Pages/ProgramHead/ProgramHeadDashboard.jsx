@@ -84,9 +84,9 @@ export default function ProgramHeadDashboard({
                     const dist = topic.proficiency_distribution;
                     initialProficiencyData.push({
                         topic: topic.topic_name,
-                        beginner: dist.beginner_percentage,
-                        intermediate: dist.intermediate_percentage,
-                        advanced: dist.advanced_percentage,
+                        beginner: dist.beginner,
+                        intermediate: dist.intermediate,
+                        advanced: dist.advanced,
                     });
                 });
             });

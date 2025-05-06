@@ -258,15 +258,9 @@ class ProgramHeadDashboardController extends Controller
         $proficiencyData = $subject->topics->map(function($topic) {
             return [
                 'topic' => $topic->name,
-                'beginner' => $topic->total_count > 0 
-                    ? round(($topic->beginner_count / $topic->total_count) * 100, 2)
-                    : 0,
-                'intermediate' => $topic->total_count > 0
-                    ? round(($topic->intermediate_count / $topic->total_count) * 100, 2)
-                    : 0,
-                'advanced' => $topic->total_count > 0
-                    ? round(($topic->advanced_count / $topic->total_count) * 100, 2)
-                    : 0,
+                'beginner' => $topic->beginner_count,
+                'intermediate' => $topic->intermediate_count,
+                'advanced' => $topic->advanced_count,
             ];
         });
 
