@@ -7,6 +7,7 @@ use App\Http\Controllers\Assessment\AssessmentGradeController;
 use App\Http\Controllers\Assessment\AssessmentSubmissionController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Dashboard\ProfessorDashboardController;
 use App\Http\Controllers\Dashboard\ProgramHeadDashboardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PracticeAssessment\GeneratePracticeAssessmentController;
@@ -148,6 +149,10 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
     Route::get('/assessment/{assessmentId}/results', [AssessmentController::class, 'assessmentResults'])->name('assessment.results');
     Route::get('/assessment/{assessmentId}/student/prof/view/{studentId}', [AssessmentController::class, 'showIndividualAssessment'])->name('assessment.student');
     Route::get('/assessment/{assessmentId}/item-analysis', [AssessmentController::class, 'assessmentItemAnalysis'])->name('assessment.item-analysis');
+});
+
+Route::middleware(['auth', RoleMiddleware::class . ':professor'])->group(function(){
+    Route::get('/dashboard/professor', [ProfessorDashboardController::class, 'index'])->name('professor.dashboard');
 });
 
 Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function () {

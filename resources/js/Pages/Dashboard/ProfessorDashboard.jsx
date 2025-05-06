@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
-import StatsCards from "../../components/Dashboard/ProgramHead&DeanDashboard/StatsCards";
-import ProficiencyOverviewChart from "../../components/Dashboard/ProgramHead&DeanDashboard/ProficiencyOverviewChart";
-import StudentPerformanceTable from "../../components/Dashboard/ProgramHead&DeanDashboard/StudentPerformanceTable";
-import ExamAssessmentTracker from "../../components/Dashboard/ProgramHead&DeanDashboard/ExamAssessmentTracker";
-import StudentListTable from "../../components/Dashboard/ProgramHead&DeanDashboard/StudentListTable";
-import AssessmentApprovalsTable from "../../components/Dashboard/ProgramHead&DeanDashboard/AssessmentApprovalsTable";
-import StudentDashboard from "../Dashboard/Stud entDashboard";
+import StatsCards from "../../components/Dashboard/ProfessorDashboard/StatsCards";
+import ProficiencyOverviewChart from "../../components/Dashboard/ProfessorDashboard/ProficiencyOverviewChart";
+import StudentPerformanceTable from "../../components/Dashboard/ProfessorDashboard/StudentPerformanceTable";
+import ExamAssessmentTracker from "../../components/Dashboard/ProfessorDashboard/ExamAssessmentTracker";
+import StudentListTable from "../../components/Dashboard/ProfessorDashboard/StudentListTable";
+import AssessmentApprovalsTable from "../../components/Dashboard/ProfessorDashboard/AssessmentApprovalsTable";
+import StudentDashboard from "../Dashboard/StudentDashboard";
 
-export default function ProgramHeadDashboard({
+export default function ProfessorDashboard({
     metrics,
     recentAssessments,
     studentPerformance,
@@ -21,14 +21,15 @@ export default function ProgramHeadDashboard({
     const [viewingStudentId, setViewingStudentId] = useState(null);
     const [studentDashboardData, setStudentDashboardData] = useState(null);
 
+    // Modified stats object - removed faculty-related metrics
     const stats = {
         pendingApprovals: metrics.assessmentsNeedingApproval,
         highProficientStudents: metrics.highProficiencyStudents,
         enrolledStudents: metrics.totalStudents,
         studentsNeedIntervention: metrics.studentsNeedingIntervention,
-        activeProfessors: metrics.activeProfessors,
-        programHeads: metrics.activeProgramHeads,
-        deans: metrics.activeDeans,
+        completedAssessments: metrics.completedAssessments,
+        totalTopics: metrics.totalTopics,
+        pendingAssessments: metrics.pendingAssessments,
     };
 
     const handleViewStudent = async (studentId) => {
@@ -121,7 +122,7 @@ export default function ProgramHeadDashboard({
                     onClick={handleBackToDashboard}
                     className="btn btn-primary mb-4"
                 >
-                    ← Back to Program Dashboard
+                    ← Back to Professor Dashboard
                 </button>
                 <StudentDashboard
                     student={studentDashboardData.student}
@@ -174,7 +175,10 @@ export default function ProgramHeadDashboard({
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-                <StudentPerformanceTable students={students} />
+                <StudentPerformanceTable
+                    students={students}
+                    onViewStudent={handleViewStudent}
+                />
                 <ExamAssessmentTracker assessments={assessments} />
             </div>
 
@@ -192,3 +196,5 @@ export default function ProgramHeadDashboard({
         </div>
     );
 }
+
+// Modified StatsCards component for Professor

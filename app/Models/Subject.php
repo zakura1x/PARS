@@ -27,7 +27,4 @@ class Subject extends Model
         return $this->belongsTo(Professor::class, 'professor_id');
     }
 
-    // public function studyMaterial(){
-    //     return $this->hasMany(StudyMaterial::class);
-    // }
 }
