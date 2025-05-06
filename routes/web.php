@@ -124,7 +124,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(func
 
     //Dashboard
     Route::get('/dashboard', [ProgramHeadDashboardController::class, 'index'])->name('dashboard');
-    Route::get('/dashboard/proficiency/student/{subjectId}', [ProgramHeadDashboardController::class, 'getProficiencyBySubject'])->name('get-proficiency-subject');
+    //Route::get('/dashboard/proficiency/student/{subjectId}', [ProgramHeadDashboardController::class, 'getProficiencyBySubject'])->name('get-proficiency-subject');
     //Route::get('/dashboard/student/{studentId}', [StudentDashboardController::class, 'index']);
     //Route::get('/dashboard/item-analysis/{id}', [AssessmentController::class, 'showItemAnalysis']);
 

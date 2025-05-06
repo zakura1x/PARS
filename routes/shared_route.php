@@ -5,6 +5,7 @@ use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\Assessment\AssessmentCreateController;
 use App\Http\Controllers\Assessment\AssessmentSubmissionController;
 use App\Http\Controllers\Dashboard\ProfessorDashboardController;
+use App\Http\Controllers\Dashboard\ProgramHeadDashboardController;
 use App\Http\Controllers\Dashboard\StudentDashboardController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\StudyMaterialAttachmentController;
@@ -17,6 +18,7 @@ use Maatwebsite\Excel\Facades\Excel;
 Route::middleware(['auth', RoleMiddleware::class . ':professor,program_head' ])->group(function () {
     //Dashboard
     // Route::get('/dashboard/prof', [ProfessorDashboardController::class, 'index'])->name('professor.dashboard');
+    Route::get('/dashboard/proficiency/student/{subjectId}', [ProgramHeadDashboardController::class, 'getProficiencyBySubject'])->name('get-proficiency-subject');
     Route::get('/dashboard/student/{studentId}', [StudentDashboardController::class, 'index']);
     Route::get('/dashboard/item-analysis/{id}', [AssessmentController::class, 'showItemAnalysis']);
 
