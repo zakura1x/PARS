@@ -15,13 +15,24 @@ class ProfessorDashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // Get the authenticated professor
-        $professor = auth()->user()->professor;
+        $user = auth()->user();
+    
+        // Check if user is a professor
+        if (!$user->professor) {
+            abort(403, 'Unauthorized access');
+        }
+        
+        $professor = $user->professor;
+        $userId = $user->id;
+
+        //dd($professor);
         
         // 1. Get counts of all topics in the professor's subjects
         $totalTopicsCount = Topics::whereHas('subject', function($q) use ($professor) {
             $q->where('professor_id', $professor->id);
         })->count();
+
+        //dd($totalTopicsCount);
 
         // 2. Assessments needing approval (only those created by this professor)
         $assessmentsNeedingApproval = Assessment::where('approved', false)
@@ -29,6 +40,8 @@ class ProfessorDashboardController extends Controller
             ->whereNull('comment')
             ->where('created_by', $userId)  // Add this condition
             ->count();
+
+        //dd($assessmentsNeedingApproval);
 
         // 3. High proficiency students in professor's subjects (advanced in all assessed topics)
         $highProficiencyStudents = User::whereHas('topicProficiencies', function($q) use ($professor) {
@@ -51,6 +64,8 @@ class ProfessorDashboardController extends Controller
             ->having('advanced_topics', '=', \DB::raw('total_assessed_topics'))
             ->count();
 
+        //dd($highProficiencyStudents);
+
         // 4. Total enrolled students in professor's subjects
         $totalStudents = Student::whereHas('user', function($q) {
             $q->whereNull('deleted_at');
@@ -72,17 +87,17 @@ class ProfessorDashboardController extends Controller
 
         // 6. Assessment status counts for professor's subjects
         $completedAssessmentsCount = Assessment::where('status', 'completed')
-            ->where('created_by', auth()->id())
+            ->where('created_by', $userId)
             ->count();
             
         $pendingAssessmentsCount = Assessment::where('status', 'pending')
-            ->where('created_by', auth()->id())
+            ->where('created_by', $userId)
             ->count();
 
         // 7. Recent assessments (limit to 5 for the dashboard) - only professor's
         $recentCompletedAssessments = Assessment::with(['subject', 'creator'])
             ->where('status', 'completed')
-            ->where('created_by', auth()->id())
+            ->where('created_by', $userId)
             ->latest()
             ->take(5)
             ->get()
@@ -197,7 +212,9 @@ class ProfessorDashboardController extends Controller
                 ];
             });
 
-        return Inertia::render('Dashboard/ProfessorDashboard', [
+            
+
+        return inertia('Dashboard/ProfessorDashboard', [
             'metrics' => [
                 'assessmentsNeedingApproval' => $assessmentsNeedingApproval,
                 'highProficiencyStudents' => $highProficiencyStudents,
@@ -216,7 +233,7 @@ class ProfessorDashboardController extends Controller
             'pendingAssessmentsList' => Assessment::where('status', 'pending')
                 ->where('approved', false)
                 ->whereNull('comment')
-                ->where('created_by', auth()->id())
+                ->where('created_by', $userId)
                 ->with(['subject', 'creator'])
                 ->get(),
         ]);

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import StatsCards from "../../components/Dashboard/ProfessorDashboard/StatsCards";
-import ProficiencyOverviewChart from "../../components/Dashboard/ProfessorDashboard/ProficiencyOverviewChart";
-import StudentPerformanceTable from "../../components/Dashboard/ProfessorDashboard/StudentPerformanceTable";
-import ExamAssessmentTracker from "../../components/Dashboard/ProfessorDashboard/ExamAssessmentTracker";
-import StudentListTable from "../../components/Dashboard/ProfessorDashboard/StudentListTable";
-import AssessmentApprovalsTable from "../../components/Dashboard/ProfessorDashboard/AssessmentApprovalsTable";
+import ProficiencyOverviewChart from "../../components/Dashboard/ProgramHead&DeanDashboard/ProficiencyOverviewChart";
+import StudentPerformanceTable from "../../components/Dashboard/ProgramHead&DeanDashboard/StudentPerformanceTable";
+import ExamAssessmentTracker from "../../components/Dashboard/ProgramHead&DeanDashboard/ExamAssessmentTracker";
+import StudentListTable from "../../components/Dashboard/ProgramHead&DeanDashboard/StudentListTable";
+import AssessmentApprovalsTable from "../../components/Dashboard/ProgramHead&DeanDashboard/AssessmentApprovalsTable";
 import StudentDashboard from "../Dashboard/StudentDashboard";
 
 export default function ProfessorDashboard({
