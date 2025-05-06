@@ -16,9 +16,9 @@ class SubjectController extends Controller
     public function index()
     {
         $subjects = Subject::with('professor.user')->latest()->paginate(10);
-        $professors = Professor::with('user')->get();
+        $professors = Professor::withProfessorUser()->get();
 
-        dd($professors);
+        //dd($professors);
 
         return inertia('ProgramHead/SubjectManagement/SubjectList', ['subjects' => $subjects, 'professors' => $professors]);
     }

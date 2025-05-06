@@ -30,4 +30,11 @@ class Professor extends Model
     {
         return "{$this->user->first_name} {$this->user->last_name}";
     }
+
+    public function scopeWithProfessorUser($query)
+    {
+        return $query->with(['user' => function($query) {
+            $query->where('role', User::ROLE_PROFESSOR);
+        }]);
+    }
 }
