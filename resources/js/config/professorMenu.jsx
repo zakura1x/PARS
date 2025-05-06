@@ -25,7 +25,7 @@ const professorMenu = [
                 items: [
                     {
                         label: "Dashboard",
-                        href: "/dashboard/professor",
+                        href: "/dashboard/prof",
                         key: 1,
                     },
                 ],
