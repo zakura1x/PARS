@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { Link, usePage } from "@inertiajs/react";
 import { getMenuByRole } from "../../config/menuConfig";
