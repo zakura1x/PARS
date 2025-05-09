@@ -35,22 +35,8 @@ export default function ProfessorDashboard({
         pendingAssessments: metrics.pendingAssessments,
     };
 
-    const handleViewStudent = async (studentId) => {
-        try {
-            setLoading(true);
-            const response = await fetch(`/dashboard/student/${studentId}`);
-            if (!response.ok) {
-                throw new Error("Failed to fetch student dashboard data");
-            }
-            const data = await response.json();
-            setStudentDashboardData(data);
-            setViewingStudentId(studentId);
-        } catch (error) {
-            console.error("Error fetching student dashboard:", error);
-            // Handle error (show toast, etc.)
-        } finally {
-            setLoading(false);
-        }
+    const handleViewStudent = (studentId) => {
+        router.get(`/dashboard/student/${studentId}`);
     };
 
     const handleBackToDashboard = () => {
@@ -191,11 +177,11 @@ export default function ProfessorDashboard({
                     onViewStudent={handleViewStudent}
                 />
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
+            {/* <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
                 <AssessmentApprovalsTable
                     pendingApprovals={pendingAssessments}
                 />
-            </div>
+            </div> */}
         </div>
     );
 }
