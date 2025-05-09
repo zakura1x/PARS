@@ -15,7 +15,7 @@ use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Support\Facades\Route;
 use Maatwebsite\Excel\Facades\Excel;
 
-Route::middleware(['auth', RoleMiddleware::class . ':professor,program_head' ])->group(function () {
+Route::middleware(['auth', RoleMiddleware::class . ':professor,program_head,dean' ])->group(function () {
     //Dashboard
     // Route::get('/dashboard/prof', [ProfessorDashboardController::class, 'index'])->name('professor.dashboard');
     Route::get('/dashboard/proficiency/student/{subjectId}', [ProgramHeadDashboardController::class, 'getProficiencyBySubject'])->name('get-proficiency-subject');

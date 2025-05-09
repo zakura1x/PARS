@@ -120,7 +120,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':professor'])->group(functio
 });
 
 
-Route::middleware(['auth', RoleMiddleware::class . ':program_head'])->group(function () {
+Route::middleware(['auth', RoleMiddleware::class . ':program_head,dean'])->group(function () {
 
     //Dashboard
     Route::get('/dashboard', [ProgramHeadDashboardController::class, 'index'])->name('dashboard');
