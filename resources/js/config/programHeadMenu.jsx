@@ -15,9 +15,7 @@ const programHeadMenu = [
             {
                 title: "Dashboard",
                 icon: <LayoutDashboard size={26} />,
-                items: [
-                    { label: "Dashboard", href: "/dashboard", key: 13 },
-                ],
+                items: [{ label: "Dashboard", href: "/dashboard", key: 13 }],
             },
         ],
     },
@@ -76,6 +74,11 @@ const programHeadMenu = [
                         label: "Mass Upload Student",
                         href: "/student/mass/upload/form",
                         key: 11,
+                    },
+                    {
+                        label: "Student Performance",
+                        href: "/student/performance",
+                        key: 14,
                     },
                 ],
             },

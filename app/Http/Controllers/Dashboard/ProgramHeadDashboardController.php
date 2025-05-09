@@ -271,7 +271,7 @@ class ProgramHeadDashboardController extends Controller
     public function studentAverages()
     {
         $studentsWithAverages = User::whereNull('deleted_at')
-            ->with(['student', 'assessmentResults.result'])
+            ->with(['student', 'topicProficiencies', 'assessmentResults.result'])
             ->whereHas('student')
             ->get()
             ->map(function($user) {
@@ -292,11 +292,14 @@ class ProgramHeadDashboardController extends Controller
                 return [
                     'id' => $user->id,
                     'name' => $user->full_name,
+                    'email' => $user->email,
                     'average_score' => $averageScore,
                 ];
             });
 
-        return Inertia::render('Dashboard/StudentAverages', [
+        dd($studentsWithAverages);
+
+        return Inertia::render('StudentPerformance/StudentPerformanceList', [
             'students' => $studentsWithAverages,
         ]);
     }

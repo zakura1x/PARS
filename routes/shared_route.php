@@ -29,6 +29,9 @@ Route::middleware(['auth', RoleMiddleware::class . ':professor,program_head,dean
     Route::post('/topics/reorder/{subjectId}', [TopicsController::class, 'reorderTopics'])->name('topics.reorder');
     Route::get('/topics/edit/{subjectId}', [TopicsController::class, 'editView'])->name('topics.edit');
 
+    //Student Performance
+    Route::get('/student/performance', [ProgramHeadDashboardController::class, 'studentAverages'])->name('student.performance');
+
     //Question Management
     Route::get('/questionBank', [QuestionController::class, 'index'])->name('questionIndex');
     Route::get('/questionDetails', [QuestionController::class, 'questionDetails'])->name('questionDetails');
