@@ -297,10 +297,10 @@ class ProgramHeadDashboardController extends Controller
                 ];
             });
 
-        dd($studentsWithAverages);
+        // dd($studentsWithAverages);
 
         return Inertia::render('StudentPerformance/StudentPerformanceList', [
-            'students' => $studentsWithAverages,
+            'studentPerformance' => $studentsWithAverages->values()->toArray(),
         ]);
     }
 
