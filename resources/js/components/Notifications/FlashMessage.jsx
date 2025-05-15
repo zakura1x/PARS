@@ -20,7 +20,7 @@ const FlashMessage = ({ message }) => {
     if (!message || !visible) return null; // If no message or message is hidden, render nothing
 
     return (
-        <div className="fixed top-5 right-5 bg-green-400 text-white px-6 py-4 rounded-md shadow-lg flex items-center">
+        <div className="fixed z-50 top-5 right-5 bg-green-400 text-white px-6 py-4 rounded-md shadow-lg flex items-center">
             <span className="mr-4">{message}</span>
             <button className="text-xl font-semibold" onClick={handleClose}>
                 ×

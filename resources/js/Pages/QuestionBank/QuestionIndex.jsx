@@ -17,7 +17,6 @@ const QuestionIndex = () => {
             {
                 searchQuery,
                 category,
-                status,
             },
             {
                 preserveState: true,

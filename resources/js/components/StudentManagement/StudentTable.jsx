@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { router } from "@inertiajs/react";
 import axios from "axios";
 import Pagination from "../../components/misc/Pagination";
 import StudentEdit from "./StudentEdit";

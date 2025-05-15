@@ -35,14 +35,19 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-
         return array_merge(parent::share($request), [
             'auth.user' => fn() => $request->user() ? $request->user()->only('id', 'full_name', 'email', 'role', 'idNumber') : null,
             'flash' => [
                 'message' => fn() => $request->session()->get('message'),
                 'success' => fn() => $request->session()->get('success'),
+                'error' => fn() => $request->session()->get('error'),
+                // Add these for import handling
+                'import_errors' => fn() => $request->session()->get('import_errors'),
+                'import_success' => fn() => $request->session()->get('import_success'),
+                'import_total' => fn() => $request->session()->get('import_total'),
             ],
-
+            // Optional: share global error bag if you're using validation errors
+            'errors' => fn() => $request->session()->get('errors') ? $request->session()->get('errors')->getBag('default')->getMessages() : [],
         ]);
     }
 }

@@ -54,7 +54,7 @@ const Search = ({
                 </div>
 
                 {/* Status */}
-                <div className="w-full md:w-1/4 space-y-2">
+                {/* <div className="w-full md:w-1/4 space-y-2">
                     <label className="font-medium text-[20px] px-2">
                         Status
                     </label>
@@ -68,7 +68,7 @@ const Search = ({
                         <option value="approval">Approval Question</option>
                         <option value="archived">Archived</option>
                     </select>
-                </div>
+                </div> */}
 
                 {/* Search Button */}
                 <button

@@ -89,16 +89,44 @@ class StudentController extends Controller
         return Excel::download(new StudentsTemplateExport, 'students_template.xlsx');
     }
 
-    public function massUploadStudent(Request $request){
+
+    public function massUploadStudent(Request $request)
+    {
         $request->validate([
             'file' => 'required|mimes:xlsx,xls,csv'
         ]);
 
-        Excel::import(new StudentsImport, $request->file('file'));
-
-        return to_route('student.list')->with('message', 'Students were Added Successfully');
+        $import = new StudentsImport();
+        
+        try {
+            Excel::import($import, $request->file('file'));
+            
+            $total = $import->getTotalCount();
+            $success = $import->getSuccessCount();
+            $failures = $import->failures();
+            $errors = $import->errors();
+            
+            // Make sure we only return errors if they exist
+            // if ($errors->isNotEmpty() || $failures->isNotEmpty()) {
+            //     return redirect()
+            //         ->back()
+            //         ->with('import_errors', array_merge(
+            //             $errors->toArray(),
+            //             $failures->toArray()
+            //         ))
+            //         ->with('import_success', $success)
+            //         ->with('import_total', $total);
+            // }
+            
+            return to_route('student.list')
+                ->with('message', "Successfully imported {$success} students");
+                
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', 'Import failed: ' . $e->getMessage());
+        }
     }
-
     /**
      * Display the specified resource.
      */
