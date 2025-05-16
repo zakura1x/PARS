@@ -7,7 +7,6 @@ use App\Models\Assessment;
 use App\Models\StudentAssessment;
 use App\Models\StudentTopicProficiency;
 use App\Models\StudentTopicScore;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class AssessmentGradeController extends Controller

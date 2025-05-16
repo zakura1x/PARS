@@ -56,7 +56,10 @@ class SubjectController extends Controller
         ]);
 
         //Send a message to inertia
-        return redirect()->back()->with('message', 'The Subject was Created Successfully');
+        //return to_route('subjectList')->with('message', 'The Subject was Created Successfully');
+        return back()->with([
+            'message' => 'Subject saved successfully',
+        ]);
     }
 
     /**
@@ -81,7 +84,10 @@ class SubjectController extends Controller
         $subject = Subject::findOrFail($id);
         $subject->update($validated);
 
-        return redirect('subjectList')->with('message', 'The Subject was Edited Successfully');
+        //return to_route('subjectList')->with('message', 'The Subject was Edited Successfully');
+        return back()->with([
+            'message' => 'Subject saved successfully',
+        ]);
     }
 
     /**

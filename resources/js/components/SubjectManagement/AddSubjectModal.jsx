@@ -1,48 +1,19 @@
-import React from "react";
+"use client";
 
 const AddSubjectModal = ({
     showModal,
     setShowModal,
     data,
     setData,
-    handleSaveChanges,
+    handleSubmit,
     handleCancel,
     errors,
     processing,
-    post,
-    put,
-    reset,
     professors,
 }) => {
     if (!showModal) return null;
 
     const isEditing = !!data.id;
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-
-        const url = data.id ? `/subjects/edit/${data.id}` : `/addSubject`;
-
-        if (data.id) {
-            // Use PUT for editing
-            put(url, data, {
-                onSuccess: (response) => {
-                    console.log(response);
-                    setShowModal(false); // Close the modal
-                    reset(); // Reset the form
-                },
-            });
-        } else {
-            // Use POST for adding
-            post(url, data, {
-                onSuccess: (response) => {
-                    console.log(response);
-                    setShowModal(false); // Close the modal
-                    reset(); // Reset the form
-                },
-            });
-        }
-    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50">
@@ -133,14 +104,15 @@ const AddSubjectModal = ({
 
                 <div className="flex justify-end space-x-2 mt-6">
                     <button
+                        type="button"
                         className="btn border-none bg-gray-200 text-gray-700 hover:bg-gray-300"
                         onClick={handleCancel}
                     >
                         Cancel
                     </button>
                     <button
-                        type="submit" // Submit the form
-                        form="subjectForm" // Associate with the form
+                        type="submit"
+                        form="subjectForm"
                         className="btn border-none bg-[#303030] text-white hover:bg-green-600"
                         disabled={processing}
                     >

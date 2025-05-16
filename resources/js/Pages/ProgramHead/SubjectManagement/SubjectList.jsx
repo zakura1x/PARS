@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePage, Head, useForm, router } from "@inertiajs/react";
 import Header from "../../../components/SubjectManagement/Header";
 import SubjectTable from "../../../components/SubjectManagement/SubjectTable";
@@ -17,6 +17,42 @@ const SubjectManagement = () => {
         name: "",
         professor_id: "",
     });
+
+    // Debug logs
+    //console.log("Modal render - showModal:", showModal);
+
+    // Reset form when modal is closed
+    useEffect(() => {
+        if (!showModal) {
+            reset();
+        }
+    }, [showModal]);
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const url = data.id ? `/subjects/edit/${data.id}` : `/addSubject`;
+
+        const options = {
+            onSuccess: () => {
+                console.log("Success callback executing");
+                // Manually close the modal
+                setShowModal(false);
+                reset();
+            },
+            onError: (errors) => {
+                console.log("Errors:", errors);
+            },
+            onFinish: () => {
+                console.log("Request completed");
+            },
+        };
+
+        if (data.id) {
+            put(url, options);
+        } else {
+            post(url, options);
+        }
+    };
 
     // Filtered subjects based on search query
     const filteredSubjects = subjects.data.filter((subject) =>
@@ -75,12 +111,10 @@ const SubjectManagement = () => {
                 setShowModal={setShowModal}
                 data={data}
                 setData={setData}
+                handleSubmit={handleSubmit}
                 handleCancel={handleCancel}
                 errors={errors}
                 processing={processing}
-                post={post}
-                put={put}
-                reset={reset}
                 professors={professors}
             />
         </div>
