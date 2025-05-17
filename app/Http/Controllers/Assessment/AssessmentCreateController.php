@@ -226,6 +226,32 @@ class AssessmentCreateController extends Controller
         ]);
     }
 
+    public function update(Request $request, $assessmentId)
+    {
+        $assessment = Assessment::findOrFail($assessmentId);
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string|max:255',
+            'time_limit' => 'required|integer'
+        ]);
+
+        // Convert minutes to seconds before storing
+        $timeLimitInSeconds = isset($validatedData['time_limit']) 
+        ? $validated['time_limit'] * 60 
+        : null;
+
+        $assessment->update([
+            'title' => $validated['title'],
+            'description' => $validated['description'],
+            'time_limit' => $validated['time_limit']
+        ]);
+
+        return back()->with([
+            'message' => 'Assessment updated successfully'
+        ]);
+    }
+
 
     /**
      * Preview of the Assessment

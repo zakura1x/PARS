@@ -78,6 +78,8 @@ Route::middleware(['auth', RoleMiddleware::class . ':professor,program_head,dean
     Route::get('/assessment/approval/form/{assessmentId}', [AssessmentController::class, 'assessmentApprovalForm'])->name('assessment-approval.form');
     //Update the title of the assessment
     Route::put('/assessment/update/title/{assessmentId}', [AssessmentCreateController::class, 'updateTitle'])->name('assessment-update.title');
+    //Update the assessment details
+    Route::post('/assessment/update/${assessmentId}', [AssessmentCreateController::class, 'update']);
 
     //Update the status of the assessment
     Route::put('/assessment/update/approval/{assessmentId}', [AssessmentSubmissionController::class,'submitForApproval'])->name('assessment-update.approval');

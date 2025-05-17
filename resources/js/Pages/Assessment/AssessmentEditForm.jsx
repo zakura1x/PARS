@@ -248,38 +248,38 @@ const AssessmentReview = ({ assessment, questions }) => {
         );
     };
 
-    const handleStartAssessment = () => {
-        setDialogConfig((prev) => ({ ...prev, isLoading: true }));
-        router.put(
-            `/assessment/update/to/wait/${assessment.id}`,
-            {},
-            {
-                onSuccess: () => {
-                    setMessages({
-                        success: "Assessment started successfully!",
-                    });
-                    setDialogConfig({
-                        isOpen: false,
-                        action: null,
-                        isLoading: false,
-                    });
-                },
-                onError: (error) => {
-                    setMessages({
-                        error: error.message || "Failed to start assessment",
-                    });
-                    setDialogConfig({
-                        isOpen: false,
-                        action: null,
-                        isLoading: false,
-                    });
-                },
-            }
-        );
-    };
-    // const handleStartAssessment = (assessmentId) => {
-    //     router.put(`/assessment/update/to/wait/${assessmentId}`);
+    // const handleStartAssessment = () => {
+    //     setDialogConfig((prev) => ({ ...prev, isLoading: true }));
+    //     router.put(
+    //         `/assessment/update/to/wait/${assessment.id}`,
+    //         {},
+    //         {
+    //             onSuccess: () => {
+    //                 setMessages({
+    //                     success: "Assessment started successfully!",
+    //                 });
+    //                 setDialogConfig({
+    //                     isOpen: false,
+    //                     action: null,
+    //                     isLoading: false,
+    //                 });
+    //             },
+    //             onError: (error) => {
+    //                 setMessages({
+    //                     error: error.message || "Failed to start assessment",
+    //                 });
+    //                 setDialogConfig({
+    //                     isOpen: false,
+    //                     action: null,
+    //                     isLoading: false,
+    //                 });
+    //             },
+    //         }
+    //     );
     // };
+    const handleStartAssessment = (assessmentId) => {
+        router.put(`/assessment/update/to/wait/${assessmentId}`);
+    };
 
     const handleDeleteAssessment = () => {
         setDialogConfig((prev) => ({ ...prev, isLoading: true }));
