@@ -284,6 +284,9 @@ const AssessmentReview = ({ assessment, questions }) => {
     const handleDeleteAssessment = () => {
         setDialogConfig((prev) => ({ ...prev, isLoading: true }));
         router.delete(`/assessment/delete/${assessment.id}`, {
+            onSuccess: () => {
+                router.visit("/assessment/index/program-head");
+            },
             onError: (error) => {
                 setMessages({
                     error: error.message || "Failed to delete assessment",
