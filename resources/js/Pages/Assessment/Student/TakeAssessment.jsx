@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useForm, router, usePage } from "@inertiajs/react";
 import { toast } from "react-hot-toast";
 
@@ -284,12 +284,29 @@ const TakeAssessment = ({ assessment }) => {
                             Question {index + 1}: {question.question_text}
                         </h3>
                         {question.attachment_path && (
-                            <div className="my-2">
-                                <img
-                                    src={`/storage/${question.attachment_path}`}
-                                    alt="Question attachment"
-                                    className="max-w-full h-auto max-h-60"
-                                />
+                            <div className="my-3 border rounded-lg overflow-hidden">
+                                {question.attachment_path.match(
+                                    /\.(jpe?g|png|gif)$/i
+                                ) ? (
+                                    <div className="p-2 bg-white">
+                                        <img
+                                            src={`/storage/${question.attachment_path}`}
+                                            alt="Question attachment"
+                                            className="max-w-full h-auto max-h-60 rounded mx-auto"
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="p-3 bg-gray-50 text-center">
+                                        <a
+                                            href={`/storage/${question.attachment_path}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:underline"
+                                        >
+                                            View Attachment
+                                        </a>
+                                    </div>
+                                )}
                             </div>
                         )}
                         <p className="mt-2">
@@ -347,56 +364,99 @@ const TakeAssessment = ({ assessment }) => {
                             Question {currentQuestionIndex + 1} of{" "}
                             {questions.length}
                         </p>
-                        <h2 className="text-lg font-medium mb-4">
+                        <h2 className="text-2xl font-bold mb-6 text-gray-800">
                             {currentQuestion.question_text}
                         </h2>
 
-                        {/* Display image if attachment exists */}
+                        {/* Enhanced attachment display */}
                         {currentQuestion.attachment_path && (
-                            <div className="mb-4">
-                                {currentQuestion.attachment_path.match(
-                                    /\.(jpe?g|png|gif)$/i
-                                ) ? (
-                                    <img
-                                        src={`/storage/${currentQuestion.attachment_path}`}
-                                        alt="Question visual aid"
-                                        className="max-w-full h-auto max-h-60"
-                                    />
-                                ) : currentQuestion.attachment_path.match(
-                                      /\.pdf$/i
-                                  ) ? (
-                                    <div className="border p-2 bg-gray-50 rounded">
-                                        <a
-                                            href={`/storage/${currentQuestion.attachment_path}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-blue-600 hover:underline"
+                            <div className="mb-6 border rounded-lg overflow-hidden shadow-md">
+                                <div className="bg-gray-100 px-4 py-2 border-b flex justify-between items-center">
+                                    <h3 className="font-medium text-gray-700">
+                                        Attachment
+                                    </h3>
+                                    {currentQuestion.attachment_path.match(
+                                        /\.(jpe?g|png|gif)$/i
+                                    ) && (
+                                        <button
+                                            onClick={() =>
+                                                window.open(
+                                                    `/storage/${currentQuestion.attachment_path}`,
+                                                    "_blank"
+                                                )
+                                            }
+                                            className="text-blue-600 hover:text-blue-800 text-sm"
                                         >
-                                            View PDF Attachment
-                                        </a>
-                                    </div>
-                                ) : (
-                                    <a
-                                        href={`/storage/${currentQuestion.attachment_path}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-blue-600 hover:underline"
-                                    >
-                                        Download Attachment
-                                    </a>
-                                )}
+                                            View Full Size
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="p-4 bg-white">
+                                    {currentQuestion.attachment_path.match(
+                                        /\.(jpe?g|png|gif)$/i
+                                    ) ? (
+                                        <div className="flex justify-center">
+                                            <img
+                                                src={`/storage/${currentQuestion.attachment_path}`}
+                                                alt="Question visual aid"
+                                                className="max-w-full h-auto rounded border"
+                                                style={{ maxHeight: "400px" }}
+                                            />
+                                        </div>
+                                    ) : currentQuestion.attachment_path.match(
+                                          /\.pdf$/i
+                                      ) ? (
+                                        <div className="border p-4 bg-gray-50 rounded text-center">
+                                            <p className="mb-2 text-gray-700">
+                                                PDF Document
+                                            </p>
+                                            <a
+                                                href={`/storage/${currentQuestion.attachment_path}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="btn btn-sm btn-outline"
+                                            >
+                                                Open PDF
+                                            </a>
+                                        </div>
+                                    ) : (
+                                        <div className="border p-4 bg-gray-50 rounded text-center">
+                                            <p className="mb-2 text-gray-700">
+                                                File Attachment
+                                            </p>
+                                            <a
+                                                href={`/storage/${currentQuestion.attachment_path}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="btn btn-sm btn-outline"
+                                            >
+                                                Download File
+                                            </a>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
 
-                        <ul className="space-y-2">
+                        <ul className="space-y-4 mt-6">
                             {currentQuestion.options.map((option, index) => (
-                                <li key={index} className="flex items-center">
+                                <li
+                                    key={index}
+                                    className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${
+                                        data.answers[
+                                            currentQuestionIndex
+                                        ].includes(option)
+                                            ? "bg-green-50 border-green-300"
+                                            : "hover:bg-gray-50"
+                                    }`}
+                                    onClick={() => handleOptionChange(option)}
+                                >
                                     <input
                                         type="checkbox"
                                         name={`question-${currentQuestionIndex}`}
                                         id={`option-${index}`}
                                         value={option}
-                                        className="checkbox checkbox-success mr-2"
+                                        className="checkbox checkbox-success mr-3 h-5 w-5"
                                         onChange={() =>
                                             handleOptionChange(option)
                                         }
@@ -404,7 +464,10 @@ const TakeAssessment = ({ assessment }) => {
                                             currentQuestionIndex
                                         ].includes(option)}
                                     />
-                                    <label htmlFor={`option-${index}`}>
+                                    <label
+                                        htmlFor={`option-${index}`}
+                                        className="text-lg cursor-pointer w-full"
+                                    >
                                         {option}
                                     </label>
                                 </li>
