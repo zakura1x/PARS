@@ -596,7 +596,7 @@ class StudentPracticeAssessmentController extends Controller
             // Load questions with the `question` relationship, including student answers
             $assessment = StudentPracticeAssessment::with([
                 'questions' => function ($query) use ($shuffledQuestionIds) {
-                    $query->with('question:id,question_text,options,topic_id,format_type') // Load related `question`
+                    $query->with('question:id,question_text,options,topic_id,format_type,attachment_path') // Load related `question`
                         ->whereIn('id', $shuffledQuestionIds)
                         ->select('id', 'practice_assessment_id', 'question_id', 'student_answer');
                 },

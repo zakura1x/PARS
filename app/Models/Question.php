@@ -32,6 +32,21 @@ class Question extends Model
         'correct_answer' => 'array',
     ];
 
+    protected $appends = [
+        'attachment_url'
+    ];
+
+    public function getAttachmentUrlAttribute()
+    {
+        if (!$this->attachment_path) {
+            return null;
+        }
+        if(filter_var($this->attachment_path, FILTER_VALIDATE_URL)){
+            return $this->attachment_path;
+        }
+        return asset('storage/', $this->attachment_path);
+    }
+
     public function subject(){
         return $this->belongsTo(Subject::class);
     }
