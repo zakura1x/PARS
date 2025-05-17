@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Question;
 use App\Models\StudentPracticeAssessment;
 use App\Models\StudentPracticeAssessmentQuestion;
+use App\Models\StudentQuestionUsage;
 use App\Models\StudentTopicProficiency;
 use App\Models\Subject;
 use App\Models\Topics;
@@ -201,7 +202,7 @@ class GeneratePracticeAssessmentController extends Controller
             
             // Adjust question difficulty based on proficiency
             $difficultyWeights = $this->getDifficultyWeights($level);
-            $topicQuestions = $this->selectQuestionsByDifficulty($topicId, $difficultyWeights, $questionsPerTopic);
+            $topicQuestions = $this->selectQuestionsByDifficulty($studentId, $topicId, $difficultyWeights, $questionsPerTopic);
             
             $questions = $questions->merge($topicQuestions);
         }
@@ -242,7 +243,7 @@ class GeneratePracticeAssessmentController extends Controller
         };
     }
 
-    private function selectQuestionsByDifficulty($topicId, $difficultyWeights, $count)
+    private function selectQuestionsByDifficulty($studentId, $topicId, $difficultyWeights, $count)
     {
         $questions = collect();
         $remaining = $count;
@@ -252,7 +253,12 @@ class GeneratePracticeAssessmentController extends Controller
             
             if ($needed > 0) {
                 $found = Question::where('topic_id', $topicId)
+                    ->where('purpose_type', 'practice') // Add this filter
                     ->where('difficulty', $difficulty)
+                    ->whereDoesntHave('studentQuestionUsages', function ($query) use ($studentId) {
+                        $query->where('student_id', $studentId)
+                            ->where('is_used', true);
+                    })
                     ->inRandomOrder()
                     ->limit($needed)
                     ->get();
@@ -265,12 +271,25 @@ class GeneratePracticeAssessmentController extends Controller
         // If we didn't get enough, fill with random questions
         if ($remaining > 0) {
             $extra = Question::where('topic_id', $topicId)
+                ->where('purpose_type', 'practice') // Add this filter
                 ->whereNotIn('id', $questions->pluck('id'))
+                ->whereDoesntHave('studentQuestionUsages', function ($query) use ($studentId) {
+                    $query->where('student_id', $studentId)
+                        ->where('is_used', true);
+                })
                 ->inRandomOrder()
                 ->limit($remaining)
                 ->get();
                 
             $questions = $questions->merge($extra);
+        }
+
+        // Mark questions as used
+        foreach ($questions as $question) {
+            StudentQuestionUsage::updateOrCreate(
+                ['student_id' => $studentId, 'question_id' => $question->id],
+                ['is_used' => true, 'updated_at' => now()]
+            );
         }
         
         return $questions;
