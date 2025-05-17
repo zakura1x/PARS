@@ -79,7 +79,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':professor,program_head,dean
     //Update the title of the assessment
     Route::put('/assessment/update/title/{assessmentId}', [AssessmentCreateController::class, 'updateTitle'])->name('assessment-update.title');
     //Update the assessment details
-    Route::post('/assessment/update/${assessmentId}', [AssessmentCreateController::class, 'update']);
+    Route::put('/assessment/update/{assessmentId}', [AssessmentCreateController::class, 'update']);
 
     //Update the status of the assessment
     Route::put('/assessment/update/approval/{assessmentId}', [AssessmentSubmissionController::class,'submitForApproval'])->name('assessment-update.approval');
@@ -87,7 +87,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':professor,program_head,dean
     //Fork the assessment
     Route::post('/assessment/copy/{assessmentId}', [AssessmentCreateController::class, 'forkAssessment'])->name('assessment.fork');
     //Delete the assessment
-    Route::delete('/api/assessments/{assessmentId', [AssessmentController::class, 'destroy'])->name('assessment.delete');
+    Route::delete('/assessment/delete/{assessmentId}', [AssessmentController::class, 'destroy'])->name('assessment.delete');
 
     //Assessment Prof View Start of Assessment
     Route::put('/assessment/update/to/wait/{assessmentId}', [AssessmentController::class,'updateToWait'])->name('assessment.update.wait');

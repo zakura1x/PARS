@@ -283,10 +283,7 @@ const AssessmentReview = ({ assessment, questions }) => {
 
     const handleDeleteAssessment = () => {
         setDialogConfig((prev) => ({ ...prev, isLoading: true }));
-        router.delete(`/api/assessments/${assessment.id}`, {
-            onSuccess: () => {
-                router.visit("/assessments");
-            },
+        router.delete(`/assessment/delete/${assessment.id}`, {
             onError: (error) => {
                 setMessages({
                     error: error.message || "Failed to delete assessment",
@@ -333,7 +330,7 @@ const AssessmentReview = ({ assessment, questions }) => {
     };
 
     const handleSaveAssessment = (formData) => {
-        router.post(
+        router.put(
             `/assessment/update/${assessment.id}`,
             {
                 title: formData.title,
