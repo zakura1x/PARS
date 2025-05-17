@@ -504,7 +504,13 @@ class AssessmentController extends Controller
         // Delete the assessment
         $assessment->delete();
 
-        return inertia('Assessment/AssessmentIndex',['message' => 'Assessment deleted successfully.']);
+        // Get fresh data to return
+        $assessments = Assessment::latest()->paginate(10);
+
+        return inertia('Assessment/AssessmentIndex', [
+            'assessments' => $assessments,
+            'message' => 'Assessment deleted successfully.'
+        ]);
     }
 
     /**
@@ -514,7 +520,7 @@ class AssessmentController extends Controller
     {
         $assessment = Assessment::findOrFail($assessmentId);
 
-        
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string|max:255',
