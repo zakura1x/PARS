@@ -627,6 +627,8 @@ class StudentPracticeAssessmentController extends Controller
             return $assessment;
         });
 
+        dd($practiceAssessment->toArray());
+
         // Pass the practice assessment to the front-end
         return inertia('PracticeAssessment/PracticeTakeAssessment', [
             'practiceAssessment' => $practiceAssessment,
