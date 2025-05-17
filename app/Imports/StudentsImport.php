@@ -32,21 +32,22 @@ class StudentsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOn
         }
 
         try {
+            $birthDate = $row['birthdate_yyyy_mm_dd'];
+
+            if (is_numeric($birthDate)) {
+                $birthDate = Carbon::instance(
+                    ExcelDate::excelToDateTimeObject($birthDate)
+                )->format('Y-m-d');
+            }
+
             $user = User::create([
                 'first_name' => $row['first_name'],
                 'last_name' => $row['last_name'],
                 'email' => $row['student_email'],
                 'idNumber' => $row['id_number'],
                 'role' => 'student',
-                'password' => Hash::make($row['birthdate_yyyy_mm_dd']),
+                'password' => $birthDate,
             ]);
-
-            $birthDate = $row['birthdate_yyyy_mm_dd'];
-            if (is_numeric($birthDate)) {
-                $birthDate = Carbon::instance(
-                    ExcelDate::excelToDateTimeObject($birthDate)
-                )->format('Y-m-d');
-            }
 
             $this->successCount++;
             
