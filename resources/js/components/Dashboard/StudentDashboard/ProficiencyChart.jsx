@@ -10,35 +10,16 @@ import {
 } from "recharts";
 
 export function ProficiencyChart({ proficiencyData }) {
-    // First, normalize the proficiency levels to numbers
-    const normalizedData = proficiencyData.map((item) => {
-        let levelNumber;
-        switch (item.proficiency_level.toLowerCase()) {
-            case "beginner":
-                levelNumber = 1;
-                break;
-            case "intermediate":
-                levelNumber = 2;
-                break;
-            case "advanced":
-                levelNumber = 3;
-                break;
-            default:
-                levelNumber = 0; // fallback
-        }
-
+    // Transform data for the chart and normalize proficiency levels
+    const chartData = proficiencyData.map((item) => {
+        const level = normalizeProficiencyLevel(item.proficiency_level);
         return {
-            ...item,
-            proficiency_level: levelNumber,
+            name: item.topic.name,
+            level: level,
+            subject: item.topic.subject.name,
+            originalLevel: item.proficiency_level, // Keep original for tooltip if needed
         };
     });
-
-    // Transform data for the chart using normalized data
-    const chartData = normalizedData.map((item) => ({
-        name: item.topic.name,
-        level: item.proficiency_level,
-        subject: item.topic.subject.name,
-    }));
 
     // Colors for different proficiency levels
     const COLORS = ["#FF8042", "#FFBB28", "#00C49F"];
@@ -46,15 +27,17 @@ export function ProficiencyChart({ proficiencyData }) {
     return (
         <div className="space-y-6">
             <div className="flex flex-wrap gap-2">
-                {[1, 2, 3].map((level) => (
-                    <div key={level} className="badge badge-outline gap-1">
-                        <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: COLORS[level - 1] }}
-                        />
-                        <span>{getProficiencyLabel(level)}</span>
-                    </div>
-                ))}
+                {["beginner", "intermediate", "advanced"].map(
+                    (level, index) => (
+                        <div key={level} className="badge badge-outline gap-1">
+                            <div
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: COLORS[index] }}
+                            />
+                            <span>{capitalizeFirstLetter(level)}</span>
+                        </div>
+                    )
+                )}
             </div>
 
             <div className="h-80">
@@ -74,11 +57,17 @@ export function ProficiencyChart({ proficiencyData }) {
                         <YAxis
                             domain={[0, 3]}
                             ticks={[1, 2, 3]}
-                            tickFormatter={getProficiencyLabel}
+                            tickFormatter={(value) =>
+                                capitalizeFirstLetter(
+                                    getProficiencyLabel(value)
+                                )
+                            }
                         />
                         <Tooltip
                             formatter={(value, name, props) => [
-                                getProficiencyLabel(value),
+                                capitalizeFirstLetter(
+                                    getProficiencyLabel(value)
+                                ),
                                 "Proficiency",
                             ]}
                             labelFormatter={(label) => `Topic: ${label}`}
@@ -96,51 +85,78 @@ export function ProficiencyChart({ proficiencyData }) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {normalizedData.map((item, index) => (
-                    <div
-                        key={item.id || index}
-                        className="card bg-base-100 shadow-sm"
-                    >
-                        <div className="card-body p-4">
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <h3 className="font-medium">
-                                        {item.topic.name}
-                                    </h3>
-                                    <p className="text-sm opacity-70">
-                                        {item.topic.subject.name}
-                                    </p>
+                {proficiencyData.map((item, index) => {
+                    const level = normalizeProficiencyLevel(
+                        item.proficiency_level
+                    );
+                    return (
+                        <div
+                            key={item.id || index}
+                            className="card bg-base-100 shadow-sm"
+                        >
+                            <div className="card-body p-4">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <h3 className="font-medium">
+                                            {item.topic.name}
+                                        </h3>
+                                        <p className="text-sm opacity-70">
+                                            {item.topic.subject.name}
+                                        </p>
+                                    </div>
+                                    <span
+                                        className="badge"
+                                        style={{
+                                            backgroundColor: COLORS[level - 1],
+                                        }}
+                                    >
+                                        {capitalizeFirstLetter(
+                                            item.proficiency_level
+                                        )}
+                                    </span>
                                 </div>
-                                <span
-                                    className="badge"
-                                    style={{
-                                        backgroundColor:
-                                            COLORS[item.proficiency_level - 1],
-                                    }}
-                                >
-                                    {getProficiencyLabel(
-                                        item.proficiency_level
-                                    )}
-                                </span>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );
 }
 
-// Helper function to convert proficiency level to label
+// Helper function to normalize proficiency level to number
+function normalizeProficiencyLevel(level) {
+    if (typeof level === "number") return level;
+
+    switch (level.toLowerCase()) {
+        case "beginner":
+            return 1;
+        case "intermediate":
+            return 2;
+        case "advanced":
+            return 3;
+        default:
+            return 0;
+    }
+}
+
+// Helper function to get proficiency label
 function getProficiencyLabel(level) {
+    if (typeof level === "string") return level.toLowerCase();
+
     switch (level) {
         case 1:
-            return "Beginner";
+            return "beginner";
         case 2:
-            return "Intermediate";
+            return "intermediate";
         case 3:
-            return "Advanced";
+            return "advanced";
         default:
-            return `Level ${level}`;
+            return `level ${level}`;
     }
+}
+
+// Helper function to capitalize first letter
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
 }
