@@ -268,16 +268,40 @@ class ProgramHeadDashboardController extends Controller
     }
 
     // Separate endpoint if you need full student averages (not just top 10)
-    public function studentAverages()
+  public function studentAverages(Request $request)
     {
-        $studentsWithAverages = User::whereNull('deleted_at')
-            ->with(['student', 'topicProficiencies', 'assessmentResults.result'])
-            ->whereHas('student')
-            ->get()
-            ->map(function($user) {
+        // Get query parameters with defaults
+        $sort = $request->input('sort', 'average_score');
+        $direction = $request->input('direction', 'desc');
+        $perPage = $request->input('perPage', 10);
+
+        // Validate inputs
+        $validated = $request->validate([
+            'sort' => 'sometimes|in:name,average_score,regular_assessment_average,practice_assessment_average',
+            'direction' => 'sometimes|in:asc,desc',
+            'perPage' => 'sometimes|integer|min:5|max:100',
+        ]);
+
+        // Get base query
+        $query = User::whereNull('deleted_at')
+            ->with([
+                'student', 
+                'topicProficiencies', 
+                'assessmentResults.result',
+                'practiceAssessments.results'
+            ])
+            ->whereHas('student');
+
+        // Paginate the results
+        $students = $query->paginate($perPage)
+            ->through(function($user) {
+                // Your existing calculation logic here
                 $totalScore = 0;
                 $totalQuestions = 0;
+                $practiceTotalScore = 0;
+                $practiceTotalQuestions = 0;
 
+                // Regular assessments
                 foreach ($user->assessmentResults as $assessment) {
                     if ($assessment->result) {
                         $totalScore += $assessment->result->correct_answers;
@@ -285,8 +309,22 @@ class ProgramHeadDashboardController extends Controller
                     }
                 }
 
-                $averageScore = $totalQuestions > 0
-                    ? round(($totalScore / $totalQuestions) * 100, 2)
+                // Practice assessments
+                foreach ($user->practiceAssessments as $practiceAssessment) {
+                    if ($practiceAssessment->results) {
+                        $correct = $practiceAssessment->results->correct_answers;
+                        $incorrect = $practiceAssessment->results->incorrect_answers;
+                        $practiceTotalScore += $correct;
+                        $practiceTotalQuestions += ($correct + $incorrect);
+                    }
+                }
+
+                // Combined calculations
+                $combinedScore = $totalScore + $practiceTotalScore;
+                $combinedQuestions = $totalQuestions + $practiceTotalQuestions;
+
+                $averageScore = $combinedQuestions > 0
+                    ? round(($combinedScore / $combinedQuestions) * 100, 2)
                     : 0;
 
                 return [
@@ -294,13 +332,21 @@ class ProgramHeadDashboardController extends Controller
                     'name' => $user->full_name,
                     'email' => $user->email,
                     'average_score' => $averageScore,
+                    'regular_assessment_average' => $totalQuestions > 0 
+                        ? round(($totalScore / $totalQuestions) * 100, 2) 
+                        : 0,
+                    'practice_assessment_average' => $practiceTotalQuestions > 0 
+                        ? round(($practiceTotalScore / $practiceTotalQuestions) * 100, 2) 
+                        : 0,
                 ];
             });
 
-        // dd($studentsWithAverages);
+        // Apply sorting (client-side in this case, but could be server-side)
+        // Note: We're keeping client-side sorting for this implementation
+        // If you want server-side sorting, you would modify the query here
 
         return Inertia::render('StudentPerformance/StudentPerformanceList', [
-            'studentPerformance' => $studentsWithAverages->values()->toArray(),
+            'studentPerformance' => $students,
         ]);
     }
 
