@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Link, useForm, router } from "@inertiajs/react";
+import { useState, useEffect } from "react";
+import { useForm, router } from "@inertiajs/react";
 import {
     ChevronDown,
     ChevronUp,
@@ -55,40 +55,106 @@ const ConfirmationDialog = ({
     );
 };
 
-const EditTitleDialog = ({ isOpen, onClose, initialTitle, onSave }) => {
-    const [title, setTitle] = useState(initialTitle);
+const EditAssessmentDialog = ({ isOpen, onClose, assessment, onSave }) => {
+    const [formData, setFormData] = useState({
+        title: assessment?.title || "",
+        time_limit: assessment?.time_limit || 60,
+        description: assessment?.description || "",
+    });
 
     useEffect(() => {
-        if (isOpen) {
-            setTitle(initialTitle);
+        if (isOpen && assessment) {
+            setFormData({
+                title: assessment.title || "",
+                time_limit: assessment.time_limit || 60,
+                description: assessment.description || "",
+            });
         }
-    }, [isOpen, initialTitle]);
+    }, [isOpen, assessment]);
 
     if (!isOpen) return null;
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]:
+                name === "time_limit" ? Number.parseInt(value, 10) || 0 : value,
+        }));
+    };
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
                 <h3 className="text-lg font-bold mb-4">
-                    Edit Assessment Title
+                    Edit Assessment Details
                 </h3>
-                <input
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded mb-4"
-                    placeholder="Enter new title"
-                />
-                <div className="flex justify-end space-x-3">
+                <div className="space-y-4">
+                    <div>
+                        <label
+                            htmlFor="title"
+                            className="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                            Title
+                        </label>
+                        <input
+                            type="text"
+                            id="title"
+                            name="title"
+                            value={formData.title}
+                            onChange={handleChange}
+                            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Enter assessment title"
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="time_limit"
+                            className="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                            Time Limit (minutes)
+                        </label>
+                        <input
+                            type="number"
+                            id="time_limit"
+                            name="time_limit"
+                            value={formData.time_limit}
+                            onChange={handleChange}
+                            min="1"
+                            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Enter time limit in minutes"
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            htmlFor="description"
+                            className="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                            Description
+                        </label>
+                        <textarea
+                            id="description"
+                            name="description"
+                            value={formData.description}
+                            onChange={handleChange}
+                            rows="3"
+                            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Enter assessment description"
+                        ></textarea>
+                    </div>
+                </div>
+                <div className="flex justify-end space-x-3 mt-6">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 flex items-center"
+                        className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 flex items-center transition-colors"
                     >
                         <X size={16} className="mr-1" /> Cancel
                     </button>
                     <button
-                        onClick={() => onSave(title)}
-                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center"
+                        onClick={() => onSave(formData)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center transition-colors"
                     >
                         <Check size={16} className="mr-1" /> Save
                     </button>
@@ -110,7 +176,7 @@ const AssessmentReview = ({ assessment, questions }) => {
         action: null,
         isLoading: false,
     });
-    const [editTitleDialog, setEditTitleDialog] = useState(false);
+    const [editAssessmentDialog, setEditAssessmentDialog] = useState(false);
     const { post, processing } = useForm({});
 
     // Group questions by topic
@@ -266,24 +332,28 @@ const AssessmentReview = ({ assessment, questions }) => {
         router.visit(`/assessment/${assessment.id}/results`);
     };
 
-    const handleSaveTitle = (newTitle) => {
+    const handleSaveAssessment = (formData) => {
         router.post(
-            `/assessment/update/title/${assessment.id}`,
+            `/assessment/update/${assessment.id}`,
             {
-                title: newTitle,
+                title: formData.title,
+                time_limit: formData.time_limit,
+                description: formData.description,
             },
             {
                 onSuccess: () => {
                     setMessages({
-                        success: "Assessment title updated successfully!",
+                        success: "Assessment details updated successfully!",
                     });
-                    setEditTitleDialog(false);
+                    setEditAssessmentDialog(false);
                 },
                 onError: (error) => {
                     setMessages({
-                        error: error.message || "Failed to update title",
+                        error:
+                            error.message ||
+                            "Failed to update assessment details",
                     });
-                    setEditTitleDialog(false);
+                    setEditAssessmentDialog(false);
                 },
             }
         );
@@ -291,7 +361,7 @@ const AssessmentReview = ({ assessment, questions }) => {
 
     const handleActionClick = (action) => {
         if (action === "edit") {
-            setEditTitleDialog(true);
+            setEditAssessmentDialog(true);
             return;
         }
 
@@ -416,19 +486,55 @@ const AssessmentReview = ({ assessment, questions }) => {
     return (
         <div className="bg-gray-100">
             {/* Assessment Info */}
-            <div className="p-4 flex space-x-4">
-                <div className="bg-green-200 p-3 rounded-md flex-1">
-                    <div className="text-sm font-medium uppercase">
-                        ASSESSMENT TITLE
+            <div className="p-4">
+                <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div className="p-4 border-b">
+                        <h1 className="text-xl font-bold text-gray-800">
+                            {assessment.title}
+                        </h1>
+                        {assessment.description && (
+                            <p className="mt-2 text-gray-600">
+                                {assessment.description}
+                            </p>
+                        )}
                     </div>
-                    <div className="bg-white p-2 rounded-md mt-1">
-                        {assessment.title}
-                    </div>
-                </div>
-                <div className="bg-green-200 p-3 rounded-md w-64">
-                    <div className="text-sm font-medium uppercase">STATUS</div>
-                    <div className="bg-white p-2 rounded-md mt-1">
-                        {assessment.status || "Pending"}
+                    <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x">
+                        <div className="p-4">
+                            <div className="text-sm font-medium text-gray-500">
+                                Status
+                            </div>
+                            <div className="mt-1 font-semibold">
+                                <span
+                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                        assessment.status === "active"
+                                            ? "bg-green-100 text-green-800"
+                                            : assessment.status === "draft"
+                                            ? "bg-yellow-100 text-yellow-800"
+                                            : assessment.status === "rejected"
+                                            ? "bg-red-100 text-red-800"
+                                            : "bg-blue-100 text-blue-800"
+                                    }`}
+                                >
+                                    {assessment.status || "Pending"}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="p-4">
+                            <div className="text-sm font-medium text-gray-500">
+                                Time Limit
+                            </div>
+                            <div className="mt-1 font-semibold">
+                                {assessment.time_limit || 60} minutes
+                            </div>
+                        </div>
+                        <div className="p-4">
+                            <div className="text-sm font-medium text-gray-500">
+                                Questions
+                            </div>
+                            <div className="mt-1 font-semibold">
+                                {questions.length} questions
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -474,35 +580,46 @@ const AssessmentReview = ({ assessment, questions }) => {
             )}
 
             {/* Messages */}
-            {messages.success && (
+            {(messages.success || messages.error) && (
                 <div className="p-4">
-                    <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-                        {messages.success}
-                    </div>
-                </div>
-            )}
-            {messages.error && (
-                <div className="p-4">
-                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                        {messages.error}
-                    </div>
+                    {messages.success && (
+                        <div className="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded-md flex items-start">
+                            <CheckCircle className="h-5 w-5 mr-3 mt-0.5" />
+                            <div>
+                                <p className="font-medium">
+                                    {messages.success}
+                                </p>
+                                {messages.replacement && (
+                                    <p className="mt-1 text-sm">
+                                        {messages.replacement}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                    {messages.error && (
+                        <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-md flex items-start">
+                            <X className="h-5 w-5 mr-3 mt-0.5" />
+                            <div>
+                                <p className="font-medium">{messages.error}</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
             {/* Action Buttons */}
-            <div className="flex justify-between items-center p-4 bg-gray-50 border-b">
+            <div className="p-4 bg-white rounded-lg shadow-sm mb-4 flex justify-between items-center">
                 <div className="flex space-x-2">
                     {/* Submit for approval */}
                     {showButtons.submit && (
                         <button
                             onClick={() => handleActionClick("submit")}
-                            className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-md relative group"
+                            className="px-3 py-2 bg-green-50 text-green-700 hover:bg-green-100 rounded-md flex items-center transition-colors"
                             disabled={dialogConfig.isLoading}
                         >
-                            <CheckCircle size={20} />
-                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                                Submit for approval
-                            </span>
+                            <CheckCircle size={18} className="mr-2" />
+                            <span>Submit for approval</span>
                         </button>
                     )}
 
@@ -510,13 +627,11 @@ const AssessmentReview = ({ assessment, questions }) => {
                     {showButtons.start && (
                         <button
                             onClick={() => handleActionClick("start")}
-                            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md relative group"
+                            className="px-3 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-md flex items-center transition-colors"
                             disabled={dialogConfig.isLoading}
                         >
-                            <Play size={20} />
-                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                                Start assessment
-                            </span>
+                            <Play size={18} className="mr-2" />
+                            <span>Start assessment</span>
                         </button>
                     )}
 
@@ -524,13 +639,11 @@ const AssessmentReview = ({ assessment, questions }) => {
                     {showButtons.viewStatus && (
                         <button
                             onClick={() => handleActionClick("view-status")}
-                            className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-md relative group"
+                            className="px-3 py-2 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-md flex items-center transition-colors"
                             disabled={dialogConfig.isLoading}
                         >
-                            <Eye size={20} />
-                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                                View status
-                            </span>
+                            <Eye size={18} className="mr-2" />
+                            <span>View status</span>
                         </button>
                     )}
 
@@ -538,13 +651,11 @@ const AssessmentReview = ({ assessment, questions }) => {
                     {showButtons.edit && (
                         <button
                             onClick={() => handleActionClick("edit")}
-                            className="p-2 text-gray-600 hover:text-yellow-600 hover:bg-yellow-50 rounded-md relative group"
+                            className="px-3 py-2 bg-yellow-50 text-yellow-700 hover:bg-yellow-100 rounded-md flex items-center transition-colors"
                             disabled={dialogConfig.isLoading}
                         >
-                            <Edit size={20} />
-                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                                Edit assessment
-                            </span>
+                            <Edit size={18} className="mr-2" />
+                            <span>Edit assessment</span>
                         </button>
                     )}
 
@@ -552,13 +663,11 @@ const AssessmentReview = ({ assessment, questions }) => {
                     {showButtons.copy && (
                         <button
                             onClick={() => handleActionClick("copy")}
-                            className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-md relative group"
+                            className="px-3 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-md flex items-center transition-colors"
                             disabled={dialogConfig.isLoading}
                         >
-                            <Copy size={20} />
-                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                                Copy assessment
-                            </span>
+                            <Copy size={18} className="mr-2" />
+                            <span>Copy assessment</span>
                         </button>
                     )}
 
@@ -566,13 +675,11 @@ const AssessmentReview = ({ assessment, questions }) => {
                     {showButtons.delete && (
                         <button
                             onClick={() => handleActionClick("delete")}
-                            className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-md relative group"
+                            className="px-3 py-2 bg-red-50 text-red-700 hover:bg-red-100 rounded-md flex items-center transition-colors"
                             disabled={dialogConfig.isLoading}
                         >
-                            <Trash2 size={20} />
-                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                                Delete assessment
-                            </span>
+                            <Trash2 size={18} className="mr-2" />
+                            <span>Delete assessment</span>
                         </button>
                     )}
                 </div>
@@ -580,17 +687,17 @@ const AssessmentReview = ({ assessment, questions }) => {
                 {/* Expand/Collapse Button */}
                 <button
                     onClick={handleExpandAll}
-                    className="text-sm text-gray-600 hover:underline flex items-center"
+                    className="px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-md flex items-center transition-colors"
                     disabled={dialogConfig.isLoading}
                 >
                     {expandAll ? (
                         <>
-                            <ChevronUp size={16} className="mr-1" />
+                            <ChevronUp size={18} className="mr-2" />
                             Collapse all
                         </>
                     ) : (
                         <>
-                            <ChevronDown size={16} className="mr-1" />
+                            <ChevronDown size={18} className="mr-2" />
                             Expand all
                         </>
                     )}
@@ -606,31 +713,37 @@ const AssessmentReview = ({ assessment, questions }) => {
                 {...dialogMessages[dialogConfig.action]}
             />
 
-            {/* Edit Title Dialog */}
-            <EditTitleDialog
-                isOpen={editTitleDialog}
-                onClose={() => setEditTitleDialog(false)}
-                initialTitle={assessment.title}
-                onSave={handleSaveTitle}
+            {/* Edit Assessment Dialog */}
+            <EditAssessmentDialog
+                isOpen={editAssessmentDialog}
+                onClose={() => setEditAssessmentDialog(false)}
+                assessment={assessment}
+                onSave={handleSaveAssessment}
             />
 
             {/* Questions by Topic */}
-            <div className="p-4 space-y-4">
+            <div className="p-4 space-y-6">
                 {Object.entries(groupedQuestions).map(
                     ([topicName, topicQuestions], topicIndex) => (
                         <div
                             key={topicIndex}
-                            className="bg-white rounded-md shadow overflow-hidden"
+                            className="bg-white rounded-lg shadow-sm overflow-hidden"
                         >
                             {/* Topic Header */}
                             <div
-                                className="p-4 bg-white border-b flex justify-between items-center cursor-pointer"
+                                className="p-4 bg-gray-50 border-b flex justify-between items-center cursor-pointer hover:bg-gray-100 transition-colors"
                                 onClick={() => toggleSection(topicName)}
                             >
-                                <h2 className="font-bold text-lg">
+                                <h2 className="font-bold text-lg text-gray-800 flex items-center">
+                                    <span className="w-8 h-8 flex items-center justify-center bg-gray-200 text-gray-700 rounded-full mr-3 text-sm">
+                                        {topicIndex + 1}
+                                    </span>
                                     {topicName}
+                                    <span className="ml-3 text-sm font-normal text-gray-500">
+                                        ({topicQuestions.length} questions)
+                                    </span>
                                 </h2>
-                                <button>
+                                <button className="p-1 rounded-full hover:bg-gray-200 transition-colors">
                                     {expandedSections[topicName] ? (
                                         <ChevronUp size={20} />
                                     ) : (
@@ -643,29 +756,38 @@ const AssessmentReview = ({ assessment, questions }) => {
                             {expandedSections[topicName] && (
                                 <div className="divide-y">
                                     {topicQuestions.map((question, qIndex) => (
-                                        <div key={question.id} className="p-4">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div className="flex items-center">
-                                                    <span className="font-medium mr-2">
+                                        <div
+                                            key={question.id}
+                                            className="p-5 hover:bg-gray-50 transition-colors"
+                                        >
+                                            <div className="flex justify-between items-start mb-3">
+                                                <div className="flex items-start">
+                                                    <span className="font-medium mr-3 text-gray-500 mt-0.5">
                                                         {qIndex + 1}.
                                                     </span>
-                                                    <span>
+                                                    <span className="text-gray-800 font-medium">
                                                         {question.question_text}
                                                     </span>
                                                 </div>
-                                                <div className="flex items-center space-x-2">
+                                                <div className="flex items-center space-x-3 ml-4">
                                                     <span
-                                                        className={`px-2 py-1 text-xs rounded ${
+                                                        className={`px-2.5 py-1 text-xs rounded-full font-medium ${
                                                             question.difficulty ===
                                                             "remembering"
                                                                 ? "bg-green-100 text-green-800"
-                                                                : "bg-green-200 text-green-800"
+                                                                : question.difficulty ===
+                                                                  "understanding"
+                                                                ? "bg-blue-100 text-blue-800"
+                                                                : question.difficulty ===
+                                                                  "applying"
+                                                                ? "bg-yellow-100 text-yellow-800"
+                                                                : "bg-purple-100 text-purple-800"
                                                         }`}
                                                     >
                                                         {question.difficulty}
                                                     </span>
                                                     <button
-                                                        className="text-gray-400 hover:text-gray-600"
+                                                        className="p-1 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             toggleQuestion(
@@ -677,17 +799,17 @@ const AssessmentReview = ({ assessment, questions }) => {
                                                             question.id
                                                         ] ? (
                                                             <ChevronUp
-                                                                size={16}
+                                                                size={18}
                                                             />
                                                         ) : (
                                                             <ChevronDown
-                                                                size={16}
+                                                                size={18}
                                                             />
                                                         )}
                                                     </button>
                                                     {showButtons.replaceQuestion && (
                                                         <button
-                                                            className={`text-gray-400 hover:text-gray-600 ${
+                                                            className={`p-1 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors ${
                                                                 replacingQuestionId ===
                                                                 question.id
                                                                     ? "animate-spin"
@@ -706,7 +828,7 @@ const AssessmentReview = ({ assessment, questions }) => {
                                                             }
                                                         >
                                                             <RefreshCw
-                                                                size={16}
+                                                                size={18}
                                                             />
                                                         </button>
                                                     )}
@@ -715,7 +837,7 @@ const AssessmentReview = ({ assessment, questions }) => {
 
                                             {/* Options - only show if question is expanded */}
                                             {expandedQuestions[question.id] && (
-                                                <div className="ml-6 space-y-2">
+                                                <div className="ml-8 mt-4 space-y-3 bg-gray-50 p-4 rounded-lg">
                                                     {question.options &&
                                                         question.options.map(
                                                             (
@@ -724,10 +846,17 @@ const AssessmentReview = ({ assessment, questions }) => {
                                                             ) => (
                                                                 <div
                                                                     key={oIndex}
-                                                                    className="flex items-center space-x-3"
+                                                                    className={`flex items-center p-2 rounded-md ${
+                                                                        isCorrectAnswer(
+                                                                            question,
+                                                                            option
+                                                                        )
+                                                                            ? "bg-green-50"
+                                                                            : "hover:bg-gray-100"
+                                                                    }`}
                                                                 >
                                                                     <div
-                                                                        className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                                                                        className={`w-6 h-6 rounded-full border flex items-center justify-center mr-3 ${
                                                                             isCorrectAnswer(
                                                                                 question,
                                                                                 option
@@ -749,8 +878,8 @@ const AssessmentReview = ({ assessment, questions }) => {
                                                                                 question,
                                                                                 option
                                                                             )
-                                                                                ? "font-medium text-green-700"
-                                                                                : ""
+                                                                                ? "font-medium text-green-800"
+                                                                                : "text-gray-700"
                                                                         }
                                                                     >
                                                                         {option}

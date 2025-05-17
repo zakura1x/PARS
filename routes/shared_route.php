@@ -84,6 +84,8 @@ Route::middleware(['auth', RoleMiddleware::class . ':professor,program_head,dean
 
     //Fork the assessment
     Route::post('/assessment/copy/{assessmentId}', [AssessmentCreateController::class, 'forkAssessment'])->name('assessment.fork');
+    //Delete the assessment
+    Route::delete('/api/assessments/{assessmentId', [AssessmentController::class, 'destroy'])->name('assessment.delete');
 
     //Assessment Prof View Start of Assessment
     Route::put('/assessment/update/to/wait/{assessmentId}', [AssessmentController::class,'updateToWait'])->name('assessment.update.wait');
