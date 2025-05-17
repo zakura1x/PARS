@@ -230,6 +230,13 @@ class AssessmentCreateController extends Controller
     {
         $assessment = Assessment::findOrFail($assessmentId);
 
+        //Check the status of the assessment
+        if ($assessment->status !== 'draft'){
+            return back()->with([
+                'message' => 'Assessment title cannot be updated'
+            ]);
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string|max:255',
