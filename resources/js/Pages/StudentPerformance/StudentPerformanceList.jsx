@@ -143,12 +143,12 @@ const StudentPerformanceTable = () => {
 
             <div className="p-2">
                 <div className="flex justify-between items-center mb-4 px-2">
-                    <div className="flex items-center gap-2 text-sm">
+                    <div className="flex items-center gap-2 text-md">
                         <span>Show</span>
                         <select
                             value={perPage}
                             onChange={handlePerPageChange}
-                            className="select select-bordered select-sm w-20"
+                            className="select select-bordered select-sm w-20 h-10"
                         >
                             <option value="10">10</option>
                             <option value="25">25</option>
