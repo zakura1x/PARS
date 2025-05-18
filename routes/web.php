@@ -227,6 +227,13 @@ Route::middleware(['auth', RoleMiddleware::class . ':program_head,dean'])->group
     // Route::get('/assessment/{assessmentId}/item-analysis', [AssessmentController::class, 'assessmentItemAnalysis'])->name('assessment.item-analysis');
 });
 
+Route::middleware(['auth', RoleMiddleware::class . ':student,professor,program_head,dean'])->group(function () {
+    Route::get('/assessment/{assessmentId}/student/{studentId}', [AssessmentController::class, 'showIndividualAssessment'])->name('assessment.student-result');
+
+    Route::get('/student-practice-assessments/result/{practiceAssessmentId}', [StudentPracticeAssessmentController::class,'viewAssessmentReport'])->name('practice-assessment.view-result');
+
+});
+
 Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function () {
     Route::get('/dashboard/student', [StudentDashboardController::class, 'index'])->name('students.dashboard');
 
@@ -242,7 +249,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function 
     Route::get('/student-practice-assessments/take/{id}', [StudentPracticeAssessmentController::class, 'takePracticeAssessment'])->name('practice-assessment.take');
     Route::post('/student-practice-assessments/{practiceAssessmentId}/questions/{questionId}/save', [StudentPracticeAssessmentController::class,'saveAnswer'])->name('practice-assessment.save');
     Route::post('/student-practice-assessments/{practiceAssessmentId}/save',[StudentPracticeAssessmentController::class,'submitAssessment'])->name('practice-assessment.submit');
-    Route::get('/student-practice-assessments/result/{practiceAssessmentId}', [StudentPracticeAssessmentController::class,'viewAssessmentReport'])->name('practice-assessment.view-result');
+    // Route::get('/student-practice-assessments/result/{practiceAssessmentId}', [StudentPracticeAssessmentController::class,'viewAssessmentReport'])->name('practice-assessment.view-result');
 
     //Assessment
     //Route for the Assessment index
@@ -260,7 +267,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function 
     // Submit the entire assessment
     Route::put('/assessment/{assessmentId}/submit/{studentId}', [AssessmentGradeController::class, 'submitAssessment'])->name('assessment.submit');
     //View the assessment result
-    Route::get('/assessment/{assessmentId}/student/{studentId}', [AssessmentController::class, 'showIndividualAssessment'])->name('assessment.student-result');
+    // Route::get('/assessment/{assessmentId}/student/{studentId}', [AssessmentController::class, 'showIndividualAssessment'])->name('assessment.student-result');
 
     //Study Material
     Route::get('/study-materials/index', [StudyMaterialController::class, 'studentIndex'])->name('student-study-materials.index');
