@@ -231,7 +231,6 @@ Route::middleware(['auth', RoleMiddleware::class . ':student,professor,program_h
     Route::get('/assessment/{assessmentId}/student/{studentId}', [AssessmentController::class, 'showIndividualAssessment'])->name('assessment.student-result');
 
     Route::get('/student-practice-assessments/result/{practiceAssessmentId}', [StudentPracticeAssessmentController::class,'viewAssessmentReport'])->name('practice-assessment.view-result');
-
 });
 
 Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function () {
