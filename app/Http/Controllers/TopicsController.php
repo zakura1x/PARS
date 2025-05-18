@@ -191,7 +191,18 @@ class TopicsController extends Controller
             // Delete the topic itself
             $topic->delete();
 
-            return redirect()->back()->with('message', 'Topic and its related data were deleted successfully');
+            // For Inertia, we need to return a proper response
+            return redirect()->back()->with([
+                'message' => 'Topic and its related data were deleted successfully',
+                'parentTopics' => Topics::where('subject_id', $topic->subject_id)
+                    ->whereNull('parent_id')
+                    ->orderBy('order')
+                    ->get(),
+                'subTopics' => Topics::where('subject_id', $topic->subject_id)
+                    ->whereNotNull('parent_id')
+                    ->orderBy('order')
+                    ->get(),
+            ]);
         }
     }
 

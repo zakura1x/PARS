@@ -1,7 +1,8 @@
 import React from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { GiNotebook } from "react-icons/gi";
-import { Link } from "@inertiajs/react";
+import { Link, router } from "@inertiajs/react";
+import { FaTrash } from "react-icons/fa";
 
 const DetailsTable = ({
     parentTopics = [],
@@ -19,8 +20,15 @@ const DetailsTable = ({
         ? subTopics
         : Object.values(subTopics);
 
-    // console.log("Parent Topics:", sortedParentTopics);
-    // console.log("Number of Parent Topics:", sortedParentTopics.length);
+    const handleDelete = (topicId) => {
+        if (
+            confirm(
+                "Are you sure you want to delete this topic and all its subtopics?"
+            )
+        ) {
+            router.delete(`/topics/delete/${topicId}`);
+        }
+    };
 
     if (sortedParentTopics.length === 0) {
         return <p className="text-gray-500 italic">Loading topics...</p>;
@@ -35,12 +43,11 @@ const DetailsTable = ({
                         ref={provided.innerRef}
                         className="space-y-4"
                     >
-                        {/* Check if there are parent topics */}
                         {sortedParentTopics.length > 0 ? (
                             sortedParentTopics.map((topic, index) => (
                                 <Draggable
-                                    key={topic.id} // Use topic.id as a fallback if topic.order is null
-                                    draggableId={topic.id.toString()} // Same here
+                                    key={topic.id}
+                                    draggableId={topic.id.toString()}
                                     index={index}
                                     isDragDisabled={isLoading}
                                 >
@@ -60,18 +67,31 @@ const DetailsTable = ({
                                                     {topic.name ||
                                                         "Untitled Topic"}
                                                 </h2>
-                                                <button className="btn border-none bg-[#303030] text-white hover:bg-[#42604C] mt-2">
-                                                    <Link
-                                                        href={`/topics/edit/${topic.id}`}
-                                                        className="text-white"
+                                                <div className="flex space-x-2">
+                                                    <button
+                                                        onClick={() =>
+                                                            handleDelete(
+                                                                topic.id
+                                                            )
+                                                        }
+                                                        className="text-red-500 hover:text-red-700 p-2"
+                                                        disabled={isLoading}
+                                                        title="Delete topic"
                                                     >
-                                                        Manage Subtopics
-                                                    </Link>
-                                                </button>
+                                                        <FaTrash />
+                                                    </button>
+                                                    <button className="btn border-none bg-[#303030] text-white hover:bg-[#42604C]">
+                                                        <Link
+                                                            href={`/topics/edit/${topic.id}`}
+                                                            className="text-white"
+                                                        >
+                                                            Manage Subtopics
+                                                        </Link>
+                                                    </button>
+                                                </div>
                                             </div>
                                             <hr className="my-4 border-t-2 border-gray-400" />
                                             <div className="mt-2 pl-6 text-slate-800">
-                                                {/* Check if subtopics exist for the current parent topic */}
                                                 {subTopicsArray.length > 0 &&
                                                 subTopicsArray.some((st) => {
                                                     return (
@@ -91,7 +111,7 @@ const DetailsTable = ({
                                                                 key={
                                                                     subtopic.id
                                                                 }
-                                                                className="flex items-center space-x-2"
+                                                                className="flex items-center space-x-2 mb-2 group"
                                                             >
                                                                 <GiNotebook
                                                                     className="text-xl"
@@ -101,6 +121,24 @@ const DetailsTable = ({
                                                                     {subtopic.name ||
                                                                         "Untitled Subtopic"}
                                                                 </p>
+                                                                <button
+                                                                    onClick={() =>
+                                                                        handleDelete(
+                                                                            subtopic.id
+                                                                        )
+                                                                    }
+                                                                    className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                    disabled={
+                                                                        isLoading
+                                                                    }
+                                                                    title="Delete subtopic"
+                                                                >
+                                                                    <FaTrash
+                                                                        size={
+                                                                            14
+                                                                        }
+                                                                    />
+                                                                </button>
                                                             </div>
                                                         ))
                                                 ) : (

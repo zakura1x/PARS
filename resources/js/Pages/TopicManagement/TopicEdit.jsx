@@ -132,6 +132,7 @@ const TopicEdit = () => {
                                     className="space-y-4"
                                 >
                                     {sortedSubtopics.map((subtopic, index) => (
+                                        // Inside your TopicEdit component, modify the Draggable section:
                                         <Draggable
                                             key={subtopic.id}
                                             draggableId={subtopic.id.toString()}
@@ -153,13 +154,35 @@ const TopicEdit = () => {
                                                         <h2 className="text-lg font-semibold">
                                                             {subtopic.name}
                                                         </h2>
-                                                        <button className="btn border-none bg-[#303030] text-white hover:bg-[#42604C]">
-                                                            <Link
-                                                                href={`/study-materials/index/${subtopic.id}`}
+                                                        <div className="flex space-x-2">
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (
+                                                                        confirm(
+                                                                            "Are you sure you want to delete this subtopic?"
+                                                                        )
+                                                                    ) {
+                                                                        router.delete(
+                                                                            `/topics/delete/${subtopic.id}`
+                                                                        );
+                                                                    }
+                                                                }}
+                                                                className="text-red-500 hover:text-red-700"
+                                                                disabled={
+                                                                    isLoading
+                                                                }
                                                             >
-                                                                Study Materials
-                                                            </Link>
-                                                        </button>
+                                                                <FaTrash />
+                                                            </button>
+                                                            <button className="btn border-none bg-[#303030] text-white hover:bg-[#42604C]">
+                                                                <Link
+                                                                    href={`/study-materials/index/${subtopic.id}`}
+                                                                >
+                                                                    Study
+                                                                    Materials
+                                                                </Link>
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             )}
