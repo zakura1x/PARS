@@ -28,6 +28,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':professor,program_head,dean
     Route::post('/topics/{subjectId}/store', [TopicsController::class, 'store'])->name('topics.store');
     Route::post('/topics/reorder/{subjectId}', [TopicsController::class, 'reorderTopics'])->name('topics.reorder');
     Route::get('/topics/edit/{subjectId}', [TopicsController::class, 'editView'])->name('topics.edit');
+    Route::delete('/topics/delete/{topicId}', [TopicsController::class, 'delete'])->name('topic-delete');
 
     //Student Performance
     Route::get('/student/performance', [ProgramHeadDashboardController::class, 'studentAverages'])->name('student.performance');
@@ -87,7 +88,8 @@ Route::middleware(['auth', RoleMiddleware::class . ':professor,program_head,dean
     //Fork the assessment
     Route::post('/assessment/copy/{assessmentId}', [AssessmentCreateController::class, 'forkAssessment'])->name('assessment.fork');
     //Delete the assessment
-    Route::delete('/assessment/delete/{assessmentId}', [AssessmentController::class, 'destroy'])->name('assessment.delete');
+    Route::delete('/assessment/delete/
+    {assessmentId}', [AssessmentController::class, 'destroy'])->name('assessment.delete');
 
     //Assessment Prof View Start of Assessment
     Route::put('/assessment/update/to/wait/{assessmentId}', [AssessmentController::class,'updateToWait'])->name('assessment.update.wait');

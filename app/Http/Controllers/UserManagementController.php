@@ -20,19 +20,40 @@ class UserManagementController extends Controller
     {
         $searchQuery = $request->input('search', '');
 
-        $users = User::whereIn('role', ['professor', 'program_head', 'dean'])
-        ->when($searchQuery, function ($query, $searchQuery) {
-            $query->where(function ($q) use ($searchQuery) {
-                $q->where('first_name', 'like', '%' . $searchQuery . '%')
-                  ->orWhere('last_name', 'like', '%' . $searchQuery . '%')
-                  ->orWhere('email', 'like', '%' . $searchQuery . '%');
+        $users = User::with(['professor', 'programHead', 'dean', 'student'])
+            ->whereIn('role', ['professor', 'program_head', 'dean'])
+            ->when($searchQuery, function ($query, $searchQuery) {
+                $query->where(function ($q) use ($searchQuery) {
+                    $q->where('first_name', 'like', '%' . $searchQuery . '%')
+                    ->orWhere('last_name', 'like', '%' . $searchQuery . '%')
+                    ->orWhere('email', 'like', '%' . $searchQuery . '%');
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->through(function ($user) {
+                $roleData = $user->roleModel();
+                
+                return [
+                    'id' => $user->id,
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'email' => $user->email,
+                    'idNumber' => $user->idNumber,
+                    'role' => $user->role,
+                    'gender' => $roleData->gender ?? null,
+                    'birthdate' => $roleData->birth_date ?? null,
+                    'professor' => $user->professor,
+                    'program_head' => $user->programHead,
+                    'dean' => $user->dean,
+                ];
             });
-        })->latest()->paginate(10);
 
-        return inertia('UserManagement/UserManagement', ['users' => $users, 'searchQuery' => $searchQuery]);
-
+        return inertia('UserManagement/UserManagement', [
+            'users' => $users,
+            'searchQuery' => $searchQuery
+        ]);
     }
-
     /**
      * Show the form for creating a new resource.
      */
@@ -116,9 +137,8 @@ class UserManagementController extends Controller
      */
     public function edit(Request $request, string $id)
     {
-        $user = User::findOrFail($id);
+        $user = User::with(['professor', 'programHead', 'dean'])->findOrFail($id);
 
-        // Validate the user data
         $validateUser = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -134,18 +154,31 @@ class UserManagementController extends Controller
             'birthdate' => 'required|date|before:today',
         ]);
 
+        // Update user
         $user->update([
             'first_name' => $validateUser['first_name'],
             'last_name' => $validateUser['last_name'],
-            'email'=> $validateUser['email'],
+            'email' => $validateUser['email'],
             'role' => $validateUser['role'],
-            // 'gender' => $validateUser['gender'],
-            // 'birth_date' => $validateUser['birthdate'],
         ]);
+
+        // Get or create the role-specific model
+        $roleModel = match($user->role) {
+            'professor' => $user->professor()->firstOrNew(),
+            'program_head' => $user->programHead()->firstOrNew(),
+            'dean' => $user->dean()->firstOrNew(),
+            default => null,
+        };
+
+        if ($roleModel) {
+            $roleModel->fill([
+                'gender' => $validateUser['gender'],
+                'birth_date' => $validateUser['birthdate'],
+            ])->save();
+        }
 
         return redirect('userList')->with('message', 'The User was Edited Successfully');
     }
-
     /**
      * Remove the specified resource from storage.
      */

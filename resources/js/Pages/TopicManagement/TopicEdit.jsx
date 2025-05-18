@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { useForm, usePage, Link, router } from "@inertiajs/react";
+import { FaTrash } from "react-icons/fa";
 import AddSubtopicsModal from "../../components/TopicManagement/AddSubtopicsModal";
 
 const TopicEdit = () => {
@@ -132,7 +133,6 @@ const TopicEdit = () => {
                                     className="space-y-4"
                                 >
                                     {sortedSubtopics.map((subtopic, index) => (
-                                        // Inside your TopicEdit component, modify the Draggable section:
                                         <Draggable
                                             key={subtopic.id}
                                             draggableId={subtopic.id.toString()}

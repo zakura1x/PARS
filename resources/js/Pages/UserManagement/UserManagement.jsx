@@ -16,7 +16,6 @@ const UserManagement = () => {
         last_name: "",
         email: "",
         idNumber: "",
-        //profilePhoto: "",
         role: "",
         birthdate: "",
         gender: "",
@@ -29,7 +28,6 @@ const UserManagement = () => {
         }
         setSearchQuery(e.target.value);
 
-        // Update the user list page
         router.get(
             "/UserList",
             { search: searchQuery },
@@ -47,16 +45,39 @@ const UserManagement = () => {
 
         const url = data.id ? `/users/edit/${data.id}` : `/register`;
 
-        //post
-        post(url, {
-            onSuccess: () => {
-                reset();
-                setShowModal(false);
-            },
-            onError: (e) => {
-                console.log(e);
-            },
-        });
+        // Prepare the data to send
+        const formData = {
+            first_name: data.first_name,
+            last_name: data.last_name,
+            email: data.email,
+            idNumber: data.idNumber,
+            role: data.role,
+            gender: data.gender,
+            birthdate: data.birthdate,
+        };
+
+        // Use put for editing, post for creating
+        if (data.id) {
+            router.put(url, formData, {
+                onSuccess: () => {
+                    reset();
+                    setShowModal(false);
+                },
+                onError: (errors) => {
+                    console.log(errors);
+                },
+            });
+        } else {
+            router.post(url, formData, {
+                onSuccess: () => {
+                    reset();
+                    setShowModal(false);
+                },
+                onError: (errors) => {
+                    console.log(errors);
+                },
+            });
+        }
     };
 
     //Reset the form
@@ -65,21 +86,39 @@ const UserManagement = () => {
         setShowModal(false);
     };
 
-    //Edit the User
+    //Edit the User - Fixed to properly get gender and birthdate from user's role model
+
     const handleEditUser = (user) => {
+        // Determine which role data to use
+        const roleData =
+            user.role === "professor"
+                ? user.professor
+                : user.role === "program_head"
+                ? user.program_head
+                : user.role === "dean"
+                ? user.dean
+                : null;
+
         setData({
             id: user.id,
             first_name: user.first_name,
             last_name: user.last_name,
             email: user.email,
             idNumber: user.idNumber,
-            //profilePhoto: user.profilePhoto,
             role: user.role,
-            birthdate: user.birthdate,
-            gender: user.gender,
-            //isEditing: true,
+            gender: roleData?.gender || "",
+            birthdate: roleData?.birth_date
+                ? formatDateForInput(roleData.birth_date)
+                : "",
         });
         setShowModal(true);
+    };
+
+    // Helper function to format date for input[type="date"]
+    const formatDateForInput = (dateString) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        return date.toISOString().split("T")[0];
     };
 
     return (
@@ -88,7 +127,7 @@ const UserManagement = () => {
             {<FlashMessage message={flash.message} />}
             <Header
                 searchQuery={searchQuery}
-                setSearchQuery={handleSearchChange} // Pass the change handler
+                setSearchQuery={handleSearchChange}
                 setShowModal={setShowModal}
             />
             <UserTable

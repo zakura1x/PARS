@@ -99,6 +99,29 @@ class User extends Authenticatable
         return $this->hasMany(StudentResult::class, 'user_id');
     }
 
+    // Add these to your User model
+    public function programHead()
+    {
+        return $this->hasOne(ProgramHead::class);
+    }
+
+    public function dean()
+    {
+        return $this->hasOne(Dean::class);
+    }
+
+    // Add this method to easily get the role-specific model
+    public function roleModel()
+    {
+        return match($this->role) {
+            'professor' => $this->professor,
+            'program_head' => $this->programHead,
+            'dean' => $this->dean,
+            'student' => $this->student,
+            default => null,
+        };
+    }
+
     public function professor()
     {
         return $this->hasOne(Professor::class);

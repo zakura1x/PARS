@@ -68,10 +68,10 @@ const AddUserModal = ({
                                         first_name: e.target.value,
                                     })
                                 }
-                                className={`${
+                                className={`w-full rounded-md border p-2 ${
                                     errors.first_name
-                                        ? "border-red-500 focus:ring-red-500"
-                                        : "focus:ring-blue-300"
+                                        ? "border-red-500"
+                                        : "border-gray-300"
                                 }`}
                             />
                             {errors.first_name && (
@@ -93,10 +93,10 @@ const AddUserModal = ({
                                         last_name: e.target.value,
                                     })
                                 }
-                                className={`${
+                                className={`w-full rounded-md border p-2 ${
                                     errors.last_name
-                                        ? "border-red-500 focus:ring-red-500"
-                                        : "focus:ring-blue-300"
+                                        ? "border-red-500"
+                                        : "border-gray-300"
                                 }`}
                             />
                             {errors.last_name && (
@@ -106,14 +106,14 @@ const AddUserModal = ({
                             )}
                         </div>
                     </div>
-                    {/* Gender */}
+
+                    {/* Gender and Birthdate */}
                     <div className="grid grid-cols-2 gap-4 mb-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-600 mb-1">
                                 Gender
                             </label>
-                            <input
-                                type="text"
+                            <select
                                 value={data.gender}
                                 onChange={(e) =>
                                     setData({
@@ -121,12 +121,17 @@ const AddUserModal = ({
                                         gender: e.target.value,
                                     })
                                 }
-                                className={`${
+                                className={`w-full rounded-md border p-2 ${
                                     errors.gender
-                                        ? "border-red-500 focus:ring-red-500"
-                                        : "focus:ring-blue-300"
+                                        ? "border-red-500"
+                                        : "border-gray-300"
                                 }`}
-                            />
+                            >
+                                <option value="">Select Gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
                             {errors.gender && (
                                 <p className="text-red-500 text-sm mt-1">
                                     {errors.gender}
@@ -146,11 +151,12 @@ const AddUserModal = ({
                                         birthdate: e.target.value,
                                     })
                                 }
-                                className={`block w-full rounded-md border p-2 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm bg-white ${
+                                className={`w-full rounded-md border p-2 ${
                                     errors.birthdate
-                                        ? "border-red-500 focus:ring-red-500"
-                                        : "focus:ring-blue-300"
+                                        ? "border-red-500"
+                                        : "border-gray-300"
                                 }`}
+                                max={new Date().toISOString().split("T")[0]}
                             />
                             {errors.birthdate && (
                                 <p className="text-red-500 text-sm mt-1">
@@ -233,7 +239,6 @@ const AddUserModal = ({
                             }`}
                         >
                             <option value="program_head">Program Head</option>
-                            <option value="admin">Admin</option>
                             <option value="professor">Professor</option>
                             <option value="dean">Dean</option>
                         </select>
