@@ -11,7 +11,7 @@ export function RecentAssessments({
 
     const handleExamClick = (assessmentId, studentId) => {
         router.get(
-            route("showIndividualAssessment", {
+            route("assessment.student", {
                 assessmentId: assessmentId,
                 studentId: studentId,
             })
